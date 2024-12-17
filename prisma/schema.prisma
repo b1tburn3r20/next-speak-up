@@ -1,0 +1,239 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  username      String?         @unique
+  email         String?         @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  // Optional for WebAuthn support
+  Authenticator Authenticator[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                       String  @id @default(cuid())
+  userId                   String  @unique
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String? @db.Text
+  access_token             String? @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String? @db.Text
+  session_state            String?
+  refresh_token_expires_in Int?
+  user                     User?   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Optional for WebAuthn support
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+}
+
+model CongressMember {
+  id                          Int       @id @default(autoincrement())
+  bioguideId                  String    @unique
+  name                        String? // Could be incomplete data
+  firstName                   String?
+  lastName                    String?
+  honorificName               String?
+  role                        String?
+  state                       String?
+  party                       String?
+  birthYear                   String?
+  sponsoredLegislationCount   Int?
+  cosponsoredLegislationCount Int?
+  updateDate                  DateTime?
+
+  // Nested structures as relations
+  terms        CongressTerm[]
+  partyHistory PartyHistory[]
+  leadership   LeadershipPosition[]
+  depiction    Depiction?
+
+  // Maintain the legislation relations with join tables
+  SponsoredBills   LegislationSponsor[]
+  CosponsoredBills LegislationCosponsor[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Legislation {
+  id              Int       @id @default(autoincrement())
+  name_id         String    @unique // For storing HR9233 format
+  congress        Int?
+  introducedDate  DateTime?
+  number          String?
+  title           String?   @db.Text
+  type            String?
+  url             String?   @db.VarChar(500)
+  amendmentNumber String?
+
+  // Relations
+  policy_area    PolicyArea?   @relation(fields: [policy_area_id], references: [id])
+  policy_area_id Int?
+  latest_action  LatestAction?
+
+  // Maintain the member relations with join tables
+  sponsors   LegislationSponsor[]
+  cosponsors LegislationCosponsor[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LegislationSponsor {
+  legislation       Legislation    @relation(fields: [legislationId], references: [id])
+  legislationId     Int
+  sponsor           CongressMember @relation(fields: [sponsorBioguideId], references: [bioguideId])
+  sponsorBioguideId String
+
+  @@id([legislationId, sponsorBioguideId])
+  @@index([sponsorBioguideId])
+}
+
+// Updated join table for cosponsors using bioguideId
+model LegislationCosponsor {
+  legislation         Legislation    @relation(fields: [legislationId], references: [id])
+  legislationId       Int
+  cosponsor           CongressMember @relation(fields: [cosponsorBioguideId], references: [bioguideId])
+  cosponsorBioguideId String
+
+  @@id([legislationId, cosponsorBioguideId])
+  @@index([cosponsorBioguideId])
+}
+
+model PolicyArea {
+  id          Int           @id @default(autoincrement())
+  name        String?
+  legislation Legislation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LatestAction {
+  id             Int         @id @default(autoincrement())
+  action_date    DateTime?
+  text           String?     @db.Text
+  legislation    Legislation @relation(fields: [legislation_id], references: [id])
+  legislation_id Int         @unique // Changed to Int to match Legislation id
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([legislation_id])
+}
+
+model CongressTerm {
+  id             Int            @id @default(autoincrement())
+  chamber        String?
+  startYear      Int?
+  endYear        Int?
+  congressMember CongressMember @relation(fields: [memberId], references: [id])
+  memberId       Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([memberId])
+}
+
+model PartyHistory {
+  id                Int            @id @default(autoincrement())
+  partyName         String?
+  partyAbbreviation String?
+  startYear         Int?
+  congressMember    CongressMember @relation(fields: [memberId], references: [id])
+  memberId          Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([memberId])
+}
+
+model LeadershipPosition {
+  id             Int            @id @default(autoincrement())
+  congress       Int?
+  type           String?
+  congressMember CongressMember @relation(fields: [memberId], references: [id])
+  memberId       Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([memberId])
+}
+
+model Depiction {
+  id             Int            @id @default(autoincrement())
+  imageUrl       String?
+  attribution    String?
+  congressMember CongressMember @relation(fields: [memberId], references: [id])
+  memberId       Int            @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([memberId])
+}
