@@ -13,19 +13,48 @@ generator client {
 }
 
 model User {
-  id            String          @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  username      String?         @unique
-  email         String?         @unique
+  username      String?   @unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
-  accounts      Account[]
-  sessions      Session[]
-  // Optional for WebAuthn support
-  Authenticator Authenticator[]
+
+  // New demographic fields
+  ageRange        AgeRange?
+  state           String? // US State
+  householdIncome IncomeRange? // Annual household income in USD
+
+  accounts         Account[]
+  sessions         Session[]
+  Authenticator    Authenticator[]
+  favoritedMembers FavoritedCongressMember[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum IncomeRange {
+  UNDER_25000
+  FROM_25000_TO_49999
+  FROM_50000_TO_74999
+  FROM_75000_TO_99999
+  FROM_100000_TO_149999
+  FROM_150000_TO_199999
+  OVER_200000
+  PREFER_NOT_TO_SAY
+}
+
+enum AgeRange {
+  UNDER_18
+  FROM_18_TO_24
+  FROM_25_TO_34
+  FROM_35_TO_44
+  FROM_45_TO_54
+  FROM_55_TO_64
+  FROM_65_TO_74
+  OVER_75
+  PREFER_NOT_TO_SAY
 }
 
 model Account {
@@ -91,7 +120,7 @@ model Authenticator {
 model CongressMember {
   id                          Int       @id @default(autoincrement())
   bioguideId                  String    @unique
-  name                        String? // Could be incomplete data
+  name                        String?
   firstName                   String?
   lastName                    String?
   honorificName               String?
@@ -112,14 +141,31 @@ model CongressMember {
   // Maintain the legislation relations with join tables
   SponsoredBills   LegislationSponsor[]
   CosponsoredBills LegislationCosponsor[]
+  favoritedBy      FavoritedCongressMember[]
+
+  contact            String? // New contact field
+  website            String? // New website field
+  missingContactInfo Boolean? // New field to track missing contact info
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model FavoritedCongressMember {
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  member      CongressMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId    Int
+  favoritedAt DateTime       @default(now())
+
+  @@id([userId, memberId])
+  @@index([memberId])
+  @@index([userId])
+}
+
 model Legislation {
   id              Int       @id @default(autoincrement())
-  name_id         String    @unique // For storing HR9233 format
+  name_id         String?   @unique // For storing 118HR9233 format
   congress        Int?
   introducedDate  DateTime?
   number          String?

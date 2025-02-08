@@ -58,17 +58,7 @@ export function CongressMemberCard({ member }: CongressMemberCardProps) {
               <CardTitle className="text-xl">
                 {member.firstName} {member.lastName}
               </CardTitle>
-              <Badge
-                variant={
-                  member.party === "Republican"
-                    ? "destructive"
-                    : member.party === "Democrat"
-                    ? "default"
-                    : "secondary"
-                }
-              >
-                {member.party}
-              </Badge>
+              <Badge variant="neutral">{member.party}</Badge>
             </div>
             <CardDescription>{member.role}</CardDescription>
           </div>

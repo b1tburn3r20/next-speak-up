@@ -1,8 +1,13 @@
+// app/congress/congress-members/page.tsx
 import { Metadata } from "next";
 import { congressService } from "@/lib/services/congress";
 import { PageHeader } from "@/app/PageComponents/PageHeader";
 import { PageBreadcrumb } from "@/app/PageComponents/PageBreadcrumb";
 import { CongressMemberCard } from "../components/CongressMemberCard";
+import {
+  CongressSearch,
+  CongressPagination,
+} from "./components/CongressSearchAndPagination";
 
 export const metadata: Metadata = {
   title: "Congress Members | Speakup",
@@ -25,11 +30,29 @@ export const metadata: Metadata = {
   ],
 };
 
-export default async function CongressMembersPage() {
-  const { members, pagination } = await congressService.getAllMembers();
+export default async function CongressMembersPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const page = Number(searchParams.page) || 1;
+  const query =
+    typeof searchParams.query === "string" ? searchParams.query : "";
+
+  const { members, pagination } = query
+    ? await congressService.searchMembers(query, page)
+    : await congressService.getAllMembers(page);
 
   const breadcrumbItems = [
-    { label: "Government", href: "/government" },
+    {
+      label: "Sections",
+      dropdown: [
+        { label: "Senate", href: "/government/congress/senate" },
+        { label: "House", href: "/government/congress/house" },
+        { label: "Leadership", href: "/government/congress/leadership" },
+        { label: "Committees", href: "/government/congress/committees" },
+      ],
+    },
     { label: "Congress Members" },
   ];
 
@@ -37,10 +60,12 @@ export default async function CongressMembersPage() {
     <div className="container mx-auto py-6">
       <PageBreadcrumb items={breadcrumbItems} />
       <PageHeader
-        title="All Congress Members"
+        title="All Current Congress Members"
         description={`Showing ${members.length} of ${pagination.total} members`}
         className="mb-6"
       />
+
+      <CongressSearch />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {members.map((member) => (
@@ -48,9 +73,11 @@ export default async function CongressMembersPage() {
         ))}
       </div>
 
-      <div className="mt-6 text-center text-sm text-muted-foreground">
-        Page {pagination.currentPage} of {pagination.pages}
-      </div>
+      <CongressPagination
+        total={pagination.total}
+        currentPage={pagination.currentPage}
+        perPage={pagination.perPage}
+      />
     </div>
   );
 }

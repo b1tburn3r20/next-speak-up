@@ -28,9 +28,6 @@ export const LegislationOverview: React.FC<LegislationOverviewProps> = ({
   cosponsoredTotalBills,
   cosponsoredTotalPassed,
 }) => {
-  console.log("Regular Policy Areas:", topPolicyAreas);
-  console.log("Cosponsored Policy Areas:", cosponsoredTopPolicyAreas);
-
   return (
     <Card className="w-full max-w-md border-none">
       <CardHeader className="pb-2">

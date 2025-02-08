@@ -6,6 +6,8 @@ import {
   ChevronsUpDown,
   CreditCard,
   LogOut,
+  Settings,
+  Settings2,
   Sparkles,
   User,
 } from "lucide-react";
@@ -136,8 +138,8 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <Sparkles className="mr-2" />
-                Upgrade to Pro
+                <Settings className="mr-2" />
+                <Link href="/settings">Settings</Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

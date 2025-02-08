@@ -6,6 +6,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import AuthProvider from "./auth/Provider";
 import PageFooter from "./PageComponents/PageFooter";
+import { Toaster } from "sonner";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -82,6 +83,7 @@ export default function RootLayout({
                 {children}
                 <PageFooter />
               </main>
+              <Toaster />
             </SidebarProvider>
           </ThemeProvider>
         </AuthProvider>

@@ -1,8 +1,7 @@
 "use client";
-import { GaugeCircle, Home, Scale, Signature, Users } from "lucide-react";
+import { GaugeCircle, Home, Scale, Users, Building2, Flag } from "lucide-react";
 import { useSession } from "next-auth/react";
 import * as React from "react";
-
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
@@ -17,40 +16,73 @@ import Link from "next/link";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { status, data: session } = useSession();
 
+  // Get the user's state from the session, if available
+  const userState = session?.user?.state?.toLowerCase() || "";
+
+  // Create the Congress Members URL based on state
+  const congressMembersUrl = userState
+    ? `/congress/congress-members?query=${userState}&page=1`
+    : "/congress/congress-members?page=1";
+
+  // Generate the items for Federal section
+  const getFederalItems = () => {
+    const baseItems = [
+      {
+        title: "Representing You",
+        url: congressMembersUrl,
+      },
+      {
+        title: "All House + Senate",
+        url: "/congress/congress-members",
+      },
+      {
+        title: "Bills",
+        url: "/federal/bills",
+      },
+    ];
+
+    // Add favorites link if user is authenticated
+    if (status === "authenticated" && session?.user?.id) {
+      baseItems.unshift({
+        title: "My Favorites",
+        url: `/congress/congress-members/favorites`,
+      });
+    }
+
+    return baseItems;
+  };
+
   const data = {
     navMain: [
       {
-        title: "Affecting You",
+        title: "State",
         url: "#",
-        icon: Scale,
+        icon: Building2,
         items: [
-          { title: "Just passed", url: "#" },
-          { title: "Upcoming", url: "#" },
+          { title: "Voting Soon", url: "/state/bills/upcoming" },
+          { title: "Recently Passed", url: "/state/bills/upcoming/" },
+          { title: "Representatives", url: "/state/representatives" },
         ],
       },
       {
-        title: "People in Power",
-        url: "/congress",
+        title: "Federal",
+        url: "#",
+        icon: Flag,
+        items: getFederalItems(),
+      },
+      {
+        title: "Dev",
+        url: "#",
         icon: Users,
-        isActive: true,
         items: [
-          { title: "For you", url: "#" },
-          { title: "All House + Senate", url: "/congress/congress-members" },
-        ],
-      },
-      {
-        title: "Contact PIP",
-        url: "#",
-        icon: Signature,
-        items: [
-          { title: "Introduction", url: "#" },
-          { title: "Get Started", url: "#" },
-          { title: "Tutorials", url: "#" },
-          { title: "Changelog", url: "#" },
+          {
+            title: "Add Contacts to Congress Members",
+            url: "/dev/add-contacts",
+          },
         ],
       },
     ],
-    base: [
+    projects: [
       {
         name: "Dashboard",
         url: "/dashboard",
@@ -101,7 +133,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.base} />
+        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>{renderFooter()}</SidebarFooter>
       <SidebarRail />

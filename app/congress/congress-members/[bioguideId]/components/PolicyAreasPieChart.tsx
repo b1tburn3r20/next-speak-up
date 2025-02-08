@@ -2,7 +2,7 @@
 import * as React from "react";
 import { Label, Pie, PieChart, Sector } from "recharts";
 import { PieSectorDataItem } from "recharts/types/polar/Pie";
-
+import { PolicyAreaInfo } from "./PolicyAreaLegendPopover";
 import {
   Card,
   CardContent,
@@ -40,12 +40,12 @@ export function PolicyAreasPieChart({
 
   // Transform policy areas data for the chart and sort by value
   const policyData = topPolicyAreas
+    .sort((a, b) => b.count - a.count)
     .slice(0, 3)
     .map((area) => ({
       name: area.policy_area?.name || "Unnamed Policy",
       value: area.count,
-    }))
-    .sort((a, b) => b.value - a.value);
+    }));
 
   // Assign colors after sorting to maintain consistency
   const coloredPolicyData = policyData.map((item, index) => ({
@@ -74,7 +74,7 @@ export function PolicyAreasPieChart({
   ) satisfies ChartConfig;
 
   return (
-    <Card data-chart={id} className="flex flex-col border-none">
+    <Card data-chart={id} className="flex flex-col rounded-none shadow-none">
       <ChartStyle id={id} config={chartConfig} />
       <CardHeader className="pb-0">
         <div className="flex flex-col space-y-2">
@@ -96,7 +96,12 @@ export function PolicyAreasPieChart({
                 }}
               />
               <div className="flex flex-col">
-                <span className="text-xl font-bold">{item.name}</span>
+                <div className="flex items-start gap-2">
+                  <span className="text-xl font-bold">{item.name}</span>
+                  <div className="mt-1">
+                    <PolicyAreaInfo policyArea={item.name} />
+                  </div>
+                </div>
                 <span className="text-lg text-muted-foreground">
                   {item.value} bills (
                   {((item.value / totalBills) * 100).toFixed(1)}%)
@@ -177,7 +182,7 @@ export function PolicyAreasPieChart({
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Total Bills
+                          Top Bills
                         </tspan>
                       </text>
                     );

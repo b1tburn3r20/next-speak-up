@@ -5,6 +5,7 @@ import { CongressMemberConciseCard } from "./components/CongressMemberConciseCar
 import { PageBreadcrumb } from "@/app/PageComponents/PageBreadcrumb";
 import { PageHeader } from "@/app/PageComponents/PageHeader";
 import { PolicyAreasTabsCard } from "./components/PolicyAreasTabsCard";
+import { CongressLatestBills } from "./components/CongressLatestBills";
 
 type BreadcrumbItem = {
   label: string;
@@ -17,10 +18,29 @@ export default async function CongressMemberPage({
 }: {
   params: { bioguideId: string };
 }) {
-  const [member, legislationStats] = await Promise.all([
-    congressService.getMemberById(params.bioguideId),
-    legislationService.getAllLegislationStats(params.bioguideId),
-  ]);
+  const [member, legislationStats, sponsoredBills, cosponsoredBills] =
+    await Promise.all([
+      congressService.getMemberById(params.bioguideId),
+      legislationService.getAllLegislationStats(params.bioguideId),
+      legislationService.getMemberBills({
+        bioguideId: params.bioguideId,
+        page: 1,
+        limit: 5,
+        includeSponsored: true,
+        includeCosponsored: false,
+        sortBy: "introducedDate",
+        sortOrder: "desc",
+      }),
+      legislationService.getMemberBills({
+        bioguideId: params.bioguideId,
+        page: 1,
+        limit: 5,
+        includeSponsored: false,
+        includeCosponsored: true,
+        sortBy: "introducedDate",
+        sortOrder: "desc",
+      }),
+    ]);
 
   if (!member) {
     notFound();
@@ -37,7 +57,10 @@ export default async function CongressMemberPage({
         { label: "Committees", href: "/government/congress/committees" },
       ],
     },
-    { label: "Members", href: "/government/congress/members" },
+    {
+      label: "Congress Members",
+      href: "/congress/congress-members",
+    },
     { label: `${member.firstName} ${member.lastName}` },
   ];
 
@@ -55,12 +78,19 @@ export default async function CongressMemberPage({
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-1/2">
             <CongressMemberConciseCard member={member} />
+            <CongressLatestBills
+              sponsoredBills={sponsoredBills.bills}
+              cosponsoredBills={cosponsoredBills.bills}
+              title={`Latest Bills by ${member.firstName} ${member.lastName}`}
+            />
           </div>
 
           <div className="w-full md:w-1/2">
             <PolicyAreasTabsCard stats={legislationStats} />
           </div>
         </div>
+
+        <div className="mt-6"></div>
       </div>
     </div>
   );
