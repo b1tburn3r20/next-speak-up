@@ -64,6 +64,27 @@ export const userService = {
     });
   },
 
+  async toggleOnboardingStatus(userId: string) {
+    // First get the current user to check their onboarding status
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { needsOnboarding: true },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Toggle the status
+    return prisma.user.update({
+      where: { id: userId },
+      data: {
+        needsOnboarding: !user.needsOnboarding,
+        updatedAt: new Date(),
+      },
+    });
+  },
+
   async deleteUser(userId: string) {
     // First delete related records
     await Promise.all([

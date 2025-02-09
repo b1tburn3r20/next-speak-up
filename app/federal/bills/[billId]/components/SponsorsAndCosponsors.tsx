@@ -40,7 +40,7 @@ export const SponsorsAndCosponsors = ({
   <Card className="shadow-md">
     <CardHeader className="">
       <CardTitle className="flex items-center text-lg font-semibold">
-        <span>Sponsor / Introduced By</span>
+        <span>Sponsored / Introduced By</span>
       </CardTitle>
     </CardHeader>
     <CardContent className="">

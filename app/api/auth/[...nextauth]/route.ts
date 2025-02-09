@@ -4,7 +4,6 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/prisma/client";
 import { AgeRange, IncomeRange } from "@prisma/client";
 
-// Extend the built-in session types
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
@@ -16,6 +15,7 @@ declare module "next-auth" {
       state: string | null;
       ageRange: AgeRange | null;
       householdIncome: IncomeRange | null;
+      needsOnboarding: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -29,8 +29,36 @@ export const authOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+          select: {
+            id: true,
+            username: true,
+            state: true,
+            ageRange: true,
+            householdIncome: true,
+          },
+        });
+
+        // If user doesn't exist or is missing required fields, they need onboarding
+        if (
+          !existingUser ||
+          !existingUser.username ||
+          !existingUser.state ||
+          !existingUser.ageRange ||
+          !existingUser.householdIncome
+        ) {
+          // For new users, needsOnboarding will be set to true by default in the schema
+          return true;
+        }
+      }
+      return true;
+    },
+
     session: async ({ session, user }) => {
-      // Fetch full user data from database
+      // Fetch full user data from database including needsOnboarding
       const fullUser = await prisma.user.findUnique({
         where: { id: user.id },
         select: {
@@ -42,6 +70,7 @@ export const authOptions = {
           state: true,
           ageRange: true,
           householdIncome: true,
+          needsOnboarding: true, // Add this line
         },
       });
 
@@ -50,13 +79,12 @@ export const authOptions = {
         user: {
           ...session.user,
           ...fullUser,
+          // Ensure needsOnboarding is included and defaults to true if undefined
+          needsOnboarding: fullUser?.needsOnboarding ?? true,
         },
       };
     },
   },
-  // pages: {
-  //     signIn: '/login'
-  // }
 };
 
 const handler = NextAuth(authOptions);
