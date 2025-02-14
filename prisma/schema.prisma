@@ -118,9 +118,19 @@ model Authenticator {
   @@id([userId, credentialID])
 }
 
+model CongressSession {
+  congress   Int
+  bioguideId String
+  member     CongressMember @relation(fields: [bioguideId], references: [bioguideId])
+
+  @@id([congress, bioguideId])
+  @@index([congress])
+  @@index([bioguideId])
+}
+
 model CongressMember {
-  id                          Int       @id @default(autoincrement())
-  bioguideId                  String    @unique
+  id                          Int               @id @default(autoincrement())
+  bioguideId                  String            @unique
   name                        String?
   firstName                   String?
   lastName                    String?
@@ -132,21 +142,24 @@ model CongressMember {
   sponsoredLegislationCount   Int?
   cosponsoredLegislationCount Int?
   updateDate                  DateTime?
+  sessions                    CongressSession[]
 
   // Nested structures as relations
   terms        CongressTerm[]
   partyHistory PartyHistory[]
   leadership   LeadershipPosition[]
   depiction    Depiction?
+  votes        MemberVote[]         @relation("CongressMemberVotes") // This is the only MemberVote relation we need
 
   // Maintain the legislation relations with join tables
   SponsoredBills   LegislationSponsor[]
   CosponsoredBills LegislationCosponsor[]
   favoritedBy      FavoritedCongressMember[]
 
-  contact            String? // New contact field
-  website            String? // New website field
-  missingContactInfo Boolean? // New field to track missing contact info
+  district           String?
+  contact            String?
+  website            String?
+  missingContactInfo Boolean?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -164,6 +177,74 @@ model FavoritedCongressMember {
   @@index([userId])
 }
 
+// New Vote-related models
+model Vote {
+  id          Int      @id @default(autoincrement())
+  congress    Int
+  chamber     Chamber // house or senate
+  rollNumber  Int // roll_number in the data
+  date        DateTime
+  time        String? // Some votes have specific times recorded
+  description String?  @db.Text
+  question    String?  @db.Text
+  result      String? // "Passed", "Failed", etc.
+
+  // Bill reference fields
+  billNumber  String? // Raw format from vote data e.g. "H RES 161"
+  // name_id is constructed as: congress + billNumber without spaces
+  // e.g. for congress=110, billNumber="H RES 161" -> name_id="110HRES161"
+  legislation Legislation? @relation(fields: [name_id], references: [name_id])
+  name_id     String? // Normalized ID for joining with legislation
+
+  // Individual member votes
+  memberVotes MemberVote[]
+
+  // Vote totals as they appear in the data
+  totalYea       Int
+  totalNay       Int
+  totalNotVoting Int
+  totalPresent   Int  @default(0) // Not all votes have this
+  totalVoting    Int? // Some records include this
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([congress, chamber, rollNumber])
+  @@index([congress])
+  @@index([date])
+  @@index([name_id])
+}
+
+model MemberVote {
+  id           Int            @id @default(autoincrement())
+  vote         Vote           @relation(fields: [voteId], references: [id])
+  voteId       Int
+  member       CongressMember @relation("CongressMemberVotes", fields: [memberId], references: [id])
+  memberId     Int
+  votePosition VotePosition
+  party        String?
+  state        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([voteId, memberId])
+  @@index([voteId])
+  @@index([memberId])
+}
+
+enum Chamber {
+  HOUSE
+  SENATE
+}
+
+enum VotePosition {
+  YEA
+  NAY
+  PRESENT
+  NOT_VOTING
+}
+
 model Legislation {
   id              Int       @id @default(autoincrement())
   name_id         String?   @unique // For storing 118HR9233 format
@@ -174,15 +255,20 @@ model Legislation {
   type            String?
   url             String?   @db.VarChar(500)
   amendmentNumber String?
+  summary         String?   @db.Text
 
   // Relations
   policy_area    PolicyArea?   @relation(fields: [policy_area_id], references: [id])
   policy_area_id Int?
   latest_action  LatestAction?
+  votes          Vote[] // Add this new relation
 
   // Maintain the member relations with join tables
   sponsors   LegislationSponsor[]
   cosponsors LegislationCosponsor[]
+
+  // need to incoorporate the votes on the legislation if there
+  // 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

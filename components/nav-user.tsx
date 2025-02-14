@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
   Settings,
-  Settings2,
   Sparkles,
   User,
 } from "lucide-react";
@@ -30,6 +27,7 @@ import {
 } from "@/components/ui/sidebar";
 import { ModeToggle } from "./ui/mode-toggle";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function NavUser({
   user,
@@ -40,16 +38,11 @@ export function NavUser({
     avatar: string;
   };
 }) {
+  const router = useRouter();
   const { isMobile } = useSidebar();
   const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
-    console.log("NavUser mounted with user:", {
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-    });
-    // Reset image error state when user changes
     setImageError(false);
   }, [user]);
 
@@ -59,9 +52,6 @@ export function NavUser({
     console.error("Avatar failed to load:", {
       src: user.avatar,
       error: e.currentTarget.error,
-      crossOrigin: e.currentTarget.crossOrigin,
-      naturalHeight: e.currentTarget.naturalHeight,
-      naturalWidth: e.currentTarget.naturalWidth,
     });
     setImageError(true);
   };
@@ -71,7 +61,25 @@ export function NavUser({
     setImageError(false);
   };
 
-  // Function to render avatar content
+  const startQuickstart = async () => {
+    try {
+      const response = await fetch("/api/user/onboarding", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to start quickstart");
+      }
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Error starting quickstart:", error);
+    }
+  };
+
   const renderAvatarContent = () => {
     if (!user.avatar || imageError) {
       return (
@@ -137,20 +145,22 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Settings className="mr-2" />
-                <Link href="/settings">Settings</Link>
-              </DropdownMenuItem>
+              <Link href="/settings">
+                <DropdownMenuItem>
+                  <Settings className="mr-2" />
+                  Settings
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+              <DropdownMenuItem onClick={startQuickstart}>
+                <Sparkles className="mr-2" />
+                Quickstart
+              </DropdownMenuItem>
               <DropdownMenuItem>
                 <BadgeCheck className="mr-2" />
                 Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard className="mr-2" />
-                Billing
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Bell className="mr-2" />

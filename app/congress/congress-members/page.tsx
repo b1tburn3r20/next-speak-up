@@ -41,7 +41,7 @@ export default async function CongressMembersPage({
 
   const { members, pagination } = query
     ? await congressService.searchMembers(query, page)
-    : await congressService.getAllMembers(page);
+    : await congressService.getMembersBySession(118, page);
 
   const breadcrumbItems = [
     {

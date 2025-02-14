@@ -22,6 +22,7 @@ export type CongressMember = {
   leadership: LeadershipPosition[];
   depiction: Depiction | null;
   favoritedBy?: { userId: string; favoritedAt: Date }[];
+  district?: string;
 };
 
 export type CongressTerm = {
@@ -70,7 +71,11 @@ export const congressService = {
     });
   },
 
-  async toggleFavoriteMember(userId: string, memberId: number) {
+  async toggleFavoriteMember(
+    userId: string,
+    memberId: number,
+    favoriteState?: boolean
+  ) {
     const existing = await prisma.favoritedCongressMember.findUnique({
       where: {
         userId_memberId: {
@@ -80,6 +85,30 @@ export const congressService = {
       },
     });
 
+    // If favoriteState is provided, use it to determine action
+    if (favoriteState !== undefined) {
+      if (favoriteState && !existing) {
+        return prisma.favoritedCongressMember.create({
+          data: {
+            userId,
+            memberId,
+          },
+        });
+      }
+      if (!favoriteState && existing) {
+        return prisma.favoritedCongressMember.delete({
+          where: {
+            userId_memberId: {
+              userId,
+              memberId,
+            },
+          },
+        });
+      }
+      return existing; // No action needed if state matches
+    }
+
+    // Original toggle behavior if no state provided
     if (existing) {
       return prisma.favoritedCongressMember.delete({
         where: {
@@ -262,19 +291,39 @@ export const congressService = {
     const skip = (page - 1) * limit;
     const searchQuery = query.trim();
 
-    const [members, total] = await Promise.all([
-      prisma.congressMember.findMany({
-        where: {
+    const whereClause = {
+      AND: [
+        {
+          sessions: {
+            some: {
+              congress: 118,
+            },
+          },
+        },
+        {
           OR: [
-            { name: { contains: searchQuery } },
-            { firstName: { contains: searchQuery } },
-            { lastName: { contains: searchQuery } },
+            { bioguideId: searchQuery },
+            {
+              AND: searchQuery.split(" ").map((term) => ({
+                OR: [
+                  { name: { contains: term } },
+                  { firstName: { contains: term } },
+                  { lastName: { contains: term } },
+                ],
+              })),
+            },
             { state: { contains: searchQuery } },
             { birthYear: { contains: searchQuery } },
             { terms: { some: { chamber: { contains: searchQuery } } } },
             { role: { contains: searchQuery } },
           ],
         },
+      ],
+    };
+
+    const [members, total] = await Promise.all([
+      prisma.congressMember.findMany({
+        where: whereClause,
         skip,
         take: limit,
         orderBy: { name: "asc" },
@@ -282,17 +331,7 @@ export const congressService = {
       }),
 
       prisma.congressMember.count({
-        where: {
-          OR: [
-            { name: { contains: searchQuery } },
-            { firstName: { contains: searchQuery } },
-            { lastName: { contains: searchQuery } },
-            { state: { contains: searchQuery } },
-            { birthYear: { contains: searchQuery } },
-            { terms: { some: { chamber: { contains: searchQuery } } } },
-            { role: { contains: searchQuery } },
-          ],
-        },
+        where: whereClause,
       }),
     ]);
 
@@ -392,5 +431,42 @@ export const congressService = {
         congress: "asc",
       },
     });
+  },
+  async getMembersBySession(congress: number, page = 1, limit = 50) {
+    const skip = (page - 1) * limit;
+    const [members, total] = await Promise.all([
+      prisma.congressMember.findMany({
+        where: {
+          sessions: {
+            some: {
+              congress,
+            },
+          },
+        },
+        skip,
+        take: limit,
+        orderBy: { name: "asc" },
+        include: includeRelations,
+      }),
+      prisma.congressMember.count({
+        where: {
+          sessions: {
+            some: {
+              congress,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      members,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page,
+        perPage: limit,
+      },
+    };
   },
 };
