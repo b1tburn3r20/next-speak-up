@@ -96,6 +96,7 @@ const LegislationSearch = ({
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 className="flex-1"
+                autoFocus
               />
               <Button onClick={handleSearch} disabled={isLoading}>
                 <Search className="w-4 h-4 mr-2" />
@@ -126,9 +127,14 @@ const LegislationSearch = ({
 
       {isLoading ? (
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <ResultSkeleton key={i} />
-          ))}
+          <div>
+            <Skeleton className="h-6 w-1/4" />
+          </div>
+          <div>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
+              <ResultSkeleton key={i} />
+            ))}
+          </div>
         </div>
       ) : results.length > 0 ? (
         <div className="space-y-4">
@@ -146,8 +152,15 @@ const LegislationSearch = ({
           ))}
         </div>
       ) : (
-        <div className="text-center py-8 text-muted-foreground">
-          No results found
+        <div className="space-y-4">
+          <div>
+            <Skeleton className="h-6 w-1/4" />
+          </div>
+          <div>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
+              <ResultSkeleton key={i} />
+            ))}
+          </div>
         </div>
       )}
     </div>

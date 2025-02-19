@@ -3,24 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-
-type Bill = {
-  id: number;
-  title: string | null;
-  type: string | null;
-  number: string | null;
-  introducedDate: Date | null;
-  url: string | null;
-  name_id: string | null;
-};
+import { SponsoredLegislation } from "@/lib/services/legislation";
+import type { Legislation } from "@prisma/client";
 
 type CongressLatestBillsProps = {
-  sponsoredBills: Bill[];
-  cosponsoredBills: Bill[];
+  sponsoredBills: SponsoredLegislation[];
+  cosponsoredBills: SponsoredLegislation[];
   title?: string;
 };
 
-const BillLink = ({ bill }: { bill: Bill }) => (
+const BillLink = ({ bill }: { bill: Legislation }) => (
   <div className="py-2">
     <Link
       href={`/federal/bills/${bill.name_id?.toLowerCase()}`}

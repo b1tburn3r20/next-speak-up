@@ -27,8 +27,8 @@ interface PolicyAreasPieChartProps {
     } | null;
     count: number;
   }[];
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
 }
 
 export function PolicyAreasPieChart({

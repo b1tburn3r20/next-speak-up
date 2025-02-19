@@ -10,7 +10,7 @@ import { CongressLatestBills } from "./components/CongressLatestBills";
 import { CongressMemberVotesCard } from "./components/CongressMemberVotesCard";
 import { CongressMemberVoteTabs } from "./components/CongressMemberVotesTabs";
 import CongressMemberGradeCard from "./components/CongressMemberGrade";
-
+import { SponsoredLegislation } from "@/lib/services/legislation";
 type BreadcrumbItem = {
   label: string;
   href?: string;
@@ -71,7 +71,7 @@ export default async function CongressMemberPage({
     },
     { label: `${member.firstName} ${member.lastName}` },
   ];
-
+  console.log(member.role);
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex flex-col space-y-6">
@@ -87,23 +87,31 @@ export default async function CongressMemberPage({
           <div className="w-full md:w-1/2 space-y-6">
             <div className="flex gap-2">
               <CongressMemberConciseCard member={member} />
-              <CongressMemberGradeCard grade={memberGrade} />
+              {member.role !== "Senator" && (
+                <CongressMemberGradeCard grade={memberGrade} />
+              )}
             </div>
-            <CongressMemberVotesCard
-              recentVotes={recentVotes}
-              voteStats={voteStats}
-              memberName={`${member.firstName} ${member.lastName}`}
-            />
+            {member.role !== "Senator" && (
+              <CongressMemberVotesCard
+                initialVotes={recentVotes}
+                bioguideId={member.bioguideId}
+                firstName={member.firstName}
+                lastName={member.lastName}
+              />
+            )}
           </div>
 
           <div className="w-full md:w-1/2 space-y-6">
             <PolicyAreasTabsCard stats={legislationStats} />
-            <CongressMemberVoteTabs
-              stats={voteStats}
-              votesByPolicyArea={votesByPolicyArea}
-            />
+            {member.role !== "Senator" && (
+              <CongressMemberVoteTabs
+                stats={voteStats}
+                votesByPolicyArea={votesByPolicyArea}
+              />
+            )}
+
             <CongressLatestBills
-              sponsoredBills={sponsoredBills.bills}
+              sponsoredBills={sponsoredBills.bills as SponsoredLegislation[]}
               cosponsoredBills={cosponsoredBills.bills}
               title={`Latest Bills by ${member.firstName} ${member.lastName}`}
             />

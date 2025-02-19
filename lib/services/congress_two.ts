@@ -1,5 +1,6 @@
 // app/lib/services/congress_two.ts
 import prisma from "@/prisma/client";
+import { VotePosition } from "@prisma/client";
 import type { CongressMember } from "./congress";
 
 export type VoteStats = {
@@ -51,7 +52,24 @@ export type PolicyAreaVoteCount = {
     date: Date;
   }[];
 };
+export interface SearchMemberVotesParams {
+  bioguideId: string;
+  query?: string;
+  tags?: string[];
+  page?: number;
+  limit?: number;
+  votePosition?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
+  policyArea?: string;
+}
 
+export interface SearchMemberVotesResponse {
+  votes: RecentVote[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
 export type VotesByPolicyArea = {
   all: PolicyAreaVoteCount[];
   yea: PolicyAreaVoteCount[];
@@ -348,7 +366,8 @@ export const congressVotesService = {
         name: "Vote Attendance",
         grade: attendanceGrade,
         score: attendanceScore,
-        description: "Percentage of votes where member cast a Yea or Nay vote",
+        description:
+          "We calculated this metric based on how often they vote, any time they dont vote it counts as an absence.",
       },
     ];
 
@@ -358,6 +377,135 @@ export const congressVotesService = {
       overall: attendanceGrade,
       overallScore: attendanceScore,
       metrics,
+    };
+  },
+  async searchMemberVotes({
+    bioguideId,
+    query = "",
+    tags = [],
+    page = 1,
+    limit = 10,
+    votePosition,
+    dateFrom,
+    dateTo,
+    policyArea,
+  }: SearchMemberVotesParams): Promise<SearchMemberVotesResponse> {
+    const skip = (page - 1) * limit;
+
+    const member = await prisma.congressMember.findUnique({
+      where: { bioguideId },
+      select: { id: true },
+    });
+
+    if (!member) {
+      return {
+        votes: [],
+        total: 0,
+        page,
+        totalPages: 0,
+      };
+    }
+
+    // Base search conditions
+    const whereConditions = {
+      AND: [
+        {
+          memberVotes: {
+            some: {
+              memberId: member.id,
+              ...(votePosition
+                ? { votePosition: votePosition as VotePosition }
+                : {}),
+            },
+          },
+        },
+        ...(dateFrom || dateTo
+          ? [
+              {
+                date: {
+                  ...(dateFrom && { gte: dateFrom }),
+                  ...(dateTo && { lte: dateTo }),
+                },
+              },
+            ]
+          : []),
+        // Handle query separately from tags
+        ...(query
+          ? [
+              {
+                OR: [
+                  { billNumber: { contains: query } },
+                  { description: { contains: query } },
+                  { question: { contains: query } },
+                ],
+              },
+            ]
+          : []),
+        // Each tag becomes its own AND condition requiring it to be present
+        ...tags.map((tag) => ({
+          OR: [
+            { billNumber: { contains: tag } },
+            { description: { contains: tag } },
+            { question: { contains: tag } },
+          ],
+        })),
+        ...(policyArea
+          ? [
+              {
+                legislation: {
+                  policy_area: {
+                    name: policyArea,
+                  },
+                },
+              },
+            ]
+          : []),
+      ],
+    };
+
+    // Get votes with all necessary relations
+    const votes = await prisma.vote.findMany({
+      where: whereConditions,
+      include: {
+        legislation: {
+          include: {
+            policy_area: true,
+          },
+        },
+        memberVotes: {
+          where: {
+            memberId: member.id,
+          },
+          take: 1,
+        },
+      },
+      orderBy: {
+        date: "desc",
+      },
+      skip,
+      take: limit,
+    });
+
+    // Get total count for pagination
+    const total = await prisma.vote.count({
+      where: whereConditions,
+    });
+
+    // Map the votes to the expected format
+    const mappedVotes = votes.map((vote) => ({
+      date: vote.date,
+      billName: vote.billNumber,
+      billTitle: vote.legislation?.title || vote.description || null,
+      votePosition: vote.memberVotes[0]?.votePosition || "NOT_VOTING",
+      billNameId: vote.name_id,
+      policyArea: vote.legislation?.policy_area?.name || null,
+    }));
+
+    return {
+      votes: mappedVotes,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
     };
   },
 };

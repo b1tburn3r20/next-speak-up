@@ -255,15 +255,23 @@ model Legislation {
   type            String?
   url             String?   @db.VarChar(500)
   amendmentNumber String?
-  summary         String?   @db.Text
+
+  // Summary fields
+  summary             String? @db.Text
+  ai_summary          String? @db.Text
+  fine_print          String? @db.Text
+  hidden_implications String? @db.Text
+  key_terms           String? @db.Text
+  word_count          Int?
+  bill_size           String?
 
   // Relations
   policy_area    PolicyArea?   @relation(fields: [policy_area_id], references: [id])
   policy_area_id Int?
   latest_action  LatestAction?
-  votes          Vote[] // Add this new relation
+  votes          Vote[]
 
-  // Maintain the member relations with join tables
+  // member relations with join tables
   sponsors   LegislationSponsor[]
   cosponsors LegislationCosponsor[]
 

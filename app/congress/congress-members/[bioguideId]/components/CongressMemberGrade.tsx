@@ -49,7 +49,7 @@ export default function CongressMemberGradeCard({
   };
 
   return (
-    <Card className="p-6  shadow-lg border-none">
+    <Card className="p-6  shadow-lg h-fit border-none">
       <HoverCard openDelay={200}>
         <HoverCardTrigger>
           <div className="flex items-center justify-between cursor-default group">
