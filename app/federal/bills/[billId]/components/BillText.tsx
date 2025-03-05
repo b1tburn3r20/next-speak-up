@@ -60,8 +60,12 @@ const BillText = ({ congress, type, number }) => {
       </CardHeader>
       <CardContent>
         {!billText && !isBillLoading && !error && (
-          <Button onClick={fetchBillText} className="w-full">
-            Load Full Bill Text
+          <Button
+            variant="outline"
+            onClick={fetchBillText}
+            className="w-full font-bold"
+          >
+            See full bill
           </Button>
         )}
 

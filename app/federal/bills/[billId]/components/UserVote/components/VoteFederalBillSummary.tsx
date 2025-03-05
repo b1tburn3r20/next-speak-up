@@ -7,8 +7,20 @@ import BillSummary from "../../Summary/BillSummary";
 
 interface VoteFederalBillSummaryProps {
   bill: Legislation;
+  hideDictionary?: boolean;
+  className?: string;
 }
 
-export function VoteFederalBillSummary({ bill }: VoteFederalBillSummaryProps) {
-  return <BillSummary bill={bill} className="border-none shadow-none" />;
+export function VoteFederalBillSummary({
+  bill,
+  hideDictionary,
+  className = "",
+}: VoteFederalBillSummaryProps) {
+  return (
+    <BillSummary
+      bill={bill}
+      hideDictionary={hideDictionary}
+      className={className}
+    />
+  );
 }

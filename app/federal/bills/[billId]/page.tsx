@@ -19,6 +19,7 @@ import VoteOnBill from "./components/UserVote/VoteOnBill";
 import { UserFederalLegislationVoteModal } from "./components/UserVote/UserFederalLegislationVoteModal";
 import { Metadata } from "next";
 import { Legislation } from "@prisma/client";
+import BillDetails from "./components/BillDetails";
 
 // Define bill type for type safety
 
@@ -85,7 +86,11 @@ export default async function BillDetailsPage({
     getBillData(params.billId),
     legislationVotesService.getBillVotes(params.billId, session.user.id),
   ]);
-
+  const userInfo = {
+    id: session.user.id,
+    name: session.user.name,
+    image: session.user.image || "/path/to/default/avatar.png", // Fallback to default if no image
+  };
   const breadcrumbItems = [
     { label: "Federal", href: "/federal" },
     { label: "Bills", href: "/federal/bills" },
@@ -107,66 +112,20 @@ export default async function BillDetailsPage({
         <UserFederalLegislationVoteModal
           bill={bill}
           searchParams={searchParams}
+          votes={votes}
+          userInfo={userInfo}
         />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="md:col-span-2 space-y-6">
-            <BillSummary bill={bill} />
+            <BillSummary bill={bill} className="border-none shadow-none" />
+            <BillDetails bill={bill} />
+
             <BillText
               congress={bill.congress}
               type={bill.type}
               number={bill.number}
             />
-            <Card>
-              <CardHeader>
-                <CardTitle>Bill Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <CalendarIcon className="h-4 w-4" />
-                  <span>
-                    Introduced{" "}
-                    {bill.introducedDate
-                      ? format(new Date(bill.introducedDate), "MMMM d, yyyy")
-                      : "Date unknown"}
-                  </span>
-                </div>
-
-                {bill.policy_area?.name && (
-                  <div>
-                    <Badge variant="secondary">{bill.policy_area.name}</Badge>
-                  </div>
-                )}
-
-                {bill.latest_action && (
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-medium">Latest Action</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {bill.latest_action.text}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {bill.latest_action.action_date
-                        ? formatDistanceToNow(
-                            new Date(bill.latest_action.action_date),
-                            { addSuffix: true }
-                          )
-                        : "Date unknown"}
-                    </p>
-                  </div>
-                )}
-
-                {bill.url && (
-                  <Link
-                    href={bill.url}
-                    target="_blank"
-                    className="inline-flex items-center space-x-2 text-sm text-primary hover:text-primary/80"
-                  >
-                    <ExternalLinkIcon className="h-4 w-4" />
-                    <span>View on Congress.gov</span>
-                  </Link>
-                )}
-              </CardContent>
-            </Card>
           </div>
 
           {/* Sidebar */}
