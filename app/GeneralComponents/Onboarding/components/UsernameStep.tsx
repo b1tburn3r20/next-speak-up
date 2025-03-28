@@ -85,7 +85,7 @@ export function UsernameStep() {
   }, [session, setUsername, form]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-sm">
       <Card>
         <CardContent className="pt-6">
           <h3 className="font-medium mb-2">Why Choose a Username? 🤔</h3>

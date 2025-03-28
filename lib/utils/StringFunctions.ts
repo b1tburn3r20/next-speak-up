@@ -33,6 +33,23 @@ export function toPascalCase(text: string): string {
     .replace(/^[a-z]/, (m) => m.toUpperCase());
 }
 
+export function formatBillText(rawText: string): string {
+  if (!rawText) return "";
+
+  let text = rawText
+    // Remove HTML tags
+    .replace(/<[^>]*>/g, "")
+    // Remove XML-style tags
+    .replace(/&lt;[^>]*&gt;/g, "")
+    // Fix HTML entities
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+
+  return text;
+}
+
 /**
  * Formats AgeRange enum values into human-readable text
  */

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -11,20 +11,27 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useOnboardingStore } from "../useOnboardingStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
 import { US_STATES } from "@/lib/constants/states";
-import { CheckCircle } from "lucide-react";
+import { Check, ChevronsUpDown, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const locationSchema = z.object({
@@ -33,8 +40,14 @@ const locationSchema = z.object({
 
 type FormData = z.infer<typeof locationSchema>;
 
+const stateOptions = US_STATES.map((state) => ({
+  value: state,
+  label: state,
+}));
+
 export function LocationStep() {
   const { data: session, update } = useSession();
+  const [open, setOpen] = useState(false);
 
   const state = useOnboardingStore((state) => state.state);
   const setState = useOnboardingStore((state) => state.setState);
@@ -83,14 +96,12 @@ export function LocationStep() {
     }
   };
 
-  // Initialize store from session data
   useEffect(() => {
     if (session?.user && !isInitialized) {
       initializeFromUser(session.user);
     }
   }, [session?.user, isInitialized, initializeFromUser]);
 
-  // Set form value after initialization
   useEffect(() => {
     if (isInitialized && state) {
       form.setValue("state", state);
@@ -99,7 +110,7 @@ export function LocationStep() {
   }, [isInitialized, state, form]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-sm">
       <Card>
         <CardContent className="pt-6">
           <h3 className="font-medium mb-2">Why Share Your State? 🗺️</h3>
@@ -120,37 +131,69 @@ export function LocationStep() {
               <FormItem>
                 <FormLabel>Select Your State</FormLabel>
                 <div className="relative">
-                  <Select
-                    disabled={isUpdating || !isInitialized}
-                    onValueChange={async (value) => {
-                      field.onChange(value);
-                      setState(value);
-                      await updateState(value);
-                    }}
-                    value={field.value || state || ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        disabled={isUpdating || !isInitialized}
                         className={cn(
+                          "w-full justify-between",
                           isValid &&
                             field.value &&
                             "border-green-500 bg-green-500/10 text-green-500"
                         )}
                       >
-                        <SelectValue placeholder="Choose your state" />
-                        {isValid && field.value && (
-                          <CheckCircle className="h-4 w-4 text-green-500 absolute right-8 top-2.5" />
-                        )}
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {US_STATES.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        {field.value
+                          ? stateOptions.find(
+                              (state) => state.value === field.value
+                            )?.label
+                          : "Choose your state"}
+                        <div className="flex items-center">
+                          {isValid && field.value && (
+                            <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                          )}
+                          <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                        </div>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Search states..."
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandEmpty>No state found.</CommandEmpty>
+                          <CommandGroup>
+                            {stateOptions.map((state) => (
+                              <CommandItem
+                                key={state.value}
+                                value={state.value}
+                                onSelect={async (currentValue) => {
+                                  field.onChange(currentValue);
+                                  setState(currentValue);
+                                  await updateState(currentValue);
+                                  setOpen(false);
+                                }}
+                              >
+                                {state.label}
+                                <Check
+                                  className={cn(
+                                    "ml-auto h-4 w-4",
+                                    field.value === state.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <FormDescription>
                   This helps us customize your experience with local

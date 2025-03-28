@@ -17,6 +17,7 @@ type OnboardingStore = {
   ageRange: string;
   householdIncome: string;
   isInitialized: boolean;
+  favoriteCount: number;
 
   // actions
   setUsername: (username: string) => void;
@@ -27,6 +28,7 @@ type OnboardingStore = {
   setHouseholdIncome: (householdIncome: string) => void;
   setStep: (step: number) => void;
   initializeFromUser: (user: User) => void;
+  incrementFavoriteCount: () => void;
 };
 
 const initialState = {
@@ -37,6 +39,7 @@ const initialState = {
   ageRange: "",
   householdIncome: "",
   isInitialized: false,
+  favoriteCount: 0,
 };
 
 export const useOnboardingStore = create<OnboardingStore>((set) => ({
@@ -49,6 +52,8 @@ export const useOnboardingStore = create<OnboardingStore>((set) => ({
   setOnboarding: (isOnboarding: boolean) => set({ isOnboarding }),
   setHouseholdIncome: (householdIncome: string) => set({ householdIncome }),
   setStep: (step: number) => set({ currentStep: step }),
+  incrementFavoriteCount: () =>
+    set((state) => ({ favoriteCount: state.favoriteCount + 1 })),
   initializeFromUser: (user: User) =>
     set((state) => ({
       ...state,

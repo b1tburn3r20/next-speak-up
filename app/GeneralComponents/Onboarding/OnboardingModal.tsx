@@ -136,7 +136,7 @@ export function OnboardingModal() {
   return (
     <>
       <Dialog open={isOnboarding} onOpenChange={handleCloseAttempt}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-screen-xl w-fit">
           <DialogHeader>
             <DialogTitle>{STEPS[currentStep].title}</DialogTitle>
             <DialogDescription>

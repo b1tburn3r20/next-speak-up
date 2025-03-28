@@ -8,6 +8,11 @@ const nextConfig = {
         port: "8000",
         pathname: "/media/**",
       },
+      {
+        protocol: "https",
+        hostname: "www.congress.gov",
+        pathname: "/img/member/**",
+      },
     ],
   },
   typescript: {

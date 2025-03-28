@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Loader2 } from "lucide-react";
 import { STATE_CODES } from "@/lib/constants/state-codes";
+import { STATE_NAMES } from "@/lib/constants/state-names";
 
 export function DistrictFinder({ onDistrictFound }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -40,8 +41,9 @@ export function DistrictFinder({ onDistrictFound }) {
         throw new Error(data.error || "Failed to find district");
       }
 
+      const stateCode = STATE_CODES[data.state];
       const result = {
-        state: STATE_CODES[data.state],
+        state: STATE_NAMES[stateCode],
         district: data.district,
       };
 

@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const { memberId } = await request.json();
+  const { memberId, favorite } = await request.json();
   if (!memberId) {
     return new NextResponse("Member ID is required", { status: 400 });
   }
@@ -48,7 +48,8 @@ export async function POST(request: Request) {
   try {
     const result = await congressService.toggleFavoriteMember(
       session.user.id,
-      memberId
+      memberId,
+      favorite
     );
     return NextResponse.json({
       success: true,
