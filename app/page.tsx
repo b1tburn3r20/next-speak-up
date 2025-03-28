@@ -20,7 +20,7 @@ export default async function Home() {
   // Get dashboard data for the user
   const userId = session.user.id;
   let dashboardData;
-
+  /// comment
   try {
     // Get favorited representatives with alignment data
     const favoriteData = await dashboardService.getUserDashboard(userId);
