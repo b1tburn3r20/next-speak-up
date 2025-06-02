@@ -1,40 +1,356 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider = "prisma-client-js"
+}
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  username      String?   @unique
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-
-  // New demographic fields
-  ageRange        AgeRange?
-  state           String? // US State
-  householdIncome IncomeRange? // Annual household income in USD
-
-  accounts         Account[]
-  sessions         Session[]
+  id               String                    @id @default(cuid())
+  name             String?
+  username         String?                   @unique(map: "User_username_key")
+  email            String?                   @unique(map: "User_email_key")
+  emailVerified    DateTime?
+  image            String?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  ageRange         AgeRange?
+  householdIncome  IncomeRange?
+  state            String?
+  needsOnboarding  Boolean?                  @default(true)
+  roleId           Int?
+  accounts         Account?
   Authenticator    Authenticator[]
   favoritedMembers FavoritedCongressMember[]
-  needsOnboarding  Boolean?                  @default(true)
+  sessions         Session[]
+  role             Role?                     @relation(fields: [roleId], references: [id])
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  // User votes
-  userVotes UserVote[]
+  @@index([roleId], map: "user_roleId_fkey")
+  @@map("user")
+}
+
+model Account {
+  id                       String   @id @default(cuid())
+  userId                   String   @unique(map: "Account_userId_key")
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String?  @db.Text
+  access_token             String?  @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String?  @db.Text
+  session_state            String?
+  refresh_token_expires_in Int?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  user                     User     @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId], map: "Account_provider_providerAccountId_key")
+  @@index([userId], map: "Account_userId_idx")
+  @@map("account")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique(map: "Session_sessionToken_key")
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "Session_userId_idx")
+  @@map("session")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token], map: "VerificationToken_identifier_token_key")
+  @@map("verificationtoken")
+}
+
+model Authenticator {
+  credentialID         String  @unique(map: "Authenticator_credentialID_key")
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+  @@map("authenticator")
+}
+
+model CongressSession {
+  congress   Int
+  bioguideId String
+  member     CongressMember @relation(fields: [bioguideId], references: [bioguideId])
+
+  @@id([congress, bioguideId])
+  @@index([bioguideId], map: "CongressSession_bioguideId_idx")
+  @@index([congress], map: "CongressSession_congress_idx")
+  @@map("congresssession")
+}
+
+model CongressMember {
+  id                          Int                       @id @default(autoincrement())
+  bioguideId                  String                    @unique(map: "CongressMember_bioguideId_key")
+  name                        String?
+  role                        String?
+  state                       String?
+  party                       String?
+  createdAt                   DateTime                  @default(now())
+  updatedAt                   DateTime                  @updatedAt
+  birthYear                   String?
+  cosponsoredLegislationCount Int?
+  firstName                   String?
+  honorificName               String?
+  lastName                    String?
+  sponsoredLegislationCount   Int?
+  updateDate                  DateTime?
+  contact                     String?
+  website                     String?
+  missingContactInfo          Boolean?
+  district                    String?
+  sessions                    CongressSession[]
+  favoritedBy                 FavoritedCongressMember[]
+
+  @@map("congressmember")
+}
+
+model FavoritedCongressMember {
+  userId      String
+  memberId    Int
+  favoritedAt DateTime       @default(now())
+  member      CongressMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, memberId])
+  @@index([memberId], map: "FavoritedCongressMember_memberId_idx")
+  @@index([userId], map: "FavoritedCongressMember_userId_idx")
+  @@map("favoritedcongressmember")
+}
+
+model Vote {
+  id             Int      @id @default(autoincrement())
+  congress       Int
+  chamber        Chamber
+  rollNumber     Int
+  date           DateTime
+  time           String?
+  description    String?  @db.Text
+  question       String?  @db.Text
+  result         String?
+  billNumber     String?
+  name_id        String?
+  totalYea       Int
+  totalNay       Int
+  totalNotVoting Int
+  totalPresent   Int      @default(0)
+  totalVoting    Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([congress, chamber, rollNumber], map: "Vote_congress_chamber_rollNumber_key")
+  @@index([congress], map: "Vote_congress_idx")
+  @@index([date], map: "Vote_date_idx")
+  @@index([name_id], map: "Vote_name_id_idx")
+  @@map("vote")
+}
+
+model UserVote {
+  id            Int          @id @default(autoincrement())
+  userId        String
+  votePosition  VotePosition
+  entityType    String
+  entityId      Int
+  legislationId Int?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([userId, entityType, entityId], map: "UserVote_userId_entityType_entityId_key")
+  @@index([entityType, entityId], map: "UserVote_entityType_entityId_idx")
+  @@index([legislationId], map: "UserVote_legislationId_idx")
+  @@index([userId], map: "UserVote_userId_idx")
+  @@map("uservote")
+}
+
+model MemberVote {
+  id           Int          @id @default(autoincrement())
+  voteId       Int
+  memberId     Int
+  votePosition VotePosition
+  party        String?
+  state        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@unique([voteId, memberId], map: "MemberVote_voteId_memberId_key")
+  @@index([memberId], map: "MemberVote_memberId_idx")
+  @@index([voteId], map: "MemberVote_voteId_idx")
+  @@map("membervote")
+}
+
+model Legislation {
+  id                  Int       @id @default(autoincrement())
+  congress            Int?
+  introducedDate      DateTime?
+  number              String?
+  title               String?   @db.Text
+  type                String?
+  url                 String?   @db.VarChar(500)
+  amendmentNumber     String?
+  policy_area_id      Int?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  name_id             String?   @unique(map: "Legislation_name_id_key")
+  summary             String?   @db.Text
+  ai_summary          String?   @db.Text
+  fine_print          String?   @db.Text
+  hidden_implications String?   @db.Text
+  key_terms           String?   @db.Text
+  bill_size           String?
+  word_count          Int?
+
+  @@index([policy_area_id], map: "Legislation_policy_area_id_fkey")
+  @@map("legislation")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roles RolePermission[]
+
+  @@map("permission")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+
+  permissions RolePermission[]
+
+  @@map("role")
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("rolepermission")
+}
+
+model LegislationSponsor {
+  legislationId     Int
+  sponsorBioguideId String
+
+  @@id([legislationId, sponsorBioguideId])
+  @@index([sponsorBioguideId], map: "LegislationSponsor_sponsorBioguideId_idx")
+  @@map("legislationsponsor")
+}
+
+model LegislationCosponsor {
+  legislationId       Int
+  cosponsorBioguideId String
+
+  @@id([legislationId, cosponsorBioguideId])
+  @@index([cosponsorBioguideId], map: "LegislationCosponsor_cosponsorBioguideId_idx")
+  @@map("legislationcosponsor")
+}
+
+model PolicyArea {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("policyarea")
+}
+
+model LatestAction {
+  id             Int       @id @default(autoincrement())
+  action_date    DateTime?
+  text           String?   @db.Text
+  legislation_id Int       @unique(map: "LatestAction_legislation_id_key")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([legislation_id], map: "LatestAction_legislation_id_idx")
+  @@map("latestaction")
+}
+
+model CongressTerm {
+  id        Int      @id @default(autoincrement())
+  chamber   String?
+  startYear Int?
+  endYear   Int?
+  memberId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([memberId], map: "CongressTerm_memberId_idx")
+  @@map("congressterm")
+}
+
+model PartyHistory {
+  id                Int      @id @default(autoincrement())
+  partyName         String?
+  partyAbbreviation String?
+  startYear         Int?
+  memberId          Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([memberId], map: "PartyHistory_memberId_idx")
+  @@map("partyhistory")
+}
+
+model LeadershipPosition {
+  id        Int      @id @default(autoincrement())
+  congress  Int?
+  type      String?
+  memberId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([memberId], map: "LeadershipPosition_memberId_idx")
+  @@map("leadershipposition")
+}
+
+model Depiction {
+  id          Int      @id @default(autoincrement())
+  imageUrl    String?
+  attribution String?
+  memberId    Int      @unique(map: "Depiction_memberId_key")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([memberId], map: "Depiction_memberId_idx")
+  @@map("depiction")
 }
 
 enum IncomeRange {
@@ -60,204 +376,6 @@ enum AgeRange {
   PREFER_NOT_TO_SAY
 }
 
-model Account {
-  id                       String  @id @default(cuid())
-  userId                   String  @unique
-  type                     String
-  provider                 String
-  providerAccountId        String
-  refresh_token            String? @db.Text
-  access_token             String? @db.Text
-  expires_at               Int?
-  token_type               String?
-  scope                    String?
-  id_token                 String? @db.Text
-  session_state            String?
-  refresh_token_expires_in Int?
-  user                     User?   @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([provider, providerAccountId])
-  @@index([userId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-}
-
-model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
-
-// Optional for WebAuthn support
-model Authenticator {
-  credentialID         String  @unique
-  userId               String
-  providerAccountId    String
-  credentialPublicKey  String
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([userId, credentialID])
-}
-
-model CongressSession {
-  congress   Int
-  bioguideId String
-  member     CongressMember @relation(fields: [bioguideId], references: [bioguideId])
-
-  @@id([congress, bioguideId])
-  @@index([congress])
-  @@index([bioguideId])
-}
-
-model CongressMember {
-  id                          Int               @id @default(autoincrement())
-  bioguideId                  String            @unique
-  name                        String?
-  firstName                   String?
-  lastName                    String?
-  honorificName               String?
-  role                        String?
-  state                       String?
-  party                       String?
-  birthYear                   String?
-  sponsoredLegislationCount   Int?
-  cosponsoredLegislationCount Int?
-  updateDate                  DateTime?
-  sessions                    CongressSession[]
-
-  // Nested structures as relations
-  terms        CongressTerm[]
-  partyHistory PartyHistory[]
-  leadership   LeadershipPosition[]
-  depiction    Depiction?
-  votes        MemberVote[]         @relation("CongressMemberVotes") // This is the only MemberVote relation we need
-
-  // Maintain the legislation relations with join tables
-  SponsoredBills   LegislationSponsor[]
-  CosponsoredBills LegislationCosponsor[]
-  favoritedBy      FavoritedCongressMember[]
-
-  district           String?
-  contact            String?
-  website            String?
-  missingContactInfo Boolean?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model FavoritedCongressMember {
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-  member      CongressMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  memberId    Int
-  favoritedAt DateTime       @default(now())
-
-  @@id([userId, memberId])
-  @@index([memberId])
-  @@index([userId])
-}
-
-// New Vote-related models
-model Vote {
-  id          Int      @id @default(autoincrement())
-  congress    Int
-  chamber     Chamber // house or senate
-  rollNumber  Int // roll_number in the data
-  date        DateTime
-  time        String? // Some votes have specific times recorded
-  description String?  @db.Text
-  question    String?  @db.Text
-  result      String? // "Passed", "Failed", etc.
-
-  // Bill reference fields
-  billNumber  String? // Raw format from vote data e.g. "H RES 161"
-  // name_id is constructed as: congress + billNumber without spaces
-  // e.g. for congress=110, billNumber="H RES 161" -> name_id="110HRES161"
-  legislation Legislation? @relation(fields: [name_id], references: [name_id])
-  name_id     String? // Normalized ID for joining with legislation
-
-  // Individual member votes
-  memberVotes MemberVote[]
-
-  // Vote totals as they appear in the data
-  totalYea       Int
-  totalNay       Int
-  totalNotVoting Int
-  totalPresent   Int  @default(0) // Not all votes have this
-  totalVoting    Int? // Some records include this
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([congress, chamber, rollNumber])
-  @@index([congress])
-  @@index([date])
-  @@index([name_id])
-}
-
-model UserVote {
-  id           Int          @id @default(autoincrement())
-  userId       String // User who cast the vote
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  votePosition VotePosition // The user's vote (YEA, NAY, etc.)
-
-  // Polymorphic relationship fields 
-  entityType String // Type of entity being voted on ("legislation", "vote", etc.)
-  entityId   Int // ID of the entity being voted on
-
-  // Direct relationship to Legislation (optional but improves query performance)
-  legislation   Legislation? @relation(fields: [legislationId], references: [id], onDelete: Cascade)
-  legislationId Int?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, entityType, entityId]) // Ensures a user can only vote once per entity
-  @@index([userId])
-  @@index([entityType, entityId]) // Index for polymorphic lookups
-  @@index([legislationId]) // Index for direct legislation lookups
-}
-
-model MemberVote {
-  id           Int            @id @default(autoincrement())
-  vote         Vote           @relation(fields: [voteId], references: [id])
-  voteId       Int
-  member       CongressMember @relation("CongressMemberVotes", fields: [memberId], references: [id])
-  memberId     Int
-  votePosition VotePosition
-  party        String?
-  state        String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([voteId, memberId])
-  @@index([voteId])
-  @@index([memberId])
-}
-
 enum Chamber {
   HOUSE
   SENATE
@@ -268,140 +386,4 @@ enum VotePosition {
   NAY
   PRESENT
   NOT_VOTING
-}
-
-model Legislation {
-  id              Int       @id @default(autoincrement())
-  name_id         String?   @unique // For storing 118HR9233 format
-  congress        Int?
-  introducedDate  DateTime?
-  number          String?
-  title           String?   @db.Text
-  type            String?
-  url             String?   @db.VarChar(500)
-  amendmentNumber String?
-
-  // Summary fields
-  summary             String? @db.Text
-  ai_summary          String? @db.Text
-  fine_print          String? @db.Text
-  hidden_implications String? @db.Text
-  key_terms           String? @db.Text
-  word_count          Int?
-  bill_size           String?
-
-  // Relations
-  policy_area    PolicyArea?   @relation(fields: [policy_area_id], references: [id])
-  policy_area_id Int?
-  latest_action  LatestAction?
-  votes          Vote[]
-  // User votes on this legislation
-  userVotes      UserVote[]
-
-  // member relations with join tables
-  sponsors   LegislationSponsor[]
-  cosponsors LegislationCosponsor[]
-
-  // need to incoorporate the votes on the legislation if there
-  // 
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model LegislationSponsor {
-  legislation       Legislation    @relation(fields: [legislationId], references: [id])
-  legislationId     Int
-  sponsor           CongressMember @relation(fields: [sponsorBioguideId], references: [bioguideId])
-  sponsorBioguideId String
-
-  @@id([legislationId, sponsorBioguideId])
-  @@index([sponsorBioguideId])
-}
-
-// Updated join table for cosponsors using bioguideId
-model LegislationCosponsor {
-  legislation         Legislation    @relation(fields: [legislationId], references: [id])
-  legislationId       Int
-  cosponsor           CongressMember @relation(fields: [cosponsorBioguideId], references: [bioguideId])
-  cosponsorBioguideId String
-
-  @@id([legislationId, cosponsorBioguideId])
-  @@index([cosponsorBioguideId])
-}
-
-model PolicyArea {
-  id          Int           @id @default(autoincrement())
-  name        String?
-  legislation Legislation[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model LatestAction {
-  id             Int         @id @default(autoincrement())
-  action_date    DateTime?
-  text           String?     @db.Text
-  legislation    Legislation @relation(fields: [legislation_id], references: [id])
-  legislation_id Int         @unique // Changed to Int to match Legislation id
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([legislation_id])
-}
-
-model CongressTerm {
-  id             Int            @id @default(autoincrement())
-  chamber        String?
-  startYear      Int?
-  endYear        Int?
-  congressMember CongressMember @relation(fields: [memberId], references: [id])
-  memberId       Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([memberId])
-}
-
-model PartyHistory {
-  id                Int            @id @default(autoincrement())
-  partyName         String?
-  partyAbbreviation String?
-  startYear         Int?
-  congressMember    CongressMember @relation(fields: [memberId], references: [id])
-  memberId          Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([memberId])
-}
-
-model LeadershipPosition {
-  id             Int            @id @default(autoincrement())
-  congress       Int?
-  type           String?
-  congressMember CongressMember @relation(fields: [memberId], references: [id])
-  memberId       Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([memberId])
-}
-
-model Depiction {
-  id             Int            @id @default(autoincrement())
-  imageUrl       String?
-  attribution    String?
-  congressMember CongressMember @relation(fields: [memberId], references: [id])
-  memberId       Int            @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([memberId])
 }

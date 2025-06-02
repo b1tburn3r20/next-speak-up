@@ -8,6 +8,7 @@ import AuthProvider from "./auth/Provider";
 import PageFooter from "./PageComponents/PageFooter";
 import { Toaster } from "sonner";
 import { OnboardingModal } from "./GeneralComponents/Onboarding/OnboardingModal";
+import Navbar from "./navbar/navbar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -66,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -77,16 +78,16 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <SidebarProvider>
-              <AppSidebar />
+            <Navbar>
+
               <main className="container mx-auto space-x-4">
-                <SidebarTrigger />
                 {children}
                 <PageFooter />
               </main>
+            </Navbar>
+
               <Toaster />
               <OnboardingModal />
-            </SidebarProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

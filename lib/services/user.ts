@@ -24,7 +24,7 @@ export const userService = {
       where: { id: userId },
     });
   },
-
+  
   async getUserByEmail(email: string): Promise<User | null> {
     return prisma.user.findUnique({
       where: { email },
@@ -171,3 +171,11 @@ export const userService = {
     });
   },
 };
+export const getAllUsers =  async () => {
+ return await prisma.user.findMany()
+}
+export const getUserById = async (userId: number) => {
+    return prisma.user.findUnique({
+      where: { id: String(userId) },
+    });
+}

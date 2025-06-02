@@ -71,7 +71,6 @@ export default async function CongressMemberPage({
     },
     { label: `${member.firstName} ${member.lastName}` },
   ];
-  console.log(member.role);
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex flex-col space-y-6">

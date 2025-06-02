@@ -127,14 +127,14 @@ export const dashboardService = {
         mv.voteId as vote_id, 
         uv.votePosition as user_position, 
         mv.votePosition as member_position
-      FROM MemberVote mv
-      JOIN UserVote uv ON 
+      FROM membervote mv
+      JOIN uservote uv ON 
         (
           (uv.entityType = 'vote' AND uv.entityId = mv.voteId) OR
           (uv.entityType = 'legislation' AND EXISTS (
-            SELECT 1 FROM Vote v
+            SELECT 1 FROM vote v
             WHERE v.id = mv.voteId AND v.name_id = (
-              SELECT name_id FROM Legislation WHERE id = uv.legislationId
+              SELECT name_id FROM legislation WHERE id = uv.legislationId
             )
           ))
         )
@@ -157,10 +157,10 @@ export const dashboardService = {
           mv.voteId as vote_id,
           uv.votePosition as user_position,
           mv.votePosition as member_position
-        FROM UserVote uv
-        JOIN Legislation l ON uv.legislationId = l.id
-        JOIN Vote v ON v.name_id = l.name_id
-        JOIN MemberVote mv ON mv.voteId = v.id
+        FROM uservote uv
+        JOIN legislation l ON uv.legislationId = l.id
+        JOIN vote v ON v.name_id = l.name_id
+        JOIN membervote mv ON mv.voteId = v.id
         WHERE 
           uv.userId = ${userId} AND
           mv.memberId = ${memberId} AND
@@ -253,9 +253,9 @@ export const dashboardService = {
         pa.name as policy_area,
         COUNT(DISTINCT l.id) as count,
         COUNT(DISTINCT uv.id) as user_vote_count
-      FROM PolicyArea pa
-      JOIN Legislation l ON l.policy_area_id = pa.id
-      LEFT JOIN UserVote uv ON uv.legislationId = l.id AND uv.userId = ${userId}
+      FROM policyarea pa
+      JOIN legislation l ON l.policy_area_id = pa.id
+      LEFT JOIN uservote uv ON uv.legislationId = l.id AND uv.userId = ${userId}
       GROUP BY pa.id, pa.name
       ORDER BY user_vote_count DESC, count DESC
     `;
@@ -282,11 +282,11 @@ export const dashboardService = {
         l.name_id,
         l.id as legislation_id,
         pa.name as policy_area
-      FROM Vote v
-      JOIN UserVote uv ON uv.entityType = 'vote' AND uv.entityId = v.id
-      JOIN MemberVote mv ON mv.voteId = v.id
-      LEFT JOIN Legislation l ON v.name_id = l.name_id
-      LEFT JOIN PolicyArea pa ON l.policy_area_id = pa.id
+      FROM vote v
+      JOIN uservote uv ON uv.entityType = 'vote' AND uv.entityId = v.id
+      JOIN membervote mv ON mv.voteId = v.id
+      LEFT JOIN legislation l ON v.name_id = l.name_id
+      LEFT JOIN policyarea pa ON l.policy_area_id = pa.id
       WHERE uv.userId = ${userId} AND mv.memberId = ${memberId}
       ORDER BY v.date DESC
       LIMIT ${limit}
@@ -317,8 +317,8 @@ export const dashboardService = {
         mv.party,
         SUM(CASE WHEN uv.votePosition = mv.votePosition THEN 1 ELSE 0 END) as matched_votes,
         COUNT(*) as total_votes
-      FROM UserVote uv
-      JOIN MemberVote mv ON uv.entityType = 'vote' AND uv.entityId = mv.voteId
+      FROM uservote uv
+      JOIN membervote mv ON uv.entityType = 'vote' AND uv.entityId = mv.voteId
       WHERE uv.userId = ${userId}
       GROUP BY mv.party
       HAVING COUNT(*) > 5
@@ -327,7 +327,7 @@ export const dashboardService = {
 
     return partyAlignment.map((item) => ({
       party: item.party || "Unknown",
-      matchedVotes: Number(item.matched_votes),
+      matchezVotes: Number(item.matched_votes),
       totalVotes: Number(item.total_votes),
       alignmentPercentage: Number(
         ((Number(item.matched_votes) / Number(item.total_votes)) * 100).toFixed(

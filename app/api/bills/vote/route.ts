@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("Received vote payload:", { legislationNameId, vote });
 
     // Convert vote string to VotePosition enum
     let votePosition: VotePosition;

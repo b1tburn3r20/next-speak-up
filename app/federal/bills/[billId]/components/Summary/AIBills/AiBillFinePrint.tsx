@@ -18,13 +18,11 @@ interface FinePrintItem {
 }
 
 const parseFinePrint = (finePrint: string): FinePrintItem[] => {
-  console.log("Raw fine print:", finePrint); // Debug log
 
   const items: FinePrintItem[] = [];
 
   // Match all sections that start with ** and end with :**
   const matches = finePrint.match(/\*\*([^:]+):\*\*([^*]+)/g);
-  console.log("Matches found:", matches); // Debug log
 
   if (matches) {
     matches.forEach((match) => {
@@ -40,7 +38,6 @@ const parseFinePrint = (finePrint: string): FinePrintItem[] => {
     });
   }
 
-  console.log("Parsed items:", items); // Debug log
   return items;
 };
 

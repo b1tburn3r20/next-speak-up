@@ -38,9 +38,10 @@ async function getBillData(billId: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: { billId: string };
+  params: Promise<{ billId: string }>; // ✅ Now a Promise
 }): Promise<Metadata> {
-  const bill: Legislation = await getBillData(params.billId);
+  const { billId } = await params; // ✅ Await params first
+  const bill: Legislation = await getBillData(billId); // ✅ Use extracted billId
 
   const billIdentifier = `${bill.congress}${bill.type}${bill.number}`;
   const fullTitle = `${bill.title} | SpeakUp`;
@@ -76,21 +77,27 @@ export default async function BillDetailsPage({
   params,
   searchParams,
 }: {
-  params: { billId: string };
-  searchParams: { vote?: string };
+  params: Promise<{ billId: string }>; // ✅ Now a Promise
+  searchParams: Promise<{ vote?: string }>; // ✅ Now a Promise
 }) {
   const session = await getServerSession(authOptions);
+  
+  // ✅ Await both params and searchParams first
+  const { billId } = await params;
+  const { vote } = await searchParams;
 
   // Use the shared getBillData function
   const [bill, votes] = await Promise.all([
-    getBillData(params.billId),
-    legislationVotesService.getBillVotes(params.billId, session.user.id),
+    getBillData(billId), // ✅ Use extracted billId
+    legislationVotesService.getBillVotes(billId, session.user.id), // ✅ Use extracted billId
   ]);
+  
   const userInfo = {
     id: session.user.id,
     name: session.user.name,
     image: session.user.image || "/path/to/default/avatar.png", // Fallback to default if no image
   };
+  
   const breadcrumbItems = [
     { label: "Federal", href: "/federal" },
     { label: "Bills", href: "/federal/bills" },
@@ -98,7 +105,7 @@ export default async function BillDetailsPage({
   ];
 
   // Check if the vote parameter is present
-  const showVotePrompt = searchParams.vote === "true";
+  const showVotePrompt = vote === "true"; // ✅ Use extracted vote
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -111,7 +118,7 @@ export default async function BillDetailsPage({
         {/* allow the user to vote */}
         <UserFederalLegislationVoteModal
           bill={bill}
-          searchParams={searchParams}
+          searchParams={{ vote }} // ✅ Pass the extracted value
           votes={votes}
           userInfo={userInfo}
         />

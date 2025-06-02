@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+"use client";
 import {
   BadgeCheck,
   Bell,
@@ -6,60 +6,37 @@ import {
   LogOut,
   Settings,
   Sparkles,
-  User,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import { ModeToggle } from "./ui/mode-toggle";
+
+import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { ModeToggle } from "./ui/mode-toggle";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
-}) {
-  const router = useRouter();
-  const { isMobile } = useSidebar();
-  const [imageError, setImageError] = useState(false);
+export function NavUser() {
+  const { data: session, status } = useSession();
 
-  useEffect(() => {
-    setImageError(false);
-  }, [user]);
+  // Handle loading state
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
 
-  const handleAvatarError = (
-    e: React.SyntheticEvent<HTMLImageElement, Event>
-  ) => {
-    console.error("Avatar failed to load:", {
-      src: user.avatar,
-      error: e.currentTarget.error,
-    });
-    setImageError(true);
-  };
+  // Handle no session
+  if (!session?.user) {
+    return null;
+  }
 
-  const handleAvatarLoad = () => {
-    console.log("Avatar loaded successfully");
-    setImageError(false);
-  };
+  const user = session.user;
 
   const startQuickstart = async () => {
     try {
@@ -81,23 +58,12 @@ export function NavUser({
   };
 
   const renderAvatarContent = () => {
-    if (!user.avatar || imageError) {
-      return (
-        <AvatarFallback className="rounded-lg bg-primary/10">
-          {user.name?.slice(0, 2).toUpperCase() || "U"}
-        </AvatarFallback>
-      );
-    }
-
     return (
       <>
         <AvatarImage
-          src={user.avatar}
-          alt={user.name}
-          onError={handleAvatarError}
-          onLoad={handleAvatarLoad}
+          src={user.image || ""}
+          alt={user.name || "User"}
           referrerPolicy="no-referrer"
-          crossOrigin="anonymous"
         />
         <AvatarFallback className="rounded-lg bg-primary/10">
           {user.name?.slice(0, 2).toUpperCase() || "U"}
@@ -107,75 +73,63 @@ export function NavUser({
   };
 
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Avatar className="h-8 w-8 rounded-lg">
-                {renderAvatarContent()}
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={4}
-          >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  {renderAvatarContent()}
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
-                </div>
-                <ModeToggle />
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <Link href="/settings">
-                <DropdownMenuItem>
-                  <Settings className="mr-2" />
-                  Settings
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={startQuickstart}>
-                <Sparkles className="mr-2" />
-                Quickstart
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BadgeCheck className="mr-2" />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell className="mr-2" />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut className="mr-2" />
-              <Link href="/api/auth/signout">Logout</Link>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="relative h-12 hover:bg-muted w-full justify-start px-3 py-2"
+        >
+          <Avatar className="h-8 w-8 rounded-lg">
+            {renderAvatarContent()}
+          </Avatar>
+          <div className="ml-3 grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-semibold">{user.name}</span>
+            <span className="truncate text-xs text-muted-foreground">
+              {user.email}
+            </span>
+          </div>
+          <ChevronsUpDown className="ml-auto h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        className="w-56 rounded-lg"
+        align="end"
+        sideOffset={4}
+      >
+        <DropdownMenuGroup className="flex gap-2 justify-between">
+          <Link href="/settings" className="w-full">
+            <DropdownMenuItem className="w-full ">
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
-    </SidebarMenu>
+          </Link>
+          <ModeToggle />
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={startQuickstart}>
+            <Sparkles className="mr-2 h-4 w-4" />
+            Quickstart
+          </DropdownMenuItem>
+
+          <DropdownMenuItem>
+            <BadgeCheck className="mr-2 h-4 w-4" />
+            Account
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <Bell className="mr-2 h-4 w-4" />
+            Notifications
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/api/auth/signout">
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
