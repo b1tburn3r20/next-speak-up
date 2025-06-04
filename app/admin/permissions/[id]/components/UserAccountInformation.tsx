@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { fixGoogleImageUrl } from "@/lib/utils";
 import { formatIsoDate } from "@/lib/utils/StringFunctions";
 import { User } from "@prisma/client";
+import UserRole from "./UserRole";
 
 interface UserAccountInformationProps {
   user: User;
@@ -50,9 +51,12 @@ const UserAccountInformation = ({ user }: UserAccountInformationProps) => {
             {user.name && (
               <div className="space-y-1">
                 <h2 className="text-2xl font-bold">{user.name}</h2>
-                <p className="text-muted-foreground">
-                  @{user.username || "username"}
-                </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-muted-foreground">
+                    @{user.username || "username"}
+                  </p>
+                  <UserRole user={user} />
+                </div>
               </div>
             )}
           </div>

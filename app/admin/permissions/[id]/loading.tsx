@@ -1,11 +1,7 @@
-import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
+import PageLoader from "@/app/GeneralComponents/Onboarding/components/componentsA/PageLoader";
 
 const Page = () => {
-  return (
-    <div>
-      <LoadingCatch message="Loading User..." />
-    </div>
-  );
+  return <PageLoader />;
 };
 
 export default Page;

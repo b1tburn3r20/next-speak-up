@@ -29,7 +29,7 @@ const ManagePermissions = () => {
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="create-permissions ">
+        <Tabs defaultValue="create-permissions" className="h-[400px]">
           <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="create-permissions">
               Create Permissions
@@ -37,13 +37,13 @@ const ManagePermissions = () => {
             <TabsTrigger value="create-role">Create Roles</TabsTrigger>
             <TabsTrigger value="manage-roles">Manage Roles</TabsTrigger>
           </TabsList>
-          <TabsContent value="create-permissions">
+          <TabsContent className="h-[80%]" value="create-permissions">
             <CreatePermission />
           </TabsContent>
-          <TabsContent value="create-role">
+          <TabsContent className="h-[80%]" value="create-role">
             <CreateRole />
           </TabsContent>
-          <TabsContent value="manage-roles">
+          <TabsContent className="h-[80%]" value="manage-roles">
             <ManageRoles />
           </TabsContent>
         </Tabs>

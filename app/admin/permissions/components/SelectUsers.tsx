@@ -11,11 +11,11 @@ const SelectUsers = ({ users }: { users: User[] }) => {
   }
 
   return (
-    <div className="space-y-2 place-items-center m-4 grid justify-between grid-cols-4">
+    <div className=" place-items-center m-4 gap-4 items-start grid justify-between grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
       {users.map((user) => (
         <div
           key={user.id}
-          className="flex space-y-2 p-2 bg-muted/50 rounded-lg flex-col w-fit justify-center items-center"
+          className="flex w-full h-full space-y-2 p-2 bg-muted/50 rounded-lg flex-col w-fit justify-center items-center"
         >
           <Avatar className="w-[100px] h-[100px] rounded-lg">
             <AvatarImage

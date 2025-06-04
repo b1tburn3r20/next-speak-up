@@ -1,14 +1,12 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import LegislationSearch from "./components/LegislationSearch";
 import LegislationPagination from "./components/LegislationPagination";
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-
   const [query, setQuery] = useState(searchParams.get("q") || "");
   const [tags, setTags] = useState<string[]>([]);
   const [results, setResults] = useState([]);
@@ -104,12 +102,19 @@ export default function SearchPage() {
         totalResults={totalResults}
         isLoading={isLoading}
       />
-
       <LegislationPagination
         currentPage={page}
         totalPages={totalPages}
         onPageChange={handlePageChange}
       />
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div>Loading search...</div>}>
+      <SearchPageContent />
+    </Suspense>
   );
 }

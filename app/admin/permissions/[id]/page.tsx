@@ -1,6 +1,6 @@
 import { getUserById } from "@/lib/services/user";
 import UserAccountInformation from "./components/UserAccountInformation";
-import UserAccountTabs from "./components/UserAccountTabs";
+
 import CreatePermission from "./components/CreatePermission";
 import ManagePermissions from "./components/ManagePermissions";
 interface PageProps {
@@ -18,9 +18,8 @@ const Page = async ({ params }: PageProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-screen">
       <UserAccountInformation user={user} />
-      <UserAccountTabs user={user} />
       <ManagePermissions />
     </div>
   );

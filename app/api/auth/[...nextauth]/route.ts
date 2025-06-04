@@ -16,6 +16,7 @@ declare module "next-auth" {
       ageRange: AgeRange | null;
       householdIncome: IncomeRange | null;
       needsOnboarding: boolean;
+      role: string | null;
     } & DefaultSession["user"];
   }
 }
@@ -29,6 +30,20 @@ export const authOptions = {
     }),
   ],
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        const fullUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { id: true, role: true },
+        });
+
+        if (fullUser) {
+          token.role = fullUser.role;
+        }
+      }
+      return token;
+    },
+
     async signIn({ user, account }) {
       if (account?.provider === "google") {
         const existingUser = await prisma.user.findUnique({
@@ -42,7 +57,6 @@ export const authOptions = {
           },
         });
 
-        // If user doesn't exist or is missing required fields, they need onboarding
         if (
           !existingUser ||
           !existingUser.username ||
@@ -50,15 +64,13 @@ export const authOptions = {
           !existingUser.ageRange ||
           !existingUser.householdIncome
         ) {
-          // For new users, needsOnboarding will be set to true by default in the schema
           return true;
         }
       }
       return true;
     },
 
-    session: async ({ session, user }) => {
-      // Fetch full user data from database including needsOnboarding
+    session: async ({ session, user, token }) => {
       const fullUser = await prisma.user.findUnique({
         where: { id: user.id },
         select: {
@@ -70,7 +82,8 @@ export const authOptions = {
           state: true,
           ageRange: true,
           householdIncome: true,
-          needsOnboarding: true, // Add this line
+          needsOnboarding: true,
+          role: true,
         },
       });
 
@@ -79,7 +92,6 @@ export const authOptions = {
         user: {
           ...session.user,
           ...fullUser,
-          // Ensure needsOnboarding is included and defaults to true if undefined
           needsOnboarding: fullUser?.needsOnboarding ?? true,
         },
       };

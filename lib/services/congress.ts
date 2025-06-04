@@ -238,26 +238,26 @@ export const congressService = {
     const skip = (page - 1) * limit;
     const [members, total] = await Promise.all([
       prisma.congressMember.findMany({
-        where: {
-          terms: {
-            some: {
-              chamber,
-            },
-          },
-        },
+        // where: {
+        //   terms: {
+        //     some: {
+        //       chamber,
+        //     },
+        //   },
+        // },
         skip,
         take: limit,
         orderBy: { name: "asc" },
         include: includeRelations,
       }),
       prisma.congressMember.count({
-        where: {
-          terms: {
-            some: {
-              chamber,
-            },
-          },
-        },
+        // where: {
+        // terms: {
+        //   some: {
+        //     chamber,
+        //   },
+        // },
+        // },
       }),
     ]);
 
@@ -275,13 +275,13 @@ export const congressService = {
   async getCurrentMembers() {
     const currentYear = new Date().getFullYear();
     return prisma.congressMember.findMany({
-      where: {
-        terms: {
-          some: {
-            OR: [{ endYear: null }, { endYear: { gte: currentYear } }],
-          },
-        },
-      },
+      // where: {
+      //   terms: {
+      //     some: {
+      //       OR: [{ endYear: null }, { endYear: { gte: currentYear } }],
+      //     },
+      //   },
+      // },
       orderBy: { name: "asc" },
       include: includeRelations,
     });
@@ -365,13 +365,13 @@ export const congressService = {
         _count: true,
       }),
       prisma.congressMember.count({
-        where: {
-          terms: {
-            some: {
-              OR: [{ endYear: null }, { endYear: { gte: currentYear } }],
-            },
-          },
-        },
+        // where: {
+        //   terms: {
+        //     some: {
+        //       OR: [{ endYear: null }, { endYear: { gte: currentYear } }],
+        //     },
+        //   },
+        // },
       }),
       prisma.partyHistory.groupBy({
         by: ["partyName"],
@@ -396,11 +396,11 @@ export const congressService = {
   // New methods for the additional data
   async getMemberPartyHistory(bioguideId: string) {
     return prisma.partyHistory.findMany({
-      where: {
-        congressMember: {
-          bioguideId,
-        },
-      },
+      // where: {
+      //   congressMember: {
+      //     bioguideId,
+      //   },
+      // },
       orderBy: {
         startYear: "asc",
       },
@@ -409,11 +409,11 @@ export const congressService = {
 
   async getMemberTerms(bioguideId: string) {
     return prisma.congressTerm.findMany({
-      where: {
-        congressMember: {
-          bioguideId,
-        },
-      },
+      // where: {
+      //   congressMember: {
+      //     bioguideId,
+      //   },
+      // },
       orderBy: {
         startYear: "asc",
       },
@@ -422,11 +422,11 @@ export const congressService = {
 
   async getMemberLeadership(bioguideId: string) {
     return prisma.leadershipPosition.findMany({
-      where: {
-        congressMember: {
-          bioguideId,
-        },
-      },
+      // where: {
+      //   congressMember: {
+      //     bioguideId,
+      //   },
+      // },
       orderBy: {
         congress: "asc",
       },

@@ -1,16 +1,14 @@
-
-import { getAllUsers } from "@/lib/services/user"
+import { getAllUsers } from "@/lib/services/user";
 import SelectUsers from "./components/SelectUsers";
 
 const Page = async () => {
-  const users = await getAllUsers(); // <- Add await
-   
+  const users = await getAllUsers();
 
   return (
-    <div>
-      <SelectUsers users={users} />    
+    <div className="min-h-screen">
+      <SelectUsers users={users} />
     </div>
-  )
-}
+  );
+};
 
-export default Page
+export default Page;

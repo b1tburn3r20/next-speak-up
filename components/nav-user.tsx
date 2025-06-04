@@ -22,21 +22,11 @@ import {
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { ModeToggle } from "./ui/mode-toggle";
+import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
+import ShinyButton from "./ui/shiny-button";
 
 export function NavUser() {
   const { data: session, status } = useSession();
-
-  // Handle loading state
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
-
-  // Handle no session
-  if (!session?.user) {
-    return null;
-  }
-
-  const user = session.user;
 
   const startQuickstart = async () => {
     try {
@@ -71,7 +61,22 @@ export function NavUser() {
       </>
     );
   };
+  // Handle loading state
+  if (status === "loading") {
+    return <LoadingCatch />;
+  }
 
+  // Handle no session
+  if (!session?.user || status === "unauthenticated") {
+    return (
+      <div className="w-full flex justify-center items-center ">
+        <Link href={"/api/auth/signin"}>
+          <ShinyButton>Log / Sign in</ShinyButton>
+        </Link>
+      </div>
+    );
+  }
+  const user = session.user;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

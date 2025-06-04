@@ -68,7 +68,6 @@ const CreatePermission = () => {
         setInputValue("");
         setDescription("");
         setIsAvailable(null);
-        console.log(data);
         toast.success(`Permission: ${data.permission.name} created.`);
       } else {
         console.error("Failed to create permission:", data);
@@ -112,33 +111,36 @@ const CreatePermission = () => {
   };
 
   const isCreateDisabled = !isAvailable || submitting || !inputValue.trim();
-  return (
-    <div className="space-y-2">
-      <div className="flex flex-col gap-2">
-        <Label className="font-bold">Permission Name</Label>
-        <div className="relative">
-          <div className="absolute left-3 top-3 z-10">{getIcon()}</div>
-          <Input
-            autoFocus
-            value={inputValue}
-            onChange={handleInputChange}
-            placeholder="Enter permission name..."
-            className="pl-12 h-12"
-            disabled={submitting}
-          />
-        </div>
-      </div>
 
-      <div className="flex flex-col gap-2">
-        <Label className="font-bold">Description (Optional)</Label>
-        <div className="relative">
-          <Input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter permission description..."
-            className="h-12"
-            disabled={submitting}
-          />
+  return (
+    <div className="space-y-2 h-full flex flex-col justify-between bg-muted/50 rounded-lg p-2">
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2">
+          <Label className="font-bold">Permission Name</Label>
+          <div className="relative">
+            <div className="absolute left-3 top-3 z-10">{getIcon()}</div>
+            <Input
+              autoFocus
+              value={inputValue}
+              onChange={handleInputChange}
+              placeholder="Enter permission name..."
+              className="pl-12 h-12 border-primary/50 border-2"
+              disabled={submitting}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label className="font-bold">Description (Optional)</Label>
+          <div className="relative">
+            <Input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter permission description..."
+              className="h-12 border-primary/50 border-2"
+              disabled={submitting}
+            />
+          </div>
         </div>
       </div>
 

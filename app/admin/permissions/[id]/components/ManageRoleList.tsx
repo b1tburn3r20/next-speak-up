@@ -6,7 +6,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -162,55 +161,50 @@ const ManageRoleList = ({ roles, allPermissions }: ManageRoleProps) => {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Manage Role: {roleData.name || "..."}</DialogTitle>
+          </DialogHeader>
           {fetchingData ? (
-            <LoadingCatch
-              message="Fetching role data..."
-              secondaryMessage="please wait..."
-            />
+            <LoadingCatch />
           ) : (
-            <>
-              <DialogHeader>
-                <DialogTitle>Manage Role: {roleData.name}</DialogTitle>
-              </DialogHeader>
-              <div className="flex justify-between">
-                <div className="space-y-2  border p-2 rounded-lg w-1/2">
-                  <div>
-                    <Label className="text-lg font-thin mb-2">
-                      Available Permissions
-                    </Label>
-                    <Separator className="my-2" />
-                    <div className="space-y-2 ">
-                      {allPermissionsNotInRole.map((permission) => (
-                        <AddPermission
-                          key={permission.id}
-                          permission={permission}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <Separator
-                  className="h-full mx-6 w-[1px]"
-                  orientation="vertical"
-                />
-                <div className="space-y-2  border p-2 rounded-lg w-1/2">
-                  <div>
-                    <Label className="text-lg font-thin mb-2">
-                      Current Permissions
-                    </Label>
-                    <Separator className="my-2" />
-                    <div className="space-y-2 ">
-                      {allPermissionsInRole.map((permission) => (
-                        <RemovePermission
-                          key={permission.id}
-                          permission={permission}
-                        />
-                      ))}
-                    </div>
+            <div className="flex justify-between">
+              <div className="space-y-2  border p-2 rounded-lg w-1/2">
+                <div>
+                  <Label className="text-lg font-thin mb-2">
+                    Available Permissions
+                  </Label>
+                  <Separator className="my-2" />
+                  <div className="space-y-2 ">
+                    {allPermissionsNotInRole.map((permission) => (
+                      <AddPermission
+                        key={permission.id}
+                        permission={permission}
+                      />
+                    ))}
                   </div>
                 </div>
               </div>
-            </>
+              <Separator
+                className="h-full mx-6 w-[1px]"
+                orientation="vertical"
+              />
+              <div className="space-y-2  border p-2 rounded-lg w-1/2">
+                <div>
+                  <Label className="text-lg font-thin mb-2">
+                    Current Permissions
+                  </Label>
+                  <Separator className="my-2" />
+                  <div className="space-y-2 ">
+                    {allPermissionsInRole.map((permission) => (
+                      <RemovePermission
+                        key={permission.id}
+                        permission={permission}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>
@@ -241,7 +235,7 @@ const ManageRoleList = ({ roles, allPermissions }: ManageRoleProps) => {
     };
 
     return (
-      <div className="w-full flex bg-muted/50 p-2 border rounded-lg justify-between">
+      <div className="w-full flex bg-muted/20 p-2 border rounded-lg justify-between">
         <div className="flex flex-col">
           <p className="font-bold">{role.name}</p>
           <p className="text-sm italic font-muted-foreground">
@@ -264,11 +258,11 @@ const ManageRoleList = ({ roles, allPermissions }: ManageRoleProps) => {
 
   return (
     <>
-      <ScrollArea className="h-[400px] overflow-y-auto">
+      <div className="h-[350px] p-2 bg-muted/50 space-y-2 rounded-lg overflow-y-auto">
         {roles.map((role) => (
           <RoleContainer key={role.id} role={role} />
         ))}
-      </ScrollArea>
+      </div>
       <EditRoleDialog />
     </>
   );

@@ -56,6 +56,69 @@ export const getRoleData = async (roleId: number) => {
   });
 };
 
+// Get user's role
+export const getUserRole = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    include: {
+      role: true,
+    },
+  });
+
+  return user?.role || null;
+};
+
+// Check if user has a specific permission
+export const userHasPermission = async (
+  userId: string,
+  permissionName: string
+) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    include: {
+      role: {
+        include: {
+          permissions: {
+            include: {
+              permission: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!user?.role) return false;
+
+  return user.role.permissions.some(
+    (rolePermission) => rolePermission.permission.name === permissionName
+  );
+};
+
+// Get user with full role and permission data
+export const getUserWithPermissions = async (userId: string) => {
+  return await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    include: {
+      role: {
+        include: {
+          permissions: {
+            include: {
+              permission: true,
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
 export const assignPermissionToRole = async (
   roleId: number,
   permissionId: number
@@ -96,4 +159,17 @@ export const roleHasPermission = async (
     },
   });
   return existing !== null;
+};
+export const changeUserRole = async (userId: string, roleId: number | null) => {
+  return await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      roleId: roleId,
+    },
+    include: {
+      role: true,
+    },
+  });
 };

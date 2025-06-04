@@ -1,9 +1,7 @@
-import { Loader2 } from "lucide-react"
+import PageLoader from "@/app/GeneralComponents/Onboarding/components/componentsA/PageLoader";
 
 const Page = () => {
-  return (
-    <div className="h-screen w-full"><Loader2 className="animate-spin h-10 w-10" /></div>
-  )
-}
+  return <PageLoader />;
+};
 
-export default Page
+export default Page;

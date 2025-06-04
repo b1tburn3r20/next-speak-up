@@ -24,8 +24,8 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "Congress Directory | YourSiteName",
-    template: "%s | YourSiteName",
+    default: "Congress Directory | Speakup",
+    template: "%s | Speakup",
   },
   description:
     "Browse and search through comprehensive data about the U.S. Congress",
@@ -40,10 +40,10 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "YourSiteName",
+    siteName: "Speakup",
     title: {
       default: "Congress Directory",
-      template: "%s | YourSiteName",
+      template: "%s | Speakup",
     },
     description: "Comprehensive directory and data about the U.S. Congress",
   },
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: {
       default: "Congress Directory",
-      template: "%s | YourSiteName",
+      template: "%s | Speakup",
     },
     description: "Comprehensive directory and data about the U.S. Congress",
   },
@@ -79,15 +79,14 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Navbar>
-
-              <main className="container mx-auto space-x-4">
+              <main className="container mx-auto space-x-4 ">
                 {children}
                 <PageFooter />
               </main>
             </Navbar>
 
-              <Toaster />
-              <OnboardingModal />
+            <Toaster />
+            <OnboardingModal />
           </ThemeProvider>
         </AuthProvider>
       </body>
