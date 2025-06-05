@@ -1,23 +1,55 @@
+// components/Navbar.tsx
 import NavUser from "@/components/nav-user";
 import Link from "next/link";
 import { navItems } from "../data/navbarData";
 import NavToggle from "./nav-toggle";
 import NavItem from "./NavItem";
-const Navbar = ({ children }: { children: React.ReactNode }) => {
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { jwtVerify } from "jose";
+
+const Navbar = async ({ children }: { children: React.ReactNode }) => {
+  const session = await getServerSession(authOptions);
+  const cookieStore = await cookies();
+  const roleCookie = cookieStore.get("user-role-token");
+
+  // need to be careful of loops
+  if (session?.user && !roleCookie) {
+    redirect("/api/cookie/set-cookie-redirect");
+  }
+
+  // Get user's role from cookie
+  let userRole: string | null = null;
+  if (roleCookie) {
+    try {
+      const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
+      const { payload } = await jwtVerify(roleCookie.value, secret);
+      userRole = (payload.role as any)?.name || null;
+    } catch (error) {
+      // Cookie invalid, will be handled by middleware
+    }
+  }
+
+  // Filter nav items based on user's role
+  const visibleNavItems = navItems.filter((item) => {
+    if (!item.requiredRoles) return true; // No role requirement = visible to all
+    if (!userRole) return false; // Role required but user has no role
+    return item.requiredRoles.includes(userRole); // Check if user's role is in required roles
+  });
+
   return (
     <div className="flex h-screen">
-      {/* Make sidebar a flex column with full height */}
       <div className="nav-container w-64 flex flex-col h-full transition-all duration-300 ease-in-out">
-        {/* Header - fixed height */}
         <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
           <div className="nav-logo font-bold text-xl">Speakup</div>
           <NavToggle />
         </div>
 
-        {/* Nav - takes remaining space */}
         <nav className="flex flex-col justify-between flex-1">
           <div>
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               return <NavItem key={item.href} href={item.href} />;
             })}
           </div>
@@ -33,4 +65,5 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
     </div>
   );
 };
+
 export default Navbar;
