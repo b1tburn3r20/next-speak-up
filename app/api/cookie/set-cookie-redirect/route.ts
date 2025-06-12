@@ -1,11 +1,24 @@
 // app/api/cookie/set-cookie-redirect/route.ts
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/prisma/client";
 import { SignJWT } from "jose";
+import { ratelimit } from "@/lib/ratelimiter";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const ip =
+    request.headers.get("x-forwarded-for") ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+  console.log("ip address", ip);
+  const { success, pending, limit, reset, remaining } = await ratelimit.limit(
+    ip
+  );
+  if (!success) {
+    console.log("limit", limit);
+    return NextResponse.json("rate limit error", { status: 429 });
+  }
   try {
     // Get the current session
     const session = await getServerSession(authOptions);
