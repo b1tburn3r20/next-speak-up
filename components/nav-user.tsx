@@ -7,6 +7,7 @@ import {
   Settings,
   Sparkles,
 } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -127,12 +128,13 @@ export function NavUser() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/api/auth/signout">
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Link>
-        </DropdownMenuItem>
+       <DropdownMenuItem 
+  onClick={() => signOut({ callbackUrl: '/' })}
+  className="cursor-pointer"
+>
+  <LogOut className="mr-2 h-4 w-4" />
+  Logout
+</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
