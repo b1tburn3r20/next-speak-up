@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
 import AuthProvider from "./auth/Provider";
 import PageFooter from "./PageComponents/PageFooter";
 import { Toaster } from "sonner";
@@ -84,7 +82,6 @@ export default function RootLayout({
                 <PageFooter />
               </main>
             </Navbar>
-
             <Toaster />
             <OnboardingModal />
           </ThemeProvider>

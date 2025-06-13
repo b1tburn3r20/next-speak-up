@@ -7,7 +7,7 @@ import {
   Settings,
   Sparkles,
 } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,8 @@ import Link from "next/link";
 import { ModeToggle } from "./ui/mode-toggle";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
 import ShinyButton from "./ui/shiny-button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { DialogTrigger } from "@radix-ui/react-dialog";
 
 export function NavUser() {
   const { data: session, status } = useSession();
@@ -62,6 +64,11 @@ export function NavUser() {
       </>
     );
   };
+
+  const handleGoogleSignin = async () => {
+    await signIn("google", { callbackUrl: "/" });
+  };
+
   // Handle loading state
   if (status === "loading") {
     return <LoadingCatch />;
@@ -71,9 +78,19 @@ export function NavUser() {
   if (!session?.user || status === "unauthenticated") {
     return (
       <div className="w-full flex justify-center items-center ">
-        <Link href={"/api/auth/signin"}>
-          <ShinyButton>Log / Sign in</ShinyButton>
-        </Link>
+        <Dialog>
+          <DialogTrigger asChild>
+            <div>
+              <ShinyButton>Log / Sign in</ShinyButton>
+            </div>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Choose a signin option</DialogTitle>
+            </DialogHeader>
+            <Button onClick={handleGoogleSignin}>Google</Button>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -128,13 +145,13 @@ export function NavUser() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-       <DropdownMenuItem 
-  onClick={() => signOut({ callbackUrl: '/' })}
-  className="cursor-pointer"
->
-  <LogOut className="mr-2 h-4 w-4" />
-  Logout
-</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="cursor-pointer"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
