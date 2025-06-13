@@ -29,6 +29,7 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
@@ -44,7 +45,7 @@ export const authOptions = {
             ageRange: true,
             householdIncome: true,
             needsOnboarding: true,
-            role: true, // Add this line
+            role: true,
           },
         });
 
@@ -77,6 +78,7 @@ export const authOptions = {
           ageRange: true,
           householdIncome: true,
           needsOnboarding: true,
+          role: true,
         },
       });
 

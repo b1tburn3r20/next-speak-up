@@ -21,7 +21,12 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const updatedRole = await assignPermissionToRole(roleId, permissionId);
+    const updatedRole = await assignPermissionToRole(
+      roleId,
+      permissionId,
+      session.user.id,
+      session.user.role.name
+    );
 
     return NextResponse.json(
       {

@@ -31,6 +31,24 @@ model User {
   @@map("user")
 }
 
+model UserAction {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  userRole  String?
+  action    String
+  entityId  String?
+  createdAt DateTime @default(now())
+
+  @@index([userId], map: "UserAction_userId_idx")
+  @@index([userRole], map: "UserAction_userRole_idx")
+  @@index([action], map: "UserAction_action_idx")
+  @@index([entityId], map: "UserAction_entityId_idx")
+  @@index([createdAt], map: "UserAction_createdAt_idx")
+  @@index([userId, createdAt], map: "UserAction_userId_createdAt_idx")
+  @@index([action, entityId], map: "UserAction_action_entityId_idx")
+  @@map("useraction")
+}
+
 model Account {
   id                       String   @id @default(cuid())
   userId                   String   @unique(map: "Account_userId_key")

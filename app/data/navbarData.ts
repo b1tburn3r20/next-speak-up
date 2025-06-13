@@ -14,7 +14,7 @@ export const navItems: NavItem[] = [
     href: "/admin/permissions",
     icon: Key,
     label: "Permissions",
-    requiredRoles: ["Super Admin", "Admin"],
+    // requiredRoles: ["Super Admin", "Admin"],
   },
   { href: "/forum", icon: Group, label: "Forum", requiredRoles: ["Member"] },
   {
