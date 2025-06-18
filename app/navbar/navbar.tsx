@@ -9,14 +9,16 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { jwtVerify } from "jose";
+import NavbarTop from "./navbar-top";
 
 const Navbar = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession(authOptions);
   const cookieStore = await cookies();
   const roleCookie = cookieStore.get("user-role-token");
-
   // need to be careful of loops
   if (session?.user && !roleCookie) {
+    console.log(roleCookie);
+
     redirect("/api/cookie/set-cookie-redirect");
   }
 
@@ -41,11 +43,8 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex h-screen">
-      <div className="nav-container w-64 flex flex-col h-full transition-all duration-300 ease-in-out">
-        <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
-          <div className="nav-logo font-bold text-xl">Speakup</div>
-          <NavToggle />
-        </div>
+      <div className="nav-container w-64 flex flex-col h-full transition-all duration-300 ease-in-out ">
+        <NavToggle />
 
         <nav className="flex flex-col justify-between flex-1">
           <div>
@@ -59,8 +58,16 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
         </nav>
       </div>
 
-      <div className="flex-1 overflow-auto">
-        <div className="p-6">{children}</div>
+      <div className="flex-1 flex flex-col">
+        {/* Fixed top navbar */}
+        <NavbarTop />
+
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-auto">
+          <div className="p-6 border-l-2 border-t-2 border-accent/50 rounded-tl-2xl min-h-full">
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );

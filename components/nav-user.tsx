@@ -8,7 +8,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import { signIn, signOut } from "next-auth/react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +24,14 @@ import Link from "next/link";
 import { ModeToggle } from "./ui/mode-toggle";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
 import ShinyButton from "./ui/shiny-button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { DialogTrigger } from "@radix-ui/react-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import LoginForm from "./login-form";
 
 export function NavUser() {
   const { data: session, status } = useSession();
@@ -65,10 +70,6 @@ export function NavUser() {
     );
   };
 
-  const handleGoogleSignin = async () => {
-    await signIn("google", { callbackUrl: "/" });
-  };
-
   // Handle loading state
   if (status === "loading") {
     return <LoadingCatch />;
@@ -88,7 +89,7 @@ export function NavUser() {
             <DialogHeader>
               <DialogTitle>Choose a signin option</DialogTitle>
             </DialogHeader>
-            <Button onClick={handleGoogleSignin}>Google</Button>
+            <LoginForm />
           </DialogContent>
         </Dialog>
       </div>

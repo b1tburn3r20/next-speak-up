@@ -20,11 +20,13 @@ model User {
   householdIncome  IncomeRange?
   state            String?
   needsOnboarding  Boolean?                  @default(true)
-  roleId           Int?
+  roleId           Int?                      @default(2)
   accounts         Account?
   Authenticator    Authenticator[]
   favoritedMembers FavoritedCongressMember[]
   sessions         Session[]
+  userVotes        UserVote[] // Add this relation
+  userActions      UserAction[] // Add this relation
   role             Role?                     @relation(fields: [roleId], references: [id])
 
   @@index([roleId], map: "user_roleId_fkey")
@@ -38,6 +40,7 @@ model UserAction {
   action    String
   entityId  String?
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Add this relation
 
   @@index([userId], map: "UserAction_userId_idx")
   @@index([userRole], map: "UserAction_userRole_idx")
@@ -65,7 +68,7 @@ model Account {
   refresh_token_expires_in Int?
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
-  user                     User     @relation(fields: [userId], references: [id])
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId], map: "Account_provider_providerAccountId_key")
   @@index([userId], map: "Account_userId_idx")
@@ -79,7 +82,7 @@ model Session {
   expires      DateTime
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "Session_userId_idx")
   @@map("session")
@@ -195,6 +198,7 @@ model UserVote {
   legislationId Int?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade) // Add this relation
 
   @@unique([userId, entityType, entityId], map: "UserVote_userId_entityType_entityId_key")
   @@index([entityType, entityId], map: "UserVote_entityType_entityId_idx")

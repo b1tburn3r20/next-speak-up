@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     request.headers.get("x-forwarded-for") ||
     request.headers.get("x-real-ip") ||
     "unknown";
+  console.log("ip address", ip);
   const { success, pending, limit, reset, remaining } = await ratelimit.limit(
     ip
   );
@@ -36,38 +37,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL("/api/auth/signin", request.url));
     }
 
-    // Create encrypted JWT using NEXTAUTH_SECRET
-    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
-    const now = Math.floor(Date.now() / 1000);
-
-    const roleToken = await new SignJWT({
-      role: user.role || "user",
-      userId: session.user.id,
-      iat: now,
-      exp: now + 60 * 2, // 2 minutes
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime("2m")
-      .sign(secret);
-
-    // Get the original URL they were trying to access
-    const url = new URL(request.url);
-    const returnTo = url.searchParams.get("returnTo") || "/";
-
-    // Create redirect response
-    const response = NextResponse.redirect(new URL(returnTo, request.url));
-
-    // Set the encrypted cookie on the redirect response
-    response.cookies.set("user-role-token", roleToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 2, // 2 minutes
-      path: "/",
-    });
-
-    return response;
+    return NextResponse.json("response successful", { status: 202 });
   } catch (error) {
     console.error("Error setting role cookie:", error);
     return NextResponse.redirect(new URL("/api/auth/signin", request.url));

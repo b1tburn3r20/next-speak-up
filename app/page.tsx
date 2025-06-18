@@ -1,4 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import TestApiButton from "@/components/dev/TestApiButton";
 import { getServerSession } from "next-auth";
 
 // Dashboard Home Component (Server Component)
@@ -14,5 +15,13 @@ export default async function Home() {
     );
   }
 
-  return <div>Logged in</div>;
+  return (
+    <div>
+      <img
+        src="https://www.cise.ufl.edu/~kcen/cis4930/assign5/assign5_files/spinning.gif"
+        alt="minecwaf"
+      />
+      <TestApiButton />
+    </div>
+  );
 }

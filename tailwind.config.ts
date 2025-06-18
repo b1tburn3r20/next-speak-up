@@ -14,6 +14,16 @@ const config: Config = {
       },
       colors: {
         background: "hsl(var(--background))",
+        "google-text-gray": "#3c4043",
+        "google-button-blue": "#1a73e8",
+        "google-button-blue-hover": "#5195ee",
+        "google-button-dark": "#202124",
+        "google-button-dark-hover": "#555658",
+        "google-button-border-light": "#dadce0",
+        "google-logo-blue": "#4285f4",
+        "google-logo-green": "#34a853",
+        "google-logo-yellow": "#fbbc05",
+        "google-logo-red": "#ea4335",
         foreground: "hsl(var(--foreground))",
         card: {
           DEFAULT: "hsl(var(--card))",
@@ -73,6 +83,7 @@ const config: Config = {
         "color-4": "hsl(var(--color-4))",
         "color-5": "hsl(var(--color-5))",
       },
+
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
