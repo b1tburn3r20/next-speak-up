@@ -8,25 +8,26 @@ datasource db {
 }
 
 model User {
-  id               String                    @id @default(cuid())
-  name             String?
-  username         String?                   @unique(map: "User_username_key")
-  email            String?                   @unique(map: "User_email_key")
-  emailVerified    DateTime?
-  image            String?
-  createdAt        DateTime                  @default(now())
-  updatedAt        DateTime                  @updatedAt
-  ageRange         AgeRange?
-  householdIncome  IncomeRange?
-  state            String?
-  needsOnboarding  Boolean?                  @default(true)
-  roleId           Int?                      @default(2)
+  id              String       @id @default(cuid())
+  name            String?
+  username        String?      @unique(map: "User_username_key")
+  email           String?      @unique(map: "User_email_key")
+  emailVerified   DateTime?
+  image           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  ageRange        AgeRange?
+  householdIncome IncomeRange?
+  state           String?
+  needsOnboarding Boolean?     @default(true)
+  roleId          Int?         @default(2)
+
   accounts         Account?
   Authenticator    Authenticator[]
   favoritedMembers FavoritedCongressMember[]
   sessions         Session[]
-  userVotes        UserVote[] // Add this relation
-  userActions      UserAction[] // Add this relation
+  userVotes        UserVote[]
+  userActions      UserAction[]
   role             Role?                     @relation(fields: [roleId], references: [id])
 
   @@index([roleId], map: "user_roleId_fkey")

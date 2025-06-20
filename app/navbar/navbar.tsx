@@ -10,6 +10,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { jwtVerify } from "jose";
 import NavbarTop from "./navbar-top";
+import { toast } from "sonner";
 
 const Navbar = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession(authOptions);
@@ -18,8 +19,14 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
   // need to be careful of loops
   if (session?.user && !roleCookie) {
     console.log(roleCookie);
-
-    redirect("/api/cookie/set-cookie-redirect");
+    try {
+      const response: any = await fetch("/api/cookie/set-cookie-redirect");
+      if (response.error) {
+        toast.error("Too many requests! Please slow down.");
+      }
+    } catch (error) {
+      console.error("Something went wrong", error);
+    }
   }
 
   // Get user's role from cookie
