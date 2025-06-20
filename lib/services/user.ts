@@ -182,3 +182,23 @@ export const getUserById = async (userId: number) => {
     },
   });
 };
+
+export async function logUserAction(
+  userId: string,
+  action: string,
+  entityId?: string,
+  role?: string
+) {
+  try {
+    await prisma.userAction.create({
+      data: {
+        userId,
+        userRole: role || null,
+        action,
+        entityId: entityId || null,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to log user action:", error);
+  }
+}

@@ -28,21 +28,21 @@ const NavItem = ({ href }: NavItemProps) => {
       href={href}
       className={`flex items-center justify-start px-4 py-3 transition-colors relative ${
         isActive
-          ? "bg-primary/10 text-primary font-medium"
+          ? "bg-accent/10 text-accent font-medium"
           : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
       }`}
     >
       <IconComponent
         size={20}
         className={`flex-shrink-0 transition-colors ${
-          isActive ? "text-primary" : ""
+          isActive ? "text-accent" : ""
         }`}
       />
       <span className="nav-label ml-3 text-sm font-medium">
         {navItem.label}
       </span>
       {isActive && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-r-full" />
       )}
     </Link>
   );

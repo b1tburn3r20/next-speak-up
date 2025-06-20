@@ -1,4 +1,5 @@
 import prisma from "@/prisma/client";
+import { logUserAction } from "./user";
 export const checkPermission = async (name: string) => {
   return await prisma.permission.findUnique({
     where: {
@@ -121,7 +122,9 @@ export const getUserWithPermissions = async (userId: string) => {
 
 export const assignPermissionToRole = async (
   roleId: number,
-  permissionId: number
+  permissionId: number,
+  actionTakerId: string,
+  actionTakerRole: string
 ) => {
   await prisma.rolePermission.create({
     data: {
@@ -129,6 +132,12 @@ export const assignPermissionToRole = async (
       permissionId: permissionId,
     },
   });
+  await logUserAction(
+    actionTakerId,
+    "assignPermissionToRole",
+    `${permissionId} assigned to ${roleId}`,
+    actionTakerRole
+  );
   return getRoleData(roleId);
 };
 
@@ -160,8 +169,13 @@ export const roleHasPermission = async (
   });
   return existing !== null;
 };
-export const changeUserRole = async (userId: string, roleId: number | null) => {
-  return await prisma.user.update({
+export const changeUserRole = async (
+  userId: string,
+  roleId: number | null,
+  adminUserId: string,
+  role: string
+) => {
+  const result = await prisma.user.update({
     where: {
       id: userId,
     },
@@ -172,4 +186,9 @@ export const changeUserRole = async (userId: string, roleId: number | null) => {
       role: true,
     },
   });
+
+  // Log the admin's action with the target user as entityId
+  await logUserAction(adminUserId, "change_user_role", userId, role);
+
+  return result;
 };

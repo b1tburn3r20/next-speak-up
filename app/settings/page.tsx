@@ -7,11 +7,6 @@ import { SettingsForm } from "./components/SettingsForm";
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    redirect("/api/auth/signin");
-  }
-
   const user = await userService.getUserById(session.user.id);
 
   if (!user) {

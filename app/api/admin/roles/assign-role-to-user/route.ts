@@ -8,16 +8,7 @@ export async function PUT(request: Request) {
   if (!session?.user?.id) {
     return new NextResponse("Unauthorized, no user id", { status: 401 });
   }
-  const hasPermission = await userHasPermission(
-    session.user.id,
-    "Update User Role"
-  );
 
-  if (!hasPermission) {
-    return new NextResponse("Forbidden: Insufficient permissions", {
-      status: 403,
-    });
-  }
   const body = await request.json();
   const { userId, roleId } = body;
   if (!userId || !roleId) {
@@ -28,7 +19,12 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const userData = await changeUserRole(userId, roleId);
+    const userData = await changeUserRole(
+      userId,
+      roleId,
+      session.user.id,
+      session.user.role.name
+    );
     return NextResponse.json(
       {
         user: userData,

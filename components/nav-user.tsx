@@ -7,7 +7,7 @@ import {
   Settings,
   Sparkles,
 } from "lucide-react";
-
+import { signIn, signOut } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,14 @@ import Link from "next/link";
 import { ModeToggle } from "./ui/mode-toggle";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
 import ShinyButton from "./ui/shiny-button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import LoginForm from "./login-form";
 
 export function NavUser() {
   const { data: session, status } = useSession();
@@ -61,6 +69,7 @@ export function NavUser() {
       </>
     );
   };
+
   // Handle loading state
   if (status === "loading") {
     return <LoadingCatch />;
@@ -70,9 +79,19 @@ export function NavUser() {
   if (!session?.user || status === "unauthenticated") {
     return (
       <div className="w-full flex justify-center items-center ">
-        <Link href={"/api/auth/signin"}>
-          <ShinyButton>Log / Sign in</ShinyButton>
-        </Link>
+        <Dialog>
+          <DialogTrigger asChild>
+            <div>
+              <ShinyButton>Log / Sign in</ShinyButton>
+            </div>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Choose a signin option</DialogTitle>
+            </DialogHeader>
+            <LoginForm />
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -127,11 +146,12 @@ export function NavUser() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/api/auth/signout">
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Link>
+        <DropdownMenuItem
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="cursor-pointer"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
