@@ -8,19 +8,21 @@ datasource db {
 }
 
 model User {
-  id              String       @id @default(cuid())
+  id              String           @id @default(cuid())
   name            String?
-  username        String?      @unique(map: "User_username_key")
-  email           String?      @unique(map: "User_email_key")
+  username        String?          @unique(map: "User_username_key")
+  email           String?          @unique(map: "User_email_key")
   emailVerified   DateTime?
   image           String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   ageRange        AgeRange?
   householdIncome IncomeRange?
   state           String?
-  needsOnboarding Boolean?     @default(true)
-  roleId          Int?         @default(2)
+  needsOnboarding Boolean?         @default(true)
+  roleId          Int?             @default(2)
+  billTracks      UserBillTrack[]
+  userPreferences UserPreference[]
 
   accounts         Account?
   Authenticator    Authenticator[]
@@ -32,6 +34,23 @@ model User {
 
   @@index([roleId], map: "user_roleId_fkey")
   @@map("user")
+}
+
+model GuestAction {
+  id        Int      @id @default(autoincrement())
+  sessionId String?
+  ipAddress String?
+  userAgent String?
+  action    String
+  entityId  String?
+  createdAt DateTime @default(now())
+
+  @@index([sessionId], map: "GuestAction_sessionId_idx")
+  @@index([action], map: "GuestAction_action_idx")
+  @@index([entityId], map: "GuestAction_entityId_idx")
+  @@index([createdAt], map: "GuestAction_createdAt_idx")
+  @@index([action, entityId], map: "GuestAction_action_entityId_idx")
+  @@map("guestaction")
 }
 
 model UserAction {
@@ -208,6 +227,24 @@ model UserVote {
   @@map("uservote")
 }
 
+model UserBillTrack {
+  userId        String
+  legislationId Int
+  hasViewed     Boolean   @default(false)
+  viewedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  legislation Legislation @relation(fields: [legislationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, legislationId])
+  @@index([userId])
+  @@index([legislationId])
+  @@index([hasViewed])
+  @@map("userbilltrack")
+}
+
 model MemberVote {
   id           Int          @id @default(autoincrement())
   voteId       Int
@@ -225,28 +262,47 @@ model MemberVote {
 }
 
 model Legislation {
-  id                  Int       @id @default(autoincrement())
-  congress            Int?
-  introducedDate      DateTime?
-  number              String?
-  title               String?   @db.Text
-  type                String?
-  url                 String?   @db.VarChar(500)
-  amendmentNumber     String?
-  policy_area_id      Int?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  name_id             String?   @unique(map: "Legislation_name_id_key")
-  summary             String?   @db.Text
-  ai_summary          String?   @db.Text
-  fine_print          String?   @db.Text
-  hidden_implications String?   @db.Text
-  key_terms           String?   @db.Text
+  id              Int             @id @default(autoincrement())
+  congress        Int?
+  introducedDate  DateTime?
+  number          String?
+  title           String?         @db.Text
+  type            String?
+  url             String?         @db.VarChar(500)
+  amendmentNumber String?
+  policy_area_id  Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  name_id         String?         @unique(map: "Legislation_name_id_key")
+  summary         String?         @db.Text
+  ai_summary      String?         @db.Text
+  fine_print      String?         @db.Text
+  userTracks      UserBillTrack[]
+
+  hidden_implications String? @db.Text
+  key_terms           String? @db.Text
   bill_size           String?
   word_count          Int?
 
   @@index([policy_area_id], map: "Legislation_policy_area_id_fkey")
   @@map("legislation")
+}
+
+model UserPreference {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  key       String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key], map: "UserPreference_userId_key_key")
+  @@index([userId], map: "UserPreference_userId_idx")
+  @@index([key], map: "UserPreference_key_idx")
+  @@index([userId], map: "UserPreference_userId_category_idx")
+  @@map("userpreference")
 }
 
 model Permission {

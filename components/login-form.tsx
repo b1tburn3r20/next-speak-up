@@ -1,9 +1,7 @@
 "use client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
-import React from "react";
 import { signIn } from "next-auth/react";
-import { Button } from "./ui/button";
 const LoginForm = () => {
   const handleGoogleSignin = async () => {
     await signIn("google", { callbackUrl: "/" });

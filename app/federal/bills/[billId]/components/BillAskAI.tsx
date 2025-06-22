@@ -98,7 +98,7 @@ const BillAskAI = ({ congress, type, number, user }) => {
           className="text-semibold text-lg"
           once
         >
-          Get better understanding
+          Google Gemeni + Bill
         </TextAnimate>
 
         <div className="flex items-center space-x-2">

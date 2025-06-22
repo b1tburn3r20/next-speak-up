@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       role: user.role || "user",
       userId: session.user.id,
       iat: now,
-      exp: now + 60 * 2, // 2 minutes
+      exp: now + 60 * 60,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()

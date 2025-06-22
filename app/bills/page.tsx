@@ -1,23 +1,29 @@
-import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getRecentBills } from "@/lib/services/bills";
-import { redirect } from "next/navigation";
-import RecentBillsCarousel from "./components/RecentBillsCarousel";
-import { TextAnimate } from "@/components/magicui/text-animate";
+import { getLastViewedBill, getRecentBills } from "@/lib/services/bills";
+import { getServerSession } from "next-auth";
+import CurrentlyTracking from "./components/CurrentlyTracking";
+import LastViewedBill from "./components/LastViewedBill";
+import RecentBills from "./components/RecentBills";
 
 const Page = async () => {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.id) {
-    redirect("/auth/signin");
-  }
-
-  const bills = await getRecentBills(session.user.id, session.user.role.name);
+  const [recentBills, lastViewedBill] = await Promise.all([
+    getRecentBills(session?.user?.id, session?.user?.role?.name),
+    getLastViewedBill(session?.user?.id, session?.user?.role?.name),
+  ]);
 
   return (
-    <div>
-      <TextAnimate className="text-4xl m-4 font-bold">Most Recent</TextAnimate>
-      <RecentBillsCarousel bills={bills} />
+    <div className="space-y-12">
+      <RecentBills bills={recentBills} />
+      <div className="flex flex-col lg:flex-row gap-12 w-full">
+        <div className="lg:flex-shrink-0">
+          <LastViewedBill bill={lastViewedBill} />
+        </div>
+        <div className="lg:flex-1 lg:min-w-0">
+          <CurrentlyTracking bills={recentBills} />
+        </div>
+      </div>
     </div>
   );
 };

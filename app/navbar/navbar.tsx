@@ -18,15 +18,7 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
   const roleCookie = cookieStore.get("user-role-token");
   // need to be careful of loops
   if (session?.user && !roleCookie) {
-    console.log(roleCookie);
-    try {
-      const response: any = await fetch("/api/cookie/set-cookie-redirect");
-      if (response.error) {
-        toast.error("Too many requests! Please slow down.");
-      }
-    } catch (error) {
-      console.error("Something went wrong", error);
-    }
+    redirect("/api/cookie/set-cookie-redirect");
   }
 
   // Get user's role from cookie
@@ -59,7 +51,7 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
               return <NavItem key={item.href} href={item.href} />;
             })}
           </div>
-          <div className="p-4">
+          <div className="">
             <NavUser />
           </div>
         </nav>
@@ -70,7 +62,7 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
         <NavbarTop />
 
         {/* Scrollable content area */}
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto ">
           <div className="p-6 border-l-2 border-t-2 border-accent/50 rounded-tl-2xl min-h-full">
             {children}
           </div>

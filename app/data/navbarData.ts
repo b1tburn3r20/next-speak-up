@@ -20,7 +20,6 @@ export const navItems: NavItem[] = [
     href: "/forum",
     icon: Group,
     label: "Forum",
-    requiredRoles: ["Member", "Super Admin", "Supporter"],
   },
   {
     href: "/settings",
@@ -32,6 +31,5 @@ export const navItems: NavItem[] = [
     href: "/bills",
     icon: Book,
     label: "Bills",
-    requiredRoles: ["Member", "Supporter", "Super Admin"],
   },
 ];

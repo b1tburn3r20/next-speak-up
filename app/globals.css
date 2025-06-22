@@ -39,7 +39,7 @@ body {
       --chart-5: 220.47 101.26% 36.08%;
       --radius: 0.5rem;
     }
-  
+
     .dark {
       --background: 240 13.73% 10%;
       --foreground: 229.76 31.78% 74.71%;
@@ -66,8 +66,10 @@ body {
       --chart-4: 0 0% 85.75%;
       --chart-5: 225.45 74.22% 72.75%;
     }
+  .theme {
+    --animate-aurora: aurora 8s ease-in-out infinite alternate;
   }
-  
+  }
 
 /* Regular */
 @font-face {
@@ -119,5 +121,30 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@theme inline {
+  @keyframes aurora {
+  0% {
+    background-position: 0% 50%;
+    transform: rotate(-5deg) scale(0.9);
+    }
+  25% {
+    background-position: 50% 100%;
+    transform: rotate(5deg) scale(1.1);
+    }
+  50% {
+    background-position: 100% 50%;
+    transform: rotate(-3deg) scale(0.95);
+    }
+  75% {
+    background-position: 50% 0%;
+    transform: rotate(3deg) scale(1.05);
+    }
+  100% {
+    background-position: 0% 50%;
+    transform: rotate(-5deg) scale(0.9);
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Legislation } from "@prisma/client";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen, Eye } from "lucide-react";
 import Link from "next/link";
 
 interface BillViewCardProps {
@@ -8,52 +8,34 @@ interface BillViewCardProps {
 }
 
 const BillViewCard = ({ bill }: BillViewCardProps) => {
-  const formatDate = (date: Date | null) => {
-    if (!date) return "N/A";
-
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const billDate = new Date(date);
-
-    // Check if dates are the same day
-    const isSameDay = (date1: Date, date2: Date) => {
-      return (
-        date1.getFullYear() === date2.getFullYear() &&
-        date1.getMonth() === date2.getMonth() &&
-        date1.getDate() === date2.getDate()
-      );
-    };
-
-    if (isSameDay(billDate, today)) {
-      return "Today";
-    } else if (isSameDay(billDate, yesterday)) {
-      return "Yesterday";
-    } else {
-      return billDate.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    }
-  };
-
   const billIdentifier = `${bill.congress || "Unknown"} ${bill.type || ""} ${
     bill.number || ""
   }`.trim();
 
+  // Check if user has viewed this bill
+  const hasViewed =
+    bill.userTracks &&
+    bill.userTracks.length > 0 &&
+    bill.userTracks[0].hasViewed;
+
   return (
-    <Link href={`/bill/${bill.id}`} className="block">
-      <Card className="aspect-square select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-border/50 rounded-3xl">
+    <Link href={`/bills/${bill.id}`} className="block">
+      <Card className="h-[300px] aspect-square select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-border/50 rounded-3xl">
         {/* Aggressive gradient overlay - gets to 100% much faster */}
         <div className="absolute top-1/3 left-0 right-0 bottom-0 bg-gradient-to-b from-background/0 via-background/80 to-background z-10 pointer-events-none" />
+
+        {/* Large faded eye icon in bottom right if viewed */}
+        {hasViewed && (
+          <div className="absolute bottom-4 right-4 z-5 pointer-events-none">
+            <BookOpen className="w-24 h-24 text-accent" />
+          </div>
+        )}
 
         <div className="p-8 h-full flex flex-col relative">
           {/* Updated date - large bold at top */}
           <div className="mb-6">
-            <h3 className="text-3xl font-bold text-muted-foreground">
-              {formatDate(bill.updatedAt)}
+            <h3 className="text-3xl font-bold text-muted-foreground  line-clamp-2">
+              {bill.title}
             </h3>
           </div>
 

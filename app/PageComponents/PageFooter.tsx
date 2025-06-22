@@ -8,7 +8,7 @@ import {
 
 const PageFooter = () => {
   return (
-    <footer className="mt-auto border-t">
+    <footer className="mt-8 border-t">
       <div className="container mx-auto px-4">
         <Accordion type="single" collapsible>
           <AccordionItem value="show-footer">

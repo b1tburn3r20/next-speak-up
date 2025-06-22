@@ -1,25 +1,31 @@
-// nav-toggle.tsx (Client Component)
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Dot, Menu, X } from "lucide-react";
+import { useEffect } from "react";
+import { ArrowLeft, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface NavToggleProps {
-  onChange: (boolean) => void;
-}
+import { useNavbarStore } from "./useNavbarStore";
 
 const NavToggle = () => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const navCollapsed = useNavbarStore((f) => f.navCollapsed);
+  const setNavCollapsed = useNavbarStore((d) => d.setNavCollapsed);
 
-  const toggleNav = () => {
-    setIsExpanded(!isExpanded);
+  useEffect(() => {
+    const isLocalStorageNavExpanded = localStorage.getItem("isNavbarExpanded");
+    console.log(
+      isLocalStorageNavExpanded && isLocalStorageNavExpanded === "true"
+    );
+    if (isLocalStorageNavExpanded && isLocalStorageNavExpanded === "true") {
+      setNavCollapsed(true);
+    }
+  }, []);
+  // Apply classes when state changes
+  useEffect(() => {
     const navContainer = document.querySelector(".nav-container");
     const navLogo = document.querySelector(".nav-logo");
     const navLabels = document.querySelectorAll(".nav-label");
 
     if (navContainer) {
-      if (isExpanded) {
+      if (navCollapsed) {
         navContainer.classList.remove("w-64");
         navContainer.classList.add("w-16");
         navLogo?.classList.add("hidden");
@@ -31,23 +37,28 @@ const NavToggle = () => {
         navLabels.forEach((label) => label.classList.remove("hidden"));
       }
     }
+  }, [navCollapsed]);
+
+  const toggleNav = () => {
+    localStorage.setItem("isNavbarExpanded", String(!navCollapsed));
+    setNavCollapsed(!navCollapsed);
   };
 
   return (
-    <div className="flex group items-center justify-between p-4  flex-shrink-0">
+    <div className="flex group items-center justify-between p-4 flex-shrink-0">
       <div className="nav-logo font-bold text-xl">Speakup</div>
       <div
         className={`${
-          isExpanded && "opacity-0 group-hover:opacity-100 transition-all"
-        } `}
+          !navCollapsed && "opacity-0 group-hover:opacity-100 transition-all"
+        }`}
       >
         <Button
           onClick={toggleNav}
           variant="ghost"
-          className="p-2 rounded-lg  transition-colors"
+          className="p-2 rounded-lg transition-colors"
         >
-          {isExpanded ? <ArrowLeft size={20} /> : <Menu size={20} />}
-        </Button>{" "}
+          {navCollapsed ? <Menu size={20} /> : <ArrowLeft size={20} />}
+        </Button>
       </div>
     </div>
   );

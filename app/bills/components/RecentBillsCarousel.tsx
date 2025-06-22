@@ -1,3 +1,4 @@
+"use client";
 import {
   Carousel,
   CarouselContent,
@@ -33,12 +34,9 @@ const RecentBillsCarousel = ({ bills }: RecentBillsCarouselProps) => {
         }}
         className="w-full"
       >
-        <CarouselContent className="-ml-2 md:-ml-4">
+        <CarouselContent className="gap-2">
           {bills.map((bill) => (
-            <CarouselItem
-              key={bill.id}
-              className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
-            >
+            <CarouselItem key={bill.id} className="basis-auto min-w-0">
               <BillViewCard bill={bill} />
             </CarouselItem>
           ))}

@@ -6,6 +6,7 @@ import {
   Prisma,
 } from "@prisma/client";
 import prisma from "@/prisma/client";
+import { headers } from "next/headers";
 
 // Use Prisma's generated type and extend it if needed
 export type User = PrismaUser;
@@ -183,18 +184,54 @@ export const getUserById = async (userId: number) => {
   });
 };
 
-export async function logUserAction(
-  userId: string,
+async function logGuestAction(
   action: string,
-  entityId?: string,
-  role?: string
+  entityId?: string | null,
+  sessionId?: string | null
 ) {
+  try {
+    const headersList = await headers();
+    const userAgent = headersList.get("user-agent");
+    const forwarded = headersList.get("x-forwarded-for");
+    const realIp = headersList.get("x-real-ip");
+    const ipAddress = forwarded?.split(",")[0] || realIp || "unknown";
+
+    await prisma.guestAction.create({
+      data: {
+        sessionId: sessionId || null,
+        ipAddress,
+        userAgent,
+        action,
+        entityId: entityId || null,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to log guest action:", error);
+  }
+}
+
+export async function logUserAction(
+  userId?: string | null,
+  action?: string,
+  entityId?: string | null,
+  role?: string | null,
+  sessionId?: string | null
+) {
+  const actionName = action || "unknown";
+
+  if (!userId) {
+    // Log guest action
+    await logGuestAction(actionName, entityId, sessionId);
+    return;
+  }
+
+  // Log authenticated user action
   try {
     await prisma.userAction.create({
       data: {
         userId,
-        userRole: role || null,
-        action,
+        userRole: role || "User",
+        action: actionName,
         entityId: entityId || null,
       },
     });
