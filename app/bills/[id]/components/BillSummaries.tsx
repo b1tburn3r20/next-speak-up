@@ -6,22 +6,23 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+
+import { useBillPageStore } from "../useBillPageStore";
 import { useState } from "react";
 
 interface BillSummariesProps {
   bill: Legislation;
   userId: string | null;
-  isDyslexicFriendly: boolean;
 }
 
-const BillSummaries = ({
-  bill,
-  userId,
-  isDyslexicFriendly,
-}: BillSummariesProps) => {
+const BillSummaries = ({ bill, userId }: BillSummariesProps) => {
   const [isLoading, setIsLoading] = useState(false);
-
+  const isDyslexicFriendly = useBillPageStore((s) => s.isDyslexicFriendly);
+  const setIsDyslexicFriendly = useBillPageStore(
+    (l) => l.setIsDyslexicFriendly
+  );
   const toggleDyslexicPreference = async () => {
+    setIsDyslexicFriendly(!isDyslexicFriendly);
     if (!userId) {
       console.warn("No user ID provided");
       return;
@@ -44,10 +45,6 @@ const BillSummaries = ({
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      const result = await response.json();
-      console.log("Preference updated:", result);
-      window.location.reload();
     } catch (error) {
       console.error("Failed to update dyslexic preference:", error);
     } finally {

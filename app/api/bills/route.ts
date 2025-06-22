@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 import { getBillData } from "@/lib/services/bills";
+import { getComprehensiveBillData } from "@/lib/services/bill-voting";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const billData = await getBillData(
+    const billData = await getComprehensiveBillData(
       parseInt(billId),
       session.user.id,
       session.user.role.name

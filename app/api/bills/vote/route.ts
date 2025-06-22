@@ -1,11 +1,9 @@
 // app/api/bills/vote/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../auth/[...nextauth]/route";
-import { legislationVotesService } from "@/lib/services/legislation_two";
-import { VotePosition } from "@prisma/client";
-import prisma from "@/prisma/client";
 import { voteOnLegislation } from "@/lib/services/bill-voting";
+import prisma from "@/prisma/client";
+import { getServerSession } from "next-auth/next";
+import { NextRequest, NextResponse } from "next/server";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,7 +45,8 @@ export async function POST(request: NextRequest) {
     const userVote = await voteOnLegislation(
       session.user.id,
       legislation.id,
-      vote
+      vote,
+      session?.user?.role?.name
     );
 
     // Return success response with the vote

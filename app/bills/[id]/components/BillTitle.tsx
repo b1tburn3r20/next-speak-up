@@ -1,8 +1,13 @@
+"use client";
+
+import { useBillPageStore } from "../useBillPageStore";
+
 interface BillTitleProps {
   billTitle: string;
-  isDyslexicFriendly: boolean;
 }
-const BillTitle = ({ billTitle, isDyslexicFriendly }: BillTitleProps) => {
+const BillTitle = ({ billTitle }: BillTitleProps) => {
+  const isDyslexicFriendly = useBillPageStore((s) => s.isDyslexicFriendly);
+
   return (
     <h1
       className={`text-center text-lg   ${

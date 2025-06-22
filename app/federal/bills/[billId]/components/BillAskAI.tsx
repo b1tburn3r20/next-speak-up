@@ -85,7 +85,7 @@ const BillAskAI = ({ congress, type, number, user }) => {
 
   // Full chat window
   return (
-    <div className="fixed bottom-6 right-6 w-96 bg-background border rounded-lg shadow-lg flex flex-col">
+    <div className="fixed bottom-6 right-6 w-96 bg-background border rounded-lg shadow-lg flex flex-col z-20">
       <DotPattern
         className={cn(
           "[mask-image:radial-gradient(180px_circle_at_center,white,transparent)]"
