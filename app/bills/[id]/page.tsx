@@ -1,15 +1,14 @@
-import type { Metadata } from "next";
-import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import BillAskAI from "@/app/federal/bills/[billId]/components/BillAskAI";
 import { getBillData, markBillAsViewed } from "@/lib/services/bills";
 import { getUserPreferenceAsBoolean } from "@/lib/services/user-preferances";
+import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import BillAskAI from "@/app/federal/bills/[billId]/components/BillAskAI";
-import BillTitle from "./components/BillTitle";
 import BillSummaries from "./components/BillSummaries";
-import { Separator } from "@/components/ui/separator";
-import SupportBillButton from "./components/SupportBillButton";
+import BillTitle from "./components/BillTitle";
+import { SupportBillButton } from "./components/SupportBillButton";
 
 interface PageProps {
   params: Promise<{
@@ -120,7 +119,8 @@ const Page = async ({ params }: PageProps) => {
           isDyslexicFriendly={isDyslexicFriendly}
         />
       </div>
-      {hasUser && <SupportBillButton />}
+
+      {hasUser && <SupportBillButton bill={bill} />}
 
       <BillAskAI
         congress={bill.congress}
