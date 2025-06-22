@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Record the vote
-    const userVote = await voteOnLegislation(
+    const data = await voteOnLegislation(
       session.user.id,
       legislation.id,
       vote,
@@ -51,8 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Return success response with the vote
     return NextResponse.json({
-      success: true,
-      vote: userVote,
+      data,
     });
   } catch (error) {
     console.error("Error recording vote:", error);

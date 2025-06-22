@@ -14,6 +14,7 @@ import {
 import { MagicCard } from "@/components/magicui/magic-card";
 import { useTheme } from "next-themes";
 import { voteOnLegislation } from "@/lib/services/bill-voting";
+import { useBillPageStore } from "../useBillPageStore";
 
 interface VoteCardsProps {
   bill: Legislation;
@@ -27,7 +28,7 @@ export function SupportBillButton({ bill, votes }: VoteCardsProps) {
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
   const [isLoading, setIsLoading] = useState(false);
-
+  const setBillData = useBillPageStore((d) => d.setBillData);
   useEffect(() => {
     const noCard = noCardRef.current;
     const yesCard = yesCardRef.current;
@@ -86,8 +87,8 @@ export function SupportBillButton({ bill, votes }: VoteCardsProps) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
-      console.log("Preference updated:", result);
+      const voteData: any = await response.json();
+      setBillData(voteData.data);
     } catch (error) {
       console.error("Failed to update dyslexic preference:", error);
     } finally {

@@ -6,10 +6,8 @@ import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import BillSummaries from "./components/BillSummaries";
-import BillTitle from "./components/BillTitle";
-import { SupportBillButton } from "./components/SupportBillButton";
 import RenderBill from "./components/RenderBill";
+import { getComprehensiveBillData } from "@/lib/services/bill-voting";
 
 interface PageProps {
   params: Promise<{
@@ -20,7 +18,7 @@ interface PageProps {
 // Cache the bill data fetch to avoid duplicate calls
 const getCachedBillData = cache(
   async (billId: number, userId: string | null, userRole: string | null) => {
-    return await getBillData(billId, userId, userRole);
+    return await getComprehensiveBillData(billId, userId, userRole);
   }
 );
 
@@ -111,9 +109,9 @@ const Page = async ({ params }: PageProps) => {
         isDyslexicFriendly={isDyslexicFriendly}
       />
       <BillAskAI
-        congress={bill.congress}
-        type={bill.type}
-        number={bill.number}
+        congress={bill.legislation.congress}
+        type={bill.legislation.type}
+        number={bill.legislation.number}
         user={session}
       />
     </div>
