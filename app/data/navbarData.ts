@@ -11,10 +11,9 @@ export type NavItem = {
 export const navItems: NavItem[] = [
   { href: "/", icon: Home, label: "Home" },
   {
-    href: "/admin/permissions",
-    icon: Key,
-    label: "Permissions",
-    requiredRoles: ["Super Admin", "Admin"],
+    href: "/bills",
+    icon: Book,
+    label: "Bills",
   },
   {
     href: "/forum",
@@ -22,14 +21,16 @@ export const navItems: NavItem[] = [
     label: "Forum",
   },
   {
+    href: "/admin/permissions",
+    icon: Key,
+    label: "Permissions",
+    requiredRoles: ["Super Admin", "Admin"],
+  },
+
+  {
     href: "/settings",
     icon: Settings,
     label: "Settings",
     requiredRoles: ["Member", "Supporter", "Super Admin"],
-  },
-  {
-    href: "/bills",
-    icon: Book,
-    label: "Bills",
   },
 ];

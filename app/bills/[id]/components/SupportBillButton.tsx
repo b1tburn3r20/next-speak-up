@@ -13,6 +13,7 @@ import {
 } from "@/app/federal/bills/[billId]/components/UserVote/components/animations";
 import { MagicCard } from "@/components/magicui/magic-card";
 import { useTheme } from "next-themes";
+import { voteOnLegislation } from "@/lib/services/bill-voting";
 
 interface VoteCardsProps {
   bill: Legislation;
@@ -25,6 +26,7 @@ export function SupportBillButton({ bill, votes }: VoteCardsProps) {
   const [cardsReady, setCardsReady] = useState(false);
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const noCard = noCardRef.current;
@@ -57,11 +59,40 @@ export function SupportBillButton({ bill, votes }: VoteCardsProps) {
   }, []);
 
   const handleVote = async (isYesVote: boolean) => {
-    const voteTl = playVoteAnimation(
+    playVoteAnimation(
       isYesVote ? yesCardRef.current : noCardRef.current,
       isYesVote ? noCardRef.current : yesCardRef.current,
       isYesVote
     );
+    let vote;
+    if (isYesVote) {
+      vote = "YEA";
+    } else {
+      vote = "NAY";
+    }
+    try {
+      const response = await fetch("/api/bills/vote", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          legislationNameId: bill.name_id,
+          vote,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Preference updated:", result);
+    } catch (error) {
+      console.error("Failed to update dyslexic preference:", error);
+    } finally {
+      setIsLoading(false);
+    }
 
     console.log(isYesVote);
   };
