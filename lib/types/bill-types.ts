@@ -28,6 +28,7 @@ export type FullLegislation = {
   bill_size: string | null;
   word_count: number;
   userTracks: LegislationUserTracks[];
+  userVotes?: LegislationUserVote[];
 };
 
 export type LegislationUserVote = {

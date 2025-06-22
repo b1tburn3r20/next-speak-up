@@ -97,12 +97,10 @@ const Page = async ({ params }: PageProps) => {
       "dyslexic_friendly"
     );
 
-    // Mark as viewed only for authenticated users
     await markBillAsViewed(billId, session.user.id, session.user.role.name);
   }
-  const hasUser = !!session?.user?.id;
   return (
-    <div className="">
+    <div>
       <RenderBill
         bill={bill}
         session={session}

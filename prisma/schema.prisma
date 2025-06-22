@@ -231,6 +231,7 @@ model UserBillTrack {
   userId        String
   legislationId Int
   hasViewed     Boolean   @default(false)
+  tracking      Boolean   @default(false)
   viewedAt      DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -242,6 +243,7 @@ model UserBillTrack {
   @@index([userId])
   @@index([legislationId])
   @@index([hasViewed])
+  @@index([tracking])
   @@map("userbilltrack")
 }
 

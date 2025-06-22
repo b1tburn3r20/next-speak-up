@@ -25,10 +25,39 @@ export const getBillData = async (
     where: {
       id: billId,
     },
+    include: {
+      userTracks: userId
+        ? {
+            where: { userId },
+            select: {
+              hasViewed: true,
+              viewedAt: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          }
+        : false,
+    },
   });
 
+  // Separately fetch user vote if user exists
+  let userVote = null;
+  if (userId) {
+    userVote = await prisma.userVote.findFirst({
+      where: {
+        userId,
+        legislationId: billId,
+      },
+      select: { votePosition: true, createdAt: true, updatedAt: true },
+    });
+  }
+
   await logUserAction(userId, "getBillData", String(billId), userRole);
-  return response;
+
+  return {
+    ...response,
+    userVotes: userVote ? [userVote] : [],
+  };
 };
 
 export const getRecentBills = async (
@@ -44,14 +73,55 @@ export const getRecentBills = async (
       userTracks: userId
         ? {
             where: { userId },
-            select: { hasViewed: true, viewedAt: true },
+            select: {
+              hasViewed: true,
+              viewedAt: true,
+              createdAt: true,
+              updatedAt: true,
+            },
           }
         : false, // Don't include userTracks for guests
     },
   });
 
+  // If user exists, fetch their votes for all these bills
+  let userVotes: { [key: number]: any } = {};
+  if (userId) {
+    const billIds = bills.map((bill) => bill.id);
+    const votes = await prisma.userVote.findMany({
+      where: {
+        userId,
+        legislationId: { in: billIds },
+      },
+      select: {
+        legislationId: true,
+        votePosition: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    // Create a lookup object for votes by legislation ID
+    userVotes = votes.reduce((acc, vote) => {
+      if (vote.legislationId) {
+        acc[vote.legislationId] = {
+          votePosition: vote.votePosition,
+          createdAt: vote.createdAt,
+          updatedAt: vote.updatedAt,
+        };
+      }
+      return acc;
+    }, {} as { [key: number]: any });
+  }
+
+  // Add user votes to each bill
+  const billsWithVotes = bills.map((bill) => ({
+    ...bill,
+    userVotes: userVotes[bill.id] ? [userVotes[bill.id]] : [],
+  }));
+
   await logUserAction(userId, "getRecentBills", null, userRole);
-  return bills;
+  return billsWithVotes;
 };
 
 export const markBillAsViewed = async (
@@ -123,15 +193,37 @@ export const getLastViewedBill = async (
         include: {
           userTracks: {
             where: { userId },
-            select: { hasViewed: true, viewedAt: true },
+            select: {
+              hasViewed: true,
+              viewedAt: true,
+              createdAt: true,
+              updatedAt: true,
+            },
           },
         },
       },
     },
   });
 
+  if (!lastViewed?.legislation) {
+    await logUserAction(userId, "getLastViewedBill", null, userRole);
+    return null;
+  }
+
+  // Fetch user vote for this legislation
+  const userVote = await prisma.userVote.findFirst({
+    where: {
+      userId,
+      legislationId: lastViewed.legislation.id,
+    },
+    select: { votePosition: true, createdAt: true, updatedAt: true },
+  });
+
   await logUserAction(userId, "getLastViewedBill", null, userRole);
 
-  // Return the legislation data or null if no bills have been viewed
-  return lastViewed?.legislation || null;
+  // Return the legislation data with user vote
+  return {
+    ...lastViewed.legislation,
+    userVotes: userVote ? [userVote] : [],
+  };
 };

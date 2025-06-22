@@ -8,6 +8,7 @@ import BillSummaries from "./BillSummaries";
 import { SupportBillButton } from "./SupportBillButton";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
 import { FullUserLegislationData } from "@/lib/types/bill-types";
+import HasVotedBillPage from "./has-voted-components/HasVotedBillPage";
 
 interface RenderBillProps {
   bill: FullUserLegislationData;
@@ -31,6 +32,11 @@ const RenderBill = ({ bill, session, isDyslexicFriendly }: RenderBillProps) => {
 
   if (!billData) {
     return <LoadingCatch />;
+  }
+  const hasVoted = !!bill?.userVote;
+
+  if (hasVoted) {
+    return <HasVotedBillPage />;
   }
 
   return (
