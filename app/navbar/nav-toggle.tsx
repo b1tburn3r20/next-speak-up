@@ -11,9 +11,7 @@ const NavToggle = () => {
 
   useEffect(() => {
     const isLocalStorageNavExpanded = localStorage.getItem("isNavbarExpanded");
-    console.log(
-      isLocalStorageNavExpanded && isLocalStorageNavExpanded === "true"
-    );
+
     if (isLocalStorageNavExpanded && isLocalStorageNavExpanded === "true") {
       setNavCollapsed(true);
     }

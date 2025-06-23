@@ -2,6 +2,7 @@ import { UserBillTrack } from "@prisma/client";
 
 export type LegislationUserTracks = {
   hasViewed: boolean;
+  tracking: boolean;
   viewedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -27,7 +28,7 @@ export type FullLegislation = {
   key_terms: string | null;
   bill_size: string | null;
   word_count: number;
-  userTracks: LegislationUserTracks[];
+  userTracks?: LegislationUserTracks[];
   userVotes?: LegislationUserVote[];
 };
 
@@ -40,6 +41,7 @@ export type LegislationUserVote = {
 export type LegislationUserTracking = {
   hasViewed: boolean;
   viewedAt: Date | null;
+  tracking: boolean;
   createdAt: Date;
   updatedAt: Date;
 };

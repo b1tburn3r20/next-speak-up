@@ -2,10 +2,8 @@
 
 import { useBillPageStore } from "../useBillPageStore";
 
-interface BillTitleProps {
-  billTitle: string;
-}
-const BillTitle = ({ billTitle }: BillTitleProps) => {
+const BillTitle = () => {
+  const billTitle = useBillPageStore((s) => s.billData.legislation.title);
   const isDyslexicFriendly = useBillPageStore((s) => s.isDyslexicFriendly);
 
   return (

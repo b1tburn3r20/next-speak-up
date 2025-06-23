@@ -33,18 +33,18 @@ const RenderBill = ({ bill, session, isDyslexicFriendly }: RenderBillProps) => {
   if (!billData) {
     return <LoadingCatch />;
   }
-  const hasVoted = !!bill?.userVote;
+  const hasVoted = !!billData?.userVote;
 
   if (hasVoted) {
-    return <HasVotedBillPage />;
+    return <HasVotedBillPage session={session} />;
   }
 
   return (
     <div className="flex justify-center items-center ">
       <div className="flex flex-col text-center items-center max-w-4xl space-y-6 bg-muted/50 rounded-xl p-4">
-        <BillTitle billTitle={billData.legislation.title} />
+        <BillTitle />
         <div className="h-[2px] bg-muted w-full" />
-        <BillSummaries userId={session?.user?.id} bill={billData.legislation} />
+        <BillSummaries userId={session?.user?.id} />
       </div>
 
       {hasUser && <SupportBillButton bill={billData.legislation} />}

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/carousel";
 import { Legislation } from "@prisma/client";
 import BillViewCard from "./BillViewCard";
+import EmptyBillCard from "./EmptyBillCard";
 
 interface RecentBillsCarouselProps {
   bills: Legislation[];
@@ -15,11 +16,7 @@ interface RecentBillsCarouselProps {
 
 const RecentBillsCarousel = ({ bills }: RecentBillsCarouselProps) => {
   if (bills.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        No recent bills found
-      </div>
-    );
+    return <EmptyBillCard />;
   }
 
   return (

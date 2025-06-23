@@ -1,6 +1,6 @@
 import prisma from "@/prisma/client";
 import { VotePosition } from "@prisma/client";
-import { getBillData } from "./bills";
+import { logUserAction } from "./user";
 
 export const voteOnLegislation = async (
   userId: string,
@@ -40,7 +40,39 @@ export const voteOnLegislation = async (
   });
   return getComprehensiveBillData(legislationId, userId, role);
 };
-import { logUserAction } from "./user";
+
+export const updateBillTracking = async (
+  userId: string,
+  legislationId: number,
+  currentTracking: boolean,
+  role: string
+) => {
+  const newTrackingStatus = !currentTracking;
+
+  await prisma.userBillTrack.upsert({
+    where: {
+      userId_legislationId: {
+        userId,
+        legislationId,
+      },
+    },
+    update: {
+      tracking: newTrackingStatus,
+    },
+    create: {
+      userId,
+      legislationId,
+      tracking: newTrackingStatus,
+    },
+  });
+  await logUserAction(
+    userId,
+    "updateBillTracking",
+    String(legislationId),
+    role
+  );
+  return getComprehensiveBillData(legislationId, userId, role);
+};
 
 export const getComprehensiveBillData = async (
   billId: number,
@@ -57,12 +89,6 @@ export const getComprehensiveBillData = async (
       userTracks: userId
         ? {
             where: { userId },
-            select: {
-              hasViewed: true,
-              viewedAt: true,
-              createdAt: true,
-              updatedAt: true,
-            },
           }
         : false,
     },

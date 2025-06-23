@@ -94,8 +94,6 @@ export function SupportBillButton({ bill, votes }: VoteCardsProps) {
     } finally {
       setIsLoading(false);
     }
-
-    console.log(isYesVote);
   };
 
   const CardContent = ({ children }: { children: React.ReactNode }) => {

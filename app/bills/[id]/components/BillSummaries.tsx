@@ -11,11 +11,11 @@ import { useBillPageStore } from "../useBillPageStore";
 import { useState } from "react";
 
 interface BillSummariesProps {
-  bill: Legislation;
   userId: string | null;
 }
 
-const BillSummaries = ({ bill, userId }: BillSummariesProps) => {
+const BillSummaries = ({ userId }: BillSummariesProps) => {
+  const bill = useBillPageStore((s) => s.billData.legislation);
   const [isLoading, setIsLoading] = useState(false);
   const isDyslexicFriendly = useBillPageStore((s) => s.isDyslexicFriendly);
   const setIsDyslexicFriendly = useBillPageStore(

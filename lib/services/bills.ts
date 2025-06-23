@@ -227,3 +227,33 @@ export const getLastViewedBill = async (
     userVotes: userVote ? [userVote] : [],
   };
 };
+export const getTrackedBills = async (
+  userId: string | null,
+  userRole: string
+) => {
+  if (!userId) {
+    return [];
+  }
+
+  const bills = await prisma.legislation.findMany({
+    where: {
+      userTracks: {
+        some: {
+          userId,
+          tracking: true,
+        },
+      },
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+    take: 15,
+    include: {
+      userTracks: {
+        where: { userId },
+      },
+    },
+  });
+
+  return bills;
+};

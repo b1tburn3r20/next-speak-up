@@ -75,6 +75,7 @@ const BillAskAI = ({ congress, type, number, user }) => {
       <Button
         className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
         size="icon"
+        variant="outline"
         onClick={handleChatClick}
       >
         <MessageCircle className="h-6 w-6" />

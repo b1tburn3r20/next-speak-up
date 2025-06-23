@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { FullLegislation } from "@/lib/types/bill-types";
-import { Legislation } from "@prisma/client";
-import { ArrowRight, BookOpen, CircleCheck, Eye } from "lucide-react";
+import { ArrowRight, Bell, BookOpen, CircleCheck } from "lucide-react";
 import Link from "next/link";
 
 interface BillViewCardProps {
@@ -19,24 +18,44 @@ const BillViewCard = ({ bill }: BillViewCardProps) => {
     bill.userTracks.length > 0 &&
     bill.userTracks[0].hasViewed;
 
+  const hasTracked =
+    bill.userTracks &&
+    bill.userTracks.length > 0 &&
+    bill.userTracks[0].tracking;
   const hasVoted = bill.userVotes && bill.userVotes.length > 0;
+
+  const getIcon = () => {
+    if (hasTracked) {
+      return (
+        <div className="absolute bottom-4 right-4 z-5 pointer-events-none">
+          <Bell className="w-24 h-24 text-yellow-400" />
+        </div>
+      );
+    }
+
+    if (hasViewed && !hasVoted) {
+      return (
+        <div className="absolute bottom-4 right-4 z-5 pointer-events-none">
+          <BookOpen className="w-24 h-24 text-accent" />
+        </div>
+      );
+    }
+    if (hasVoted) {
+      return (
+        <div className="absolute bottom-4 right-4 z-5 pointer-events-none">
+          <CircleCheck className="w-24 h-24 text-green-500" />
+        </div>
+      );
+    }
+  };
+
   return (
     <Link href={`/bills/${bill.id}`} className="block">
       <Card className="h-[300px] aspect-square select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-border/50 rounded-3xl">
         {/* Aggressive gradient overlay - gets to 100% much faster */}
         <div className="absolute top-1/3 left-0 right-0 bottom-0 bg-gradient-to-b from-background/0 via-background/80 to-background z-10 pointer-events-none" />
+        {getIcon()}
 
-        {/* Large faded eye icon in bottom right if viewed */}
-        {hasViewed && !hasVoted && (
-          <div className="absolute bottom-4 right-4 z-5 pointer-events-none">
-            <BookOpen className="w-24 h-24 text-accent" />
-          </div>
-        )}
-        {hasVoted && (
-          <div className="absolute bottom-4 right-4 z-5 pointer-events-none">
-            <CircleCheck className="w-24 h-24 text-green-500" />
-          </div>
-        )}
         <div className="p-8 h-full flex flex-col relative">
           {/* Updated date - large bold at top */}
           <div className="mb-6">
