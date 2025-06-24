@@ -12,7 +12,6 @@ const BillViewCard = ({ bill }: BillViewCardProps) => {
     bill.number || ""
   }`.trim();
 
-  // Check if user has viewed this bill
   const hasViewed =
     bill.userTracks &&
     bill.userTracks.length > 0 &&

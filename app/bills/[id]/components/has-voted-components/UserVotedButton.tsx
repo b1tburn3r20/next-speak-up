@@ -1,22 +1,16 @@
 "use client";
-import {
-  ArrowRight,
-  CheckIcon,
-  ChevronRightIcon,
-  Loader,
-  Loader2,
-  MessageCircleQuestion,
-} from "lucide-react";
 import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
-import { useBillPageStore } from "../../useBillPageStore";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ArrowRight, CheckIcon, CircleCheckBig, Loader } from "lucide-react";
+import { useState } from "react";
+import { useBillPageStore } from "../../useBillPageStore";
 
-export function TrackBillButton() {
+export function UserVotedButton() {
   const BillData = useBillPageStore((s) => s.billData);
   const [loading, setLoading] = useState(false);
   const currentTracking = BillData.userTracking.tracking;
   const setBillData = useBillPageStore((s) => s.setBillData);
+  const userDeterminedVote = BillData.userVote.votePosition;
   const ToggleTracking = () => {
     setLoading(true);
     updateTracking(currentTracking);
@@ -59,18 +53,23 @@ export function TrackBillButton() {
 
   return (
     <AnimatedSubscribeButton
-      onClick={ToggleTracking}
-      subscribeStatus={currentTracking}
-      className="w-44 bg-accent"
+      subscribeStatus={userDeterminedVote === "YEA"}
+      className={`w-fit text-shadow-lg
+ ${
+   userDeterminedVote === "YEA"
+     ? "bg-green-500 text-white text-shadow-sm"
+     : "bg-red-600 text-white text-shadow-lg"
+ }`}
       disabled={loading}
     >
-      <span className="group inline-flex items-center">
-        Track Bill
-        <ArrowRight className="ml-1 size-4 transition-transform duration-300 group-hover:translate-x-1" />
+      <span className="group inline-flex text-shadow-lg items-center">
+        {" "}
+        You Voted: {userDeterminedVote}
+        <CircleCheckBig className="ml-1 size-4 transition-transform duration-300 group-hover:translate-x-1" />
       </span>
-      <span className="group inline-flex items-center">
-        <CheckIcon className="mr-2 size-4" />
-        Tracking
+      <span className="group inline-flex text-shadow-lg items-center">
+        You Voted: {userDeterminedVote}
+        <CircleCheckBig className="ml-1 size-4 transition-transform duration-300 group-hover:translate-x-1" />
       </span>
     </AnimatedSubscribeButton>
   );

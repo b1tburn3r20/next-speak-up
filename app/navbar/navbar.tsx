@@ -1,16 +1,14 @@
 // components/Navbar.tsx
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import NavUser from "@/components/nav-user";
-import Link from "next/link";
+import { jwtVerify } from "jose";
+import { getServerSession } from "next-auth";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { navItems } from "../data/navbarData";
 import NavToggle from "./nav-toggle";
-import NavItem from "./NavItem";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { jwtVerify } from "jose";
 import NavbarTop from "./navbar-top";
-import { toast } from "sonner";
+import NavItem from "./NavItem";
 
 const Navbar = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession(authOptions);
@@ -18,7 +16,13 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
   const roleCookie = cookieStore.get("user-role-token");
   // need to be careful of loops
   if (session?.user && !roleCookie) {
-    redirect("/api/cookie/set-cookie-redirect");
+    // Get the current URL to redirect back to
+    const headersList = await headers();
+    const currentPath =
+      headersList.get("x-pathname") || headersList.get("referer") || "/";
+    const returnTo = encodeURIComponent(currentPath);
+
+    redirect(`/api/cookie/set-cookie-redirect?returnTo=${returnTo}`);
   }
 
   // Get user's role from cookie
@@ -29,13 +33,13 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
       const { payload } = await jwtVerify(roleCookie.value, secret);
       userRole = (payload.role as any)?.name || null;
     } catch (error) {
-      // Cookie invalid, will be handled by middleware
+      // Cookie invalid, I handle it in middleware
     }
   }
 
   // Filter nav items based on user's role
   const visibleNavItems = navItems.filter((item) => {
-    if (!item.requiredRoles) return true; // No role requirement = visible to all
+    if (!item.requiredRoles) return true; // No role requirement means visible to all
     if (!userRole) return false; // Role required but user has no role
     return item.requiredRoles.includes(userRole); // Check if user's role is in required roles
   });
@@ -58,10 +62,8 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
       </div>
 
       <div className="flex-1 flex flex-col">
-        {/* Fixed top navbar */}
         <NavbarTop />
-
-        {/* Scrollable content area */}
+        {/* rest of my app */}
         <div className="flex-1 overflow-auto ">
           <div className="p-6 border-l-2 border-t-2 border-accent/50 rounded-tl-2xl min-h-full">
             {children}

@@ -1,5 +1,13 @@
 // data/navbarData.ts
-import { Book, Group, Home, Key, LucideIcon, Settings } from "lucide-react";
+import {
+  Book,
+  Group,
+  Home,
+  Key,
+  LucideIcon,
+  Settings,
+  Users,
+} from "lucide-react";
 
 export type NavItem = {
   href: string;
@@ -17,7 +25,7 @@ export const navItems: NavItem[] = [
   },
   {
     href: "/forum",
-    icon: Group,
+    icon: Users,
     label: "Forum",
   },
   {

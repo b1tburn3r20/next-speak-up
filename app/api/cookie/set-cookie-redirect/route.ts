@@ -11,9 +11,7 @@ export async function GET(request: NextRequest) {
     request.headers.get("x-forwarded-for") ||
     request.headers.get("x-real-ip") ||
     "unknown";
-  const { success, pending, limit, reset, remaining } = await ratelimit.limit(
-    ip
-  );
+  const { success, limit } = await ratelimit.limit(ip);
   if (!success) {
     console.log("limit", limit);
     return NextResponse.json({ error: "Rate Limit Error" }, { status: 429 });
@@ -36,7 +34,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL("/api/auth/signin", request.url));
     }
 
-    // Create encrypted JWT using NEXTAUTH_SECRET
+    // encrypted JWT using NEXTAUTH_SECRET
     const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
     const now = Math.floor(Date.now() / 1000);
 
@@ -44,7 +42,7 @@ export async function GET(request: NextRequest) {
       role: user.role || "user",
       userId: session.user.id,
       iat: now,
-      exp: now + 60 * 60,
+      exp: now + 60 * 2,
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()

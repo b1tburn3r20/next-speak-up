@@ -74,7 +74,7 @@ export function UserActivityChart({ favoriteActions }: UserActivityChartProps) {
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
         <CardTitle>Activity Chart - Donut</CardTitle>
-        <CardDescription>Your Top Actions Distribution</CardDescription>
+        <CardDescription> Top Actions Distribution</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -136,7 +136,7 @@ export function UserActivityChart({ favoriteActions }: UserActivityChartProps) {
           )}
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing your activity distribution
+          Activity distribution
         </div>
       </CardFooter>
     </Card>

@@ -1,6 +1,11 @@
+import EmptyBillCard from "@/app/bills/components/EmptyBillCard";
 import BillSummaries from "../BillSummaries";
+import BillSummariesContainer from "../BillSummariesContainer";
 import BillTitle from "../BillTitle";
+import BillDetailsBillTitle from "./BillDetailsBillTitle";
+import HasVotedBillSummariesContainer from "./HasVotedBillSummariesContainer";
 import { TrackBillButton } from "./TrackBillButton";
+import { UserVotedButton } from "./UserVotedButton";
 
 // i know im treating this like a page but its pretty close i just dont need two pages for the same thing
 interface HasVotedBillPageProps {
@@ -11,12 +16,19 @@ const HasVotedBillPage = ({ session }: HasVotedBillPageProps) => {
   return (
     <div className="flex gap-4">
       <div>
-        <TrackBillButton />
+        <BillDetailsBillTitle />
+
+        <HasVotedBillSummariesContainer userId={session?.user?.id} />
       </div>
-      <div className="flex flex-col text-center items-center max-w-4xl space-y-6 bg-muted/50 rounded-xl p-4">
-        <BillTitle />
-        <div className="h-[2px] bg-muted w-full" />
-        <BillSummaries userId={session?.user?.id} />
+      <div className="shrink-0 space-y-2">
+        <EmptyBillCard
+          title="Not Voted Yet"
+          message="This legislation has not gone up for vote yet."
+        />
+        <div>
+          <TrackBillButton />
+          <UserVotedButton />
+        </div>
       </div>
     </div>
   );

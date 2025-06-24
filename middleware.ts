@@ -20,17 +20,6 @@ export async function middleware(request: NextRequest) {
     request.cookies.get("__Secure-next-auth.session-token");
   const roleTokenCookie = request.cookies.get("user-role-token");
 
-  // Clear stale cookies if no session
-  if (!sessionCookie && roleTokenCookie) {
-    const response = NextResponse.next();
-    response.cookies.set("user-role-token", "", {
-      httpOnly: true,
-      maxAge: 0,
-      path: "/",
-    });
-    return response;
-  }
-
   // Clear expired role cookies on all routes
   if (roleTokenCookie) {
     try {

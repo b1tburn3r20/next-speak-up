@@ -9,6 +9,7 @@ import { SupportBillButton } from "./SupportBillButton";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
 import { FullUserLegislationData } from "@/lib/types/bill-types";
 import HasVotedBillPage from "./has-voted-components/HasVotedBillPage";
+import BillSummariesContainer from "./BillSummariesContainer";
 
 interface RenderBillProps {
   bill: FullUserLegislationData;
@@ -44,7 +45,7 @@ const RenderBill = ({ bill, session, isDyslexicFriendly }: RenderBillProps) => {
       <div className="flex flex-col text-center items-center max-w-4xl space-y-6 bg-muted/50 rounded-xl p-4">
         <BillTitle />
         <div className="h-[2px] bg-muted w-full" />
-        <BillSummaries userId={session?.user?.id} />
+        <BillSummariesContainer userId={session?.user?.id} />
       </div>
 
       {hasUser && <SupportBillButton bill={billData.legislation} />}

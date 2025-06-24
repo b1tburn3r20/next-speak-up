@@ -193,12 +193,6 @@ export const getLastViewedBill = async (
         include: {
           userTracks: {
             where: { userId },
-            select: {
-              hasViewed: true,
-              viewedAt: true,
-              createdAt: true,
-              updatedAt: true,
-            },
           },
         },
       },
