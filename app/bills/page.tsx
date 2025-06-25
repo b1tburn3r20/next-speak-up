@@ -19,13 +19,14 @@ const Page = async () => {
   ]);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-6 sm:space-y-8 lg:space-y-12 px-4 sm:px-6 lg:px-8">
       <RecentBills bills={recentBills} />
-      <div className="flex flex-col lg:flex-row gap-12 w-full">
-        <div className="lg:flex-shrink-0">
+
+      <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 lg:gap-12 w-full">
+        <div className="w-full lg:w-auto lg:flex-shrink-0">
           <LastViewedBill bill={lastViewedBill} />
         </div>
-        <div className="lg:flex-1 lg:min-w-0">
+        <div className="w-full lg:flex-1 lg:min-w-0">
           <CurrentlyTracking bills={trackedBills} />
         </div>
       </div>

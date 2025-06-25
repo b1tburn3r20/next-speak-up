@@ -9,11 +9,13 @@ interface LastViewedBillProps {
 
 const LastViewedBill = ({ bill }: LastViewedBillProps) => {
   return (
-    <div>
-      <TextAnimate className="text-4xl m-4 font-bold [&>span:first-child]:text-accent">
+    <div className="w-full">
+      <TextAnimate className="text-2xl sm:text-3xl lg:text-4xl mb-4 sm:mb-6 font-bold [&>span:first-child]:text-accent px-2 sm:px-0">
         Last Viewed
       </TextAnimate>
-      {bill ? <BillViewCard bill={bill} /> : <EmptyBillCard />}
+      <div className="w-full max-w-md mx-auto lg:mx-0">
+        {bill ? <BillViewCard bill={bill} /> : <EmptyBillCard />}
+      </div>
     </div>
   );
 };
