@@ -9,6 +9,7 @@ import MobileNavbar from "./MobileNavbar";
 import { UserSession } from "@/lib/types/user-types";
 import { Session } from "next-auth";
 import { navItems } from "../../data/navbarData"; // Import to reconstruct data
+import { useNavbarStore } from "../useNavbarStore";
 
 interface ClientNavbarProps {
   visibleNavHrefs: string[];
@@ -24,7 +25,7 @@ const ClientNavbar = ({
   children,
 }: ClientNavbarProps) => {
   const [isMobile, setIsMobile] = useState(false);
-
+  const setNavState = useNavbarStore((f) => f.setNavCollapsed);
   // Reconstruct nav items from hrefs
   const visibleNavItems = visibleNavHrefs
     .map((href) => navItems.find((item) => item.href === href))
@@ -79,7 +80,12 @@ const ClientNavbar = ({
         <NavbarTop />
         {/* rest of app */}
         <div className="flex-1 overflow-auto">
-          <div className="p-6 border-l-2 border-t-2 border-accent/50 rounded-tl-2xl min-h-full">
+          <div
+            onClick={() => {
+              setNavState(true);
+            }}
+            className="p-6 border-l-2 border-t-2 border-accent rounded-tl-2xl min-h-full"
+          >
             {children}
           </div>
         </div>

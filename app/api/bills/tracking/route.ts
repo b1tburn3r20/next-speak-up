@@ -33,7 +33,7 @@ export async function PATCH(request: NextRequest) {
     const data = await updateBillTracking(
       session.user.id,
       legislationId,
-      tracking,
+      !tracking,
       session?.user?.role?.name
     );
 

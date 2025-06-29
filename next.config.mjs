@@ -1,5 +1,18 @@
+import mdx from '@next/mdx';
+import removeImports from 'next-remove-imports';
+
+// Configure the MDX plugin
+const withMDX = mdx({
+  extension: /\.(md|mdx)$/,
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
   images: {
     remotePatterns: [
       {
@@ -35,8 +48,8 @@ const nextConfig = {
 
     return config;
   },
-    output: 'standalone',
-
+  output: 'standalone',
 };
 
-export default nextConfig;
+// Apply both MDX and removeImports configurations
+export default withMDX(removeImports()(nextConfig));

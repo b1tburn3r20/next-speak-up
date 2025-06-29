@@ -1,12 +1,6 @@
+// TrackBillButton.tsx
 "use client";
-import {
-  ArrowRight,
-  CheckIcon,
-  ChevronRightIcon,
-  Loader,
-  Loader2,
-  MessageCircleQuestion,
-} from "lucide-react";
+import { ArrowRight, CheckIcon, BookmarkIcon, Loader2 } from "lucide-react";
 import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
 import { useBillPageStore } from "../../useBillPageStore";
 import { useState } from "react";
@@ -17,9 +11,10 @@ export function TrackBillButton() {
   const [loading, setLoading] = useState(false);
   const currentTracking = BillData.userTracking.tracking;
   const setBillData = useBillPageStore((s) => s.setBillData);
+
   const ToggleTracking = () => {
     setLoading(true);
-    updateTracking(currentTracking);
+    updateTracking(!currentTracking);
   };
 
   const updateTracking = async (newTrackingValue: boolean) => {
@@ -51,8 +46,13 @@ export function TrackBillButton() {
 
   if (loading) {
     return (
-      <Button className="bg-accent  h-10 w w-44  font-semibold hover:bg-accent cursor-wait">
-        <Loader className="animate-spin" />
+      <Button
+        className="w-full h-11 font-semibold"
+        disabled
+        variant="secondary"
+      >
+        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+        {currentTracking ? "Untracking..." : "Tracking..."}
       </Button>
     );
   }
@@ -61,15 +61,16 @@ export function TrackBillButton() {
     <AnimatedSubscribeButton
       onClick={ToggleTracking}
       subscribeStatus={currentTracking}
-      className="w-44 bg-accent"
+      className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground"
       disabled={loading}
     >
-      <span className="group inline-flex items-center">
+      <span className="group inline-flex items-center font-semibold">
+        <BookmarkIcon className="mr-2 w-4 h-4" />
         Track Bill
-        <ArrowRight className="ml-1 size-4 transition-transform duration-300 group-hover:translate-x-1" />
+        <ArrowRight className="ml-2 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
       </span>
-      <span className="group inline-flex items-center">
-        <CheckIcon className="mr-2 size-4" />
+      <span className="group inline-flex items-center font-semibold">
+        <CheckIcon className="mr-2 w-4 h-4" />
         Tracking
       </span>
     </AnimatedSubscribeButton>

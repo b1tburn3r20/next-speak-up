@@ -24,6 +24,15 @@ model User {
   billTracks      UserBillTrack[]
   userPreferences UserPreference[]
 
+  // forum
+  forumPosts            ForumPost[]
+  forumComments         ForumComment[]
+  forumPostUpvotes      ForumPostUpvote[]
+  forumPostDownvotes    ForumPostDownvote[]
+  forumPostBookmarks    ForumPostBookmark[]
+  forumCommentUpvotes   ForumCommentUpvote[]
+  forumCommentDownvotes ForumCommentDownvote[]
+
   accounts         Account?
   Authenticator    Authenticator[]
   favoritedMembers FavoritedCongressMember[]
@@ -34,6 +43,167 @@ model User {
 
   @@index([roleId], map: "user_roleId_fkey")
   @@map("user")
+}
+
+model ForumPost {
+  id        Int      @id @default(autoincrement())
+  type      String // "feature_request", "bill_discussion", "bug_report", "general"
+  title     String
+  body      String   @db.Text
+  authorId  String // Required - all posts must have an author
+  isLocked  Boolean  @default(false)
+  isPinned  Boolean  @default(false)
+  isEdited  Boolean  @default(false)
+  views     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  author    User                @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  tags      ForumPostTag[]
+  comments  ForumComment[]
+  upvotes   ForumPostUpvote[]
+  downvotes ForumPostDownvote[]
+  bookmarks ForumPostBookmark[]
+
+  @@index([authorId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([views])
+  @@index([isPinned, createdAt])
+  @@map("forumpost")
+}
+
+model ForumComment {
+  id        Int      @id @default(autoincrement())
+  body      String   @db.Text
+  authorId  String // Required - all comments must have an author
+  postId    Int
+  parentId  Int? // For nested comments - null means top-level comment
+  depth     Int      @default(0) // Track nesting depth for display
+  isDeleted Boolean  @default(false) // Soft delete to preserve thread structure
+  isEdited  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  author    User                   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      ForumPost              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent    ForumComment?          @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   ForumComment[]         @relation("CommentReplies")
+  upvotes   ForumCommentUpvote[]
+  downvotes ForumCommentDownvote[]
+
+  @@index([authorId])
+  @@index([postId])
+  @@index([parentId])
+  @@index([postId, parentId])
+  @@index([createdAt])
+  @@map("forumcomment")
+}
+
+model ForumTag {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  color       String? // Hex color for display
+  isOfficial  Boolean  @default(false) // Admin-created vs user-created tags
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  posts ForumPostTag[]
+
+  @@index([name])
+  @@map("forumtag")
+}
+
+model ForumPostTag {
+  postId Int
+  tagId  Int
+
+  post ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  ForumTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([postId])
+  @@index([tagId])
+  @@map("forumposttag")
+}
+
+model ForumPostUpvote {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  postId    Int
+  createdAt DateTime @default(now())
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@map("forumpostupvote")
+}
+
+model ForumPostDownvote {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  postId    Int
+  createdAt DateTime @default(now())
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@map("forumpostdownvote")
+}
+
+model ForumPostBookmark {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  postId    Int
+  createdAt DateTime @default(now())
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@map("forumpostbookmark")
+}
+
+model ForumCommentUpvote {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  commentId Int
+  createdAt DateTime @default(now())
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment ForumComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([userId])
+  @@index([commentId])
+  @@map("forumcommentupvote")
+}
+
+model ForumCommentDownvote {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  commentId Int
+  createdAt DateTime @default(now())
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment ForumComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([userId])
+  @@index([commentId])
+  @@map("forumcommentdownvote")
 }
 
 model GuestAction {
@@ -263,28 +433,67 @@ model MemberVote {
   @@map("membervote")
 }
 
+model BillSummary {
+  id            Int       @id @default(autoincrement())
+  legislationId Int
+  actionDate    DateTime?
+  actionDesc    String? // "Passed Senate", "Public Law", etc.
+  text          String?   @db.Text
+  updateDate    DateTime?
+  versionCode   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  legislation Legislation @relation(fields: [legislationId], references: [id], onDelete: Cascade)
+
+  @@index([legislationId])
+  @@index([actionDate])
+  @@index([actionDesc])
+  @@map("billsummary")
+}
+
+model BillAiSummary {
+  id            Int       @id @default(autoincrement())
+  legislationId Int
+  actionDate    DateTime?
+  type          String?
+  text          String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  legislation Legislation @relation(fields: [legislationId], references: [id], onDelete: Cascade)
+
+  @@index([legislationId])
+  @@index([actionDate])
+  @@index([type])
+  @@map("billaisummary")
+}
+
 model Legislation {
-  id              Int             @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   congress        Int?
   introducedDate  DateTime?
   number          String?
-  title           String?         @db.Text
+  title           String?   @db.Text
   type            String?
-  url             String?         @db.VarChar(500)
+  url             String?   @db.VarChar(500)
   amendmentNumber String?
   policy_area_id  Int?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  name_id         String?         @unique(map: "Legislation_name_id_key")
-  summary         String?         @db.Text
-  ai_summary      String?         @db.Text
-  fine_print      String?         @db.Text
-  userTracks      UserBillTrack[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  name_id         String?   @unique(map: "Legislation_name_id_key")
 
+  // Keep these fields as they seem to be different
+  fine_print          String? @db.Text
   hidden_implications String? @db.Text
   key_terms           String? @db.Text
   bill_size           String?
   word_count          Int?
+
+  // Relations
+  userTracks  UserBillTrack[]
+  summaries   BillSummary[]
+  aiSummaries BillAiSummary[]
 
   @@index([policy_area_id], map: "Legislation_policy_area_id_fkey")
   @@map("legislation")

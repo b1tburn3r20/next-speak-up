@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import BillSummaries from "./BillSummaries";
+import BillSummaries from "./AIBillSummaries";
+import AIBillSummaries from "./AIBillSummaries";
 
 interface BillSummariesContainerProps {
   userId?: string;
@@ -27,18 +28,18 @@ const BillSummariesContainer = ({ userId }: BillSummariesContainerProps) => {
 
         <TabsContent
           value="Simplified"
-          className="mt-4 sm:mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
+          className="mt-4 sm:mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-lg"
         >
-          <div className="bg-card border rounded-lg shadow-sm overflow-hidden">
-            <BillSummaries userId={userId} />
+          <div className="bg-card border-0 sm:border sm:rounded-lg sm:shadow-sm overflow-hidden">
+            <AIBillSummaries userId={userId} />
           </div>
         </TabsContent>
 
         <TabsContent
           value="Official"
-          className="mt-4 sm:mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
+          className="mt-4 sm:mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-lg"
         >
-          <div className="bg-card border rounded-lg shadow-sm p-6 sm:p-8">
+          <div className="bg-card border-0 sm:border sm:rounded-lg sm:shadow-sm p-6 sm:p-8">
             <div className="text-center text-muted-foreground">
               <div className="mb-4">
                 <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full mb-3">
@@ -71,5 +72,4 @@ const BillSummariesContainer = ({ userId }: BillSummariesContainerProps) => {
     </div>
   );
 };
-
 export default BillSummariesContainer;

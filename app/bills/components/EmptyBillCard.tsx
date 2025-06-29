@@ -41,21 +41,21 @@ const EmptyBillCard = ({
           </p>
         </div>
 
-        {/* Bottom action area with accent border on hover */}
+        {/* Bottom action area with primary border on hover */}
         <div className="absolute bottom-0 left-0 right-0 z-20 p-6">
           <div
-            className="flex items-center justify-center border-2 border-transparent group-hover:border-accent group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-3xl p-4 transition-all duration-500 ease-out"
+            className="flex items-center justify-center border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-3xl p-4 transition-all duration-500 ease-out"
             onClick={onClick}
           >
             {/* Action text */}
-            <span className="text-lg font-bold text-muted-foreground/60 group-hover:text-accent transition-all duration-500 ease-out mr-2">
-              <p className="text-lg font-bold text-accent opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out mr-2">
+            <span className="text-lg font-bold text-muted-foreground/60 group-hover:text-primary transition-all duration-500 ease-out mr-2">
+              <p className="text-lg font-bold text-primary opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out mr-2">
                 {actionText}
               </p>{" "}
             </span>
 
             {/* Arrow with smoother animation */}
-            <ArrowRight className="w-5 h-5 text-muted-foreground/60 opacity-0 group-hover:opacity-100 group-hover:text-accent group-hover:translate-x-2 transition-all duration-500 ease-out" />
+            <ArrowRight className="w-5 h-5 text-muted-foreground/60 opacity-0 group-hover:opacity-100 group-hover:text-primary group-hover:translate-x-2 transition-all duration-500 ease-out" />
           </div>
         </div>
       </div>

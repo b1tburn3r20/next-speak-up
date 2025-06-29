@@ -21,7 +21,7 @@ export default async function Home() {
 
   return (
     <div className="container mx-auto p-4 space-y-8">
-      <TextAnimate className="text-4xl m-4 font-bold [&>span:first-child]:text-accent">
+      <TextAnimate className="text-4xl m-4 font-bold [&>span:first-child]:text-primary">
         {session?.user?.id ? `Hello, ${session.user.name}` : "Hi there."}
       </TextAnimate>
 

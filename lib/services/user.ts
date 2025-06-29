@@ -239,3 +239,11 @@ export async function logUserAction(
     console.error("Failed to log user action:", error);
   }
 }
+
+export async function checkIfUsernameIsAvailable(username: string) {
+  return prisma.user.findUnique({
+    where: {
+      username: username,
+    },
+  });
+}

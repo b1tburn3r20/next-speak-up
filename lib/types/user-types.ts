@@ -10,6 +10,9 @@ export type UserSession = {
   needsOnboarding: boolean;
   role: UserSessionRole;
 };
+export type AuthSession = {
+  user: UserSession;
+};
 export type UserSessionRole = {
   id: number;
   name: string;

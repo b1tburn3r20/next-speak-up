@@ -2,11 +2,34 @@ import { Card } from "@/components/ui/card";
 import { FullLegislation } from "@/lib/types/bill-types";
 import { ArrowRight, Bell, BookOpen, CircleCheck } from "lucide-react";
 import Link from "next/link";
-// Removed useEffect and useState - no client-side state needed for breakpoint detection
 
 interface BillViewCardProps {
   bill: FullLegislation;
 }
+
+// Helper function to get the most recent summary
+const getLatestSummary = (summaries: any[]) => {
+  if (!summaries || summaries.length === 0) return null;
+  // Sort by actionDate or createdAt, most recent first
+  const sorted = summaries.sort((a, b) => {
+    const dateA = new Date(a.actionDate || a.createdAt);
+    const dateB = new Date(b.actionDate || b.createdAt);
+    return dateB.getTime() - dateA.getTime();
+  });
+  return sorted[0];
+};
+
+// Helper function to get the most recent AI summary
+const getLatestAiSummary = (aiSummaries: any[]) => {
+  if (!aiSummaries || aiSummaries.length === 0) return null;
+  // Sort by actionDate or createdAt, most recent first
+  const sorted = aiSummaries.sort((a, b) => {
+    const dateA = new Date(a.actionDate || a.createdAt);
+    const dateB = new Date(b.actionDate || b.createdAt);
+    return dateB.getTime() - dateA.getTime();
+  });
+  return sorted[0];
+};
 
 // Desktop Component - Your exact preferred version
 const DesktopBillCard = ({ bill }: BillViewCardProps) => {
@@ -25,6 +48,10 @@ const DesktopBillCard = ({ bill }: BillViewCardProps) => {
     bill.userTracks[0].tracking;
   const hasVoted = bill.userVotes && bill.userVotes.length > 0;
 
+  // Get the latest summaries
+  const latestSummary = getLatestSummary(bill.summaries);
+  const latestAiSummary = getLatestAiSummary(bill.aiSummaries);
+
   const getIcon = () => {
     if (hasTracked) {
       return (
@@ -37,7 +64,7 @@ const DesktopBillCard = ({ bill }: BillViewCardProps) => {
     if (hasViewed && !hasVoted) {
       return (
         <div className="absolute bottom-4 right-4 z-5 pointer-events-none">
-          <BookOpen className="w-24 h-24 text-accent" />
+          <BookOpen className="w-24 h-24 text-primary" />
         </div>
       );
     }
@@ -82,29 +109,29 @@ const DesktopBillCard = ({ bill }: BillViewCardProps) => {
           {/* Summary section - both regular and AI summary */}
           <div className="mt-6 relative space-y-3">
             {/* Regular summary */}
-            {bill.summary && (
+            {latestSummary && (
               <div>
                 <p className="text-sm text-muted-foreground/70 line-clamp-3">
-                  {bill.summary}
+                  {latestSummary.text}
                 </p>
               </div>
             )}
 
             {/* AI summary - right under regular summary if it exists */}
-            {bill.ai_summary && (
+            {latestAiSummary && (
               <div>
                 <p className="text-sm text-muted-foreground/60 italic">
-                  {bill.ai_summary}
+                  {latestAiSummary.text}
                 </p>
               </div>
             )}
           </div>
 
-          {/* Bottom action area with accent border on hover */}
+          {/* Bottom action area with primary border on hover */}
           <div className="absolute bottom-0 left-0 right-0 z-20 p-6">
-            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-accent group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-3xl p-4 transition-all duration-500 ease-out">
+            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-3xl p-4 transition-all duration-500 ease-out">
               {/* Consistent size and weight, only color changes */}
-              <span className="text-lg font-bold text-muted-foreground/60 group-hover:text-accent transition-all duration-500 ease-out">
+              <span className="text-lg font-bold text-muted-foreground/60 group-hover:text-primary transition-all duration-500 ease-out">
                 <span className="block group-hover:hidden">View</span>
                 <span className="hidden group-hover:block">
                   {billIdentifier}
@@ -112,7 +139,7 @@ const DesktopBillCard = ({ bill }: BillViewCardProps) => {
               </span>
 
               {/* Arrow with smoother animation */}
-              <ArrowRight className="w-5 h-5 text-stone-500/60 opacity-0 group-hover:opacity-100 group-hover:text-accent group-hover:translate-x-2 transition-all duration-500 ease-out" />
+              <ArrowRight className="w-5 h-5 text-stone-500/60 opacity-0 group-hover:opacity-100 group-hover:text-primary group-hover:translate-x-2 transition-all duration-500 ease-out" />
             </div>
           </div>
         </div>
@@ -138,6 +165,10 @@ const MobileBillCard = ({ bill }: BillViewCardProps) => {
     bill.userTracks[0].tracking;
   const hasVoted = bill.userVotes && bill.userVotes.length > 0;
 
+  // Get the latest summaries
+  const latestSummary = getLatestSummary(bill.summaries);
+  const latestAiSummary = getLatestAiSummary(bill.aiSummaries);
+
   const getIcon = () => {
     if (hasTracked) {
       return (
@@ -150,7 +181,7 @@ const MobileBillCard = ({ bill }: BillViewCardProps) => {
     if (hasViewed && !hasVoted) {
       return (
         <div className="absolute top-3 right-3 z-10 pointer-events-none">
-          <BookOpen className="w-6 h-6 text-accent" />
+          <BookOpen className="w-6 h-6 text-primary" />
         </div>
       );
     }
@@ -188,19 +219,19 @@ const MobileBillCard = ({ bill }: BillViewCardProps) => {
           {/* Summary section - mobile optimized */}
           <div className="flex-1 relative space-y-2 z-5">
             {/* Regular summary */}
-            {bill.summary && (
+            {latestSummary && (
               <div>
                 <p className="text-xs text-muted-foreground line-clamp-3 font-medium">
-                  {bill.summary}
+                  {latestSummary.text}
                 </p>
               </div>
             )}
 
             {/* AI summary */}
-            {bill.ai_summary && (
+            {latestAiSummary && (
               <div>
                 <p className="text-xs text-muted-foreground/80 italic line-clamp-2">
-                  {bill.ai_summary}
+                  {latestAiSummary.text}
                 </p>
               </div>
             )}
@@ -208,15 +239,15 @@ const MobileBillCard = ({ bill }: BillViewCardProps) => {
 
           {/* Bottom action area */}
           <div className="absolute bottom-0 left-0 right-0 z-20 p-3">
-            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-accent group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-xl p-3 transition-all duration-500 ease-out">
-              <span className="text-sm font-bold text-muted-foreground/60 group-hover:text-accent transition-all duration-500 ease-out">
+            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-xl p-3 transition-all duration-500 ease-out">
+              <span className="text-sm font-bold text-muted-foreground/60 group-hover:text-primary transition-all duration-500 ease-out">
                 <span className="block group-hover:hidden">View</span>
                 <span className="hidden group-hover:block text-xs">
                   {billIdentifier}
                 </span>
               </span>
 
-              <ArrowRight className="w-4 h-4 text-stone-500/60 opacity-0 group-hover:opacity-100 group-hover:text-accent group-hover:translate-x-1 transition-all duration-500 ease-out" />
+              <ArrowRight className="w-4 h-4 text-stone-500/60 opacity-0 group-hover:opacity-100 group-hover:text-primary group-hover:translate-x-1 transition-all duration-500 ease-out" />
             </div>
           </div>
         </div>

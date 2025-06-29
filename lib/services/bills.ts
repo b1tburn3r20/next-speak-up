@@ -26,6 +26,8 @@ export const getBillData = async (
       id: billId,
     },
     include: {
+      summaries: true, // Include all summaries
+      aiSummaries: true, // Include all AI summaries
       userTracks: userId
         ? {
             where: { userId },
@@ -70,6 +72,8 @@ export const getRecentBills = async (
     },
     take: 10,
     include: {
+      summaries: true, // Include all summaries
+      aiSummaries: true, // Include all AI summaries
       userTracks: userId
         ? {
             where: { userId },
@@ -191,6 +195,8 @@ export const getLastViewedBill = async (
     include: {
       legislation: {
         include: {
+          summaries: true, // Include all summaries
+          aiSummaries: true, // Include all AI summaries
           userTracks: {
             where: { userId },
           },
@@ -221,6 +227,7 @@ export const getLastViewedBill = async (
     userVotes: userVote ? [userVote] : [],
   };
 };
+
 export const getTrackedBills = async (
   userId: string | null,
   userRole: string
@@ -243,6 +250,8 @@ export const getTrackedBills = async (
     },
     take: 15,
     include: {
+      summaries: true, // Include all summaries
+      aiSummaries: true, // Include all AI summaries
       userTracks: {
         where: { userId },
       },

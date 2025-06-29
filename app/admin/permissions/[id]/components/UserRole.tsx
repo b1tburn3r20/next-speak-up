@@ -84,7 +84,7 @@ const UserRole = ({ user }: { user: User }) => {
             {loading ? (
               <LoadingCatch className="h-8 w-8" />
             ) : (
-              <Plus className="h-8 w-8 text-accent" />
+              <Plus className="h-8 w-8 text-primary" />
             )}
           </div>
         );

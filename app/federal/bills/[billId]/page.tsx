@@ -44,13 +44,11 @@ export async function generateMetadata({
   const bill: Legislation = await getBillData(billId); // ✅ Use extracted billId
 
   const billIdentifier = `${bill.congress}${bill.type}${bill.number}`;
-  const fullTitle = `${bill.title} | SpeakUp`;
+  const fullTitle = `${bill.title} | Together`;
 
   return {
     title: fullTitle,
-    description: bill.summary
-      ? `${bill.summary.substring(0, 155)}...`
-      : `Details and tracking information for ${billIdentifier} in the ${bill.congress}th Congress`,
+
     keywords: [
       "Congress",
       "Legislation",
@@ -58,18 +56,6 @@ export async function generateMetadata({
       billIdentifier,
       "Federal Legislation",
     ].filter(Boolean),
-    openGraph: {
-      title: fullTitle,
-      description:
-        bill.summary?.substring(0, 155) ||
-        `Track ${billIdentifier} in Congress`,
-    },
-    twitter: {
-      title: fullTitle,
-      description:
-        bill.summary?.substring(0, 155) ||
-        `Track ${billIdentifier} in Congress`,
-    },
   };
 }
 
@@ -81,7 +67,7 @@ export default async function BillDetailsPage({
   searchParams: Promise<{ vote?: string }>; // ✅ Now a Promise
 }) {
   const session = await getServerSession(authOptions);
-  
+
   // ✅ Await both params and searchParams first
   const { billId } = await params;
   const { vote } = await searchParams;
@@ -91,13 +77,13 @@ export default async function BillDetailsPage({
     getBillData(billId), // ✅ Use extracted billId
     legislationVotesService.getBillVotes(billId, session.user.id), // ✅ Use extracted billId
   ]);
-  
+
   const userInfo = {
     id: session.user.id,
     name: session.user.name,
     image: session.user.image || "/path/to/default/avatar.png", // Fallback to default if no image
   };
-  
+
   const breadcrumbItems = [
     { label: "Federal", href: "/federal" },
     { label: "Bills", href: "/federal/bills" },
@@ -138,10 +124,6 @@ export default async function BillDetailsPage({
           {/* Sidebar */}
           <div className="space-y-6">
             <BillVotes votes={votes} />
-            <SponsorsAndCosponsors
-              sponsors={bill.sponsors}
-              cosponsors={bill.cosponsors}
-            />
           </div>
         </div>
       </div>

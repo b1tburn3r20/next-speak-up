@@ -10,7 +10,7 @@ interface LastViewedBillProps {
 const LastViewedBill = ({ bill }: LastViewedBillProps) => {
   return (
     <div className="w-full">
-      <TextAnimate className="text-2xl sm:text-3xl lg:text-4xl mb-4 sm:mb-6 font-bold [&>span:first-child]:text-accent px-2 sm:px-0">
+      <TextAnimate className="text-2xl sm:text-3xl lg:text-4xl mb-4 sm:mb-6 font-bold [&>span:first-child]:text-primary px-2 sm:px-0">
         Last Viewed
       </TextAnimate>
       <div className="w-full max-w-md mx-auto lg:mx-0">

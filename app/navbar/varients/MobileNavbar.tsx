@@ -53,7 +53,7 @@ const MobileNavbar = ({
       </button>
 
       {/* Top bar for mobile - without hamburger button */}
-      <div className="bg-background border-b border-accent/50 p-4 flex justify-between items-center">
+      <div className="bg-background border-b border-primary p-4 flex justify-between items-center">
         <div className="font-semibold">CG</div>
         {/* Empty space to maintain layout balance */}
         <div className="w-10"></div>
@@ -66,11 +66,11 @@ const MobileNavbar = ({
 
       {/* Mobile sliding menu */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-background border-l border-accent/50 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed top-0 right-0 h-full w-64 bg-background border-l border-primary/50 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
           isMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="p-4 border-b border-accent/50 flex-shrink-0">
+        <div className="p-4 border-b border-primary/50 flex-shrink-0">
           <div className="flex justify-between items-center">
             <span className="font-semibold">Menu</span>
             {/* Empty space since button is now absolutely positioned */}
@@ -88,7 +88,7 @@ const MobileNavbar = ({
             ))}
           </nav>
 
-          <div className="border-t border-accent/50 flex-shrink-0">
+          <div className="border-t border-primary/50 flex-shrink-0">
             <NavUser />
           </div>
         </div>

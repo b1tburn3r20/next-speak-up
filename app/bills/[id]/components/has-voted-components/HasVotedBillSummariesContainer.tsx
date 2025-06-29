@@ -1,5 +1,7 @@
+// HasVotedBillSummariesContainer.tsx
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import BillSummaries from "../BillSummaries";
+import { Badge } from "@/components/ui/badge";
+import BillSummaries from "../AIBillSummaries";
 
 interface HasVotedBillSummariesContainerProps {
   userId?: string;
@@ -9,21 +11,38 @@ const HasVotedBillSummariesContainer = ({
   userId,
 }: HasVotedBillSummariesContainerProps) => {
   return (
-    <Tabs defaultValue="Simplified">
-      <TabsList defaultValue="Simplified">
-        <TabsTrigger className="font-bold" value="Simplified">
-          Simplified
-        </TabsTrigger>
-        <TabsTrigger className="font-bold" disabled value="Official">
-          Official
-        </TabsTrigger>
-      </TabsList>
+    <div className="w-full">
+      <Tabs defaultValue="Simplified" className="w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex">
+            <TabsTrigger className="font-semibold text-sm" value="Simplified">
+              Simplified
+            </TabsTrigger>
+            <TabsTrigger
+              className="font-semibold text-sm relative"
+              disabled
+              value="Official"
+            >
+              Official
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-      <TabsContent value="Simplified">
-        <BillSummaries userId={userId} />
-      </TabsContent>
-      <TabsContent value="Official">Official</TabsContent>
-    </Tabs>
+        <TabsContent value="Simplified" className="mt-0">
+          <div className="bg-card border border-border rounded-lg p-4">
+            <BillSummaries userId={userId} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="Official" className="mt-0">
+          <div className="bg-card border border-border rounded-lg p-4">
+            <p className="text-muted-foreground">
+              Official summary coming soon...
+            </p>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

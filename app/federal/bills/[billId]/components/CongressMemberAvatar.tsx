@@ -16,7 +16,7 @@ type CongressMemberAvatarProps = {
 export const CongressMemberAvatar = ({ member }: CongressMemberAvatarProps) => (
   <Link
     href={`/congress/congress-members/${member.bioguideId}`}
-    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-accent group"
+    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-primary group"
   >
     <Avatar className="h-8 w-8">
       <AvatarImage

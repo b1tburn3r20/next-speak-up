@@ -91,6 +91,17 @@ export const getComprehensiveBillData = async (
             where: { userId },
           }
         : false,
+      // Add the missing summaries
+      summaries: {
+        orderBy: {
+          actionDate: "desc",
+        },
+      },
+      aiSummaries: {
+        orderBy: {
+          actionDate: "desc",
+        },
+      },
     },
   });
 
@@ -112,11 +123,6 @@ export const getComprehensiveBillData = async (
         userId,
         entityType: "legislation", // Assuming this is how you track legislation votes
         entityId: billId,
-      },
-      select: {
-        votePosition: true,
-        createdAt: true,
-        updatedAt: true,
       },
     });
   }
@@ -144,17 +150,6 @@ export const getComprehensiveBillData = async (
               in: sponsors.map((s) => s.sponsorBioguideId),
             },
           },
-          select: {
-            id: true,
-            bioguideId: true,
-            name: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-            state: true,
-            party: true,
-            district: true,
-          },
         })
       : [];
 
@@ -167,17 +162,6 @@ export const getComprehensiveBillData = async (
               in: cosponsors.map((c) => c.cosponsorBioguideId),
             },
           },
-          select: {
-            id: true,
-            bioguideId: true,
-            name: true,
-            firstName: true,
-            lastName: true,
-            role: true,
-            state: true,
-            party: true,
-            district: true,
-          },
         })
       : [];
 
@@ -188,22 +172,7 @@ export const getComprehensiveBillData = async (
       where: {
         name_id: billData.name_id,
       },
-      select: {
-        id: true,
-        congress: true,
-        chamber: true,
-        rollNumber: true,
-        date: true,
-        time: true,
-        description: true,
-        question: true,
-        result: true,
-        totalYea: true,
-        totalNay: true,
-        totalNotVoting: true,
-        totalPresent: true,
-        totalVoting: true,
-      },
+
       orderBy: {
         date: "desc",
       },
@@ -214,13 +183,6 @@ export const getComprehensiveBillData = async (
       const memberVotes = await prisma.memberVote.findMany({
         where: {
           voteId: vote.id,
-        },
-        select: {
-          id: true,
-          memberId: true,
-          votePosition: true,
-          party: true,
-          state: true,
         },
       });
 
@@ -233,17 +195,6 @@ export const getComprehensiveBillData = async (
                 id: {
                   in: memberIds,
                 },
-              },
-              select: {
-                id: true,
-                bioguideId: true,
-                name: true,
-                firstName: true,
-                lastName: true,
-                role: true,
-                state: true,
-                party: true,
-                district: true,
               },
             })
           : [];
@@ -265,12 +216,6 @@ export const getComprehensiveBillData = async (
   const latestAction = await prisma.latestAction.findUnique({
     where: {
       legislation_id: billId,
-    },
-    select: {
-      action_date: true,
-      text: true,
-      createdAt: true,
-      updatedAt: true,
     },
   });
 
@@ -359,11 +304,17 @@ export const getComprehensiveBillData = async (
     latestAction,
     policyArea,
 
+    // Now includes summaries and AI summaries
+    summaries: billData.summaries || [],
+    aiSummaries: billData.aiSummaries || [],
+
     // Summary counts
     summary: {
       totalSponsors: sponsorMembers.length,
       totalCosponsors: cosponsorMembers.length,
       totalCongressionalVotes: congressionalVotes.length,
+      totalSummaries: billData.summaries?.length || 0,
+      totalAiSummaries: billData.aiSummaries?.length || 0,
       hasUserVoted: userVote !== null,
       isUserTracking: billData.userTracks?.[0]?.hasViewed || false,
     },

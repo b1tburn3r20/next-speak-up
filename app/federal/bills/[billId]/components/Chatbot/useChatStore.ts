@@ -34,6 +34,7 @@ type ChatState = {
   hasInitialized: boolean;
   setInitialized: () => void;
   getContextMessages: () => Message[];
+  resetAll: () => void;
 };
 
 const initialState = {
@@ -82,7 +83,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
       settings: { ...state.settings, ...newSettings },
     })),
   setInitialized: () => set({ hasInitialized: true }),
-  clearChat: () => set(initialState),
+  clearChat: () =>
+    set({
+      messages: [],
+      isTyping: false,
+      hasInitialized: false,
+    }),
+  resetAll: () => set({ ...initialState }),
   getContextMessages: () => {
     const state = get();
     return state.messages.slice(-state.settings.contextSize);

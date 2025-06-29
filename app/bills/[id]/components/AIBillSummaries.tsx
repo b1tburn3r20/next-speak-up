@@ -1,5 +1,7 @@
 "use client";
-import { Legislation } from "@prisma/client";
+
+import Summary from "./Summary";
+import AiSummaryVersionSelector from "./AISummaryVersionSelector";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -18,55 +20,47 @@ import { MoreVertical, Eye, EyeOff } from "lucide-react";
 import { useBillPageStore } from "../useBillPageStore";
 import { useState, useEffect } from "react";
 
-interface BillSummariesProps {
+interface AIBillSummariesProps {
   userId: string | null;
 }
 
-const BillSummaries = ({ userId }: BillSummariesProps) => {
-  const bill = useBillPageStore((s) => s.billData.legislation);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+const AIBillSummaries = ({ userId }: AIBillSummariesProps) => {
+  const bill = useBillPageStore((s) => s.billData?.legislation);
+  const currentAiSummary = useBillPageStore((s) => s.currentAiSummary);
   const isDyslexicFriendly = useBillPageStore((s) => s.isDyslexicFriendly);
   const setIsDyslexicFriendly = useBillPageStore(
-    (l) => l.setIsDyslexicFriendly
+    (s) => s.setIsDyslexicFriendly
   );
 
-  // Detect if user is on mobile/touch device
+  const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768 || "ontouchstart" in window);
     };
-
     checkMobile();
     window.addEventListener("resize", checkMobile);
-
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const toggleDyslexicPreference = async () => {
     setIsDyslexicFriendly(!isDyslexicFriendly);
-    if (!userId) {
-      console.warn("No user ID provided");
-      return;
-    }
+    if (!userId) return;
 
     setIsLoading(true);
-
     try {
       const response = await fetch("/api/user-preferance", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           key: "dyslexic_friendly",
           value: String(!isDyslexicFriendly),
         }),
       });
-
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
     } catch (error) {
       console.error("Failed to update dyslexic preference:", error);
     } finally {
@@ -74,11 +68,21 @@ const BillSummaries = ({ userId }: BillSummariesProps) => {
     }
   };
 
+  const getSummaryText = () => {
+    const aiSummary = bill?.aiSummaries?.find((s) => {
+      const summaryDate = new Date(s.actionDate || s.createdAt)
+        .toISOString()
+        .split("T")[0];
+      return summaryDate === currentAiSummary;
+    });
+    return aiSummary?.text || "No AI summary available for this legislation.";
+  };
+
   const MenuContent = () => (
     <ContextMenuItem
       onClick={toggleDyslexicPreference}
       disabled={!userId || isLoading}
-      className={`${isDyslexicFriendly && "font-dyslexic"}`}
+      className={isDyslexicFriendly ? "font-dyslexic" : ""}
     >
       {isLoading ? (
         <>
@@ -99,36 +103,14 @@ const BillSummaries = ({ userId }: BillSummariesProps) => {
     </ContextMenuItem>
   );
 
-  const DropdownContent = () => (
-    <DropdownMenuItem
-      onClick={toggleDyslexicPreference}
-      disabled={!userId || isLoading}
-      className={`${isDyslexicFriendly && "font-dyslexic"}`}
-    >
-      {isLoading ? (
-        <>
-          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          Setting...
-        </>
-      ) : isDyslexicFriendly ? (
-        <>
-          <EyeOff className="mr-2 h-4 w-4" />
-          Disable Dyslexic Mode
-        </>
-      ) : (
-        <>
-          <Eye className="mr-2 h-4 w-4" />
-          Enable Dyslexic Mode
-        </>
-      )}
-    </DropdownMenuItem>
-  );
-
   return (
     <div className="relative">
-      {/* Mobile: Show dropdown menu button */}
+      {/* AI Summary Version Selector */}
+      <AiSummaryVersionSelector />
+
+      {/* Mobile dropdown menu */}
       {isMobile && (
-        <div className="absolute top-2 right-2 z-10">
+        <div className="absolute top-0 right-0 z-10">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -141,22 +123,43 @@ const BillSummaries = ({ userId }: BillSummariesProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownContent />
+              <DropdownMenuItem
+                onClick={toggleDyslexicPreference}
+                disabled={!userId || isLoading}
+                className={isDyslexicFriendly ? "font-dyslexic" : ""}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Setting...
+                  </>
+                ) : isDyslexicFriendly ? (
+                  <>
+                    <EyeOff className="mr-2 h-4 w-4" />
+                    Disable Dyslexic Mode
+                  </>
+                ) : (
+                  <>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Enable Dyslexic Mode
+                  </>
+                )}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       )}
 
-      {/* Desktop: Keep context menu */}
+      {/* Summary content */}
       {!isMobile ? (
         <ContextMenu>
           <ContextMenuTrigger>
             <div
-              className={`text-justify text-base sm:text-lg lg:text-xl leading-relaxed sm:leading-relaxed lg:leading-relaxed p-4 sm:p-6 ${
-                isDyslexicFriendly && "font-dyslexic"
+              className={`text-justify text-base sm:text-lg lg:text-xl leading-relaxed p-0 sm:p-6 ${
+                isDyslexicFriendly ? "font-dyslexic" : ""
               }`}
             >
-              {bill.ai_summary}
+              <Summary text={getSummaryText()} />
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent>
@@ -164,17 +167,16 @@ const BillSummaries = ({ userId }: BillSummariesProps) => {
           </ContextMenuContent>
         </ContextMenu>
       ) : (
-        /* Mobile: Just show the text without context menu */
         <div
-          className={`text-base sm:text-lg lg:text-xl leading-relaxed sm:leading-relaxed lg:leading-relaxed p-4 sm:p-6 pr-12 ${
-            isDyslexicFriendly && "font-dyslexic"
+          className={`text-base sm:text-lg lg:text-xl leading-relaxed p-0 sm:p-6 pr-0 sm:pr-6 ${
+            isDyslexicFriendly ? "font-dyslexic" : ""
           }`}
         >
-          {bill.ai_summary}
+          <Summary text={getSummaryText()} />
         </div>
       )}
     </div>
   );
 };
 
-export default BillSummaries;
+export default AIBillSummaries;

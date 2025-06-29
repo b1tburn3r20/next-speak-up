@@ -1,33 +1,40 @@
+// HasVotedBillPage.tsx
 import EmptyBillCard from "@/app/bills/components/EmptyBillCard";
-import BillSummaries from "../BillSummaries";
-import BillSummariesContainer from "../BillSummariesContainer";
-import BillTitle from "../BillTitle";
 import BillDetailsBillTitle from "./BillDetailsBillTitle";
 import HasVotedBillSummariesContainer from "./HasVotedBillSummariesContainer";
 import { TrackBillButton } from "./TrackBillButton";
 import { UserVotedButton } from "./UserVotedButton";
 
-// i know im treating this like a page but its pretty close i just dont need two pages for the same thing
 interface HasVotedBillPageProps {
   session: any;
 }
 
 const HasVotedBillPage = ({ session }: HasVotedBillPageProps) => {
   return (
-    <div className="flex gap-4">
-      <div>
-        <BillDetailsBillTitle />
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          <BillDetailsBillTitle />
+          <HasVotedBillSummariesContainer userId={session?.user?.id} />
+        </div>
 
-        <HasVotedBillSummariesContainer userId={session?.user?.id} />
-      </div>
-      <div className="shrink-0 space-y-2">
-        <EmptyBillCard
-          title="Not Voted Yet"
-          message="This legislation has not gone up for vote yet."
-        />
-        <div>
-          <TrackBillButton />
-          <UserVotedButton />
+        {/* Sidebar */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6 space-y-4">
+            <EmptyBillCard
+              title="Not Voted Yet"
+              message="This legislation has not gone up for vote yet."
+            />
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
+              <div className="flex-1">
+                <TrackBillButton />
+              </div>
+              <div className="flex-1">
+                <UserVotedButton />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -12,7 +12,7 @@ const RecentBills = ({ bills }: RecentBillsProps) => {
       <TextAnimate
         animation="blurInUp"
         by="word"
-        className="text-2xl sm:text-3xl lg:text-4xl mb-4 sm:mb-6 font-bold [&>span:last-child]:text-accent px-2 sm:px-0"
+        className="text-2xl sm:text-3xl lg:text-4xl mb-4 sm:mb-6 font-bold [&>span:last-child]:text-primary px-2 sm:px-0"
       >
         Most Recent
       </TextAnimate>

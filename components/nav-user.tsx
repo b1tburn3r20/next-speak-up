@@ -22,6 +22,7 @@ import {
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useLoginStore } from "@/app/navbar/useLoginStore";
 import { ModeToggle } from "./ui/mode-toggle";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
 import ShinyButton from "./ui/shiny-button";
@@ -38,7 +39,7 @@ import { useNavbarStore } from "@/app/navbar/useNavbarStore";
 export function NavUser() {
   const { data: session, status } = useSession();
   const { navCollapsed } = useNavbarStore();
-
+  const { isLoginDialogOpen, setIsLoginDialogOpen } = useLoginStore();
   const startQuickstart = async () => {
     try {
       const response = await fetch("/api/user/onboarding", {
@@ -67,7 +68,7 @@ export function NavUser() {
   if (!session?.user || status === "unauthenticated") {
     return (
       <div className="w-full flex justify-center items-center">
-        <Dialog>
+        <Dialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen}>
           <DialogTrigger asChild>
             <div className={navCollapsed ? "w-fit m-2" : "w-full m-2"}>
               <ShinyButton className={navCollapsed ? "w-fit px-2" : "w-full"}>

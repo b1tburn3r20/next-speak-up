@@ -14,8 +14,6 @@ export const initializeCards = (noCard: CardElement, yesCard: CardElement) => {
   // Initial positions
   gsap.set([noCard, yesCard], {
     y: 0,
-    scale: 0.8,
-    opacity: 0,
   });
 
   gsap.set(noCard, {
@@ -27,6 +25,8 @@ export const initializeCards = (noCard: CardElement, yesCard: CardElement) => {
     x: "-25%",
     rotation: 15,
   });
+  createFloatingAnimation(noCard, -15);
+  createFloatingAnimation(yesCard, 15);
 };
 
 export const createFloatingAnimation = (
@@ -43,50 +43,6 @@ export const createFloatingAnimation = (
     yoyo: true,
     repeat: -1,
   });
-};
-
-export const createEntryAnimations = (
-  noCard: CardElement,
-  yesCard: CardElement,
-  config?: AnimationConfig
-) => {
-  if (!noCard || !yesCard) return;
-
-  const mainTl = gsap.timeline({
-    defaults: { ease: "power3.out" },
-  });
-
-  // Yes card animation
-  mainTl
-    .to(yesCard, {
-      x: "0%",
-      scale: 1,
-      opacity: 1,
-      rotation: 8,
-      duration: 1,
-      delay: 1,
-      onComplete: () => {
-        createFloatingAnimation(yesCard, 8);
-      },
-    })
-    // No card animation - follows after Yes card
-    .to(
-      noCard,
-      {
-        x: "0%",
-        scale: 1,
-        opacity: 1,
-        rotation: -8,
-        duration: 1,
-        onComplete: () => {
-          createFloatingAnimation(noCard, -8);
-          config?.onComplete?.();
-        },
-      },
-      ">"
-    );
-
-  return mainTl;
 };
 
 export const setupHoverAnimations = (

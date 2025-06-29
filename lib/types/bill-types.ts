@@ -1,4 +1,4 @@
-import { UserBillTrack } from "@prisma/client";
+import { BillAiSummary, BillSummary, UserBillTrack } from "@prisma/client";
 
 export type LegislationUserTracks = {
   hasViewed: boolean;
@@ -21,8 +21,8 @@ export type FullLegislation = {
   createdAt: Date;
   updatedAt: Date;
   name_id: string;
-  summary: string | null;
-  ai_summary: string | null;
+  summaries: BillSummary[]; // Array of summary objects
+  aiSummaries: BillAiSummary[]; // Array of AI summary objects
   fine_print: string | null;
   hidden_implications: string | null;
   key_terms: string | null;

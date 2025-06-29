@@ -8,7 +8,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Favorite Congress Members | Speakup",
+  title: "Favorite Congress Members | Together",
   description: "View your favorite Congress members",
   openGraph: {
     title: "Favorite Congress Members",

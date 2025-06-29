@@ -1,3 +1,4 @@
+// BillDetailsBillTitle.tsx
 "use client";
 
 import { useBillPageStore } from "../../useBillPageStore";
@@ -7,11 +8,15 @@ const BillDetailsBillTitle = () => {
   const isDyslexicFriendly = useBillPageStore((s) => s.isDyslexicFriendly);
 
   return (
-    <h1
-      className={`text-xl text-accent ${isDyslexicFriendly && "font-dyslexic"}`}
-    >
-      {billTitle}
-    </h1>
+    <div className="border-b border-border pb-4">
+      <h1
+        className={`text-2xl md:text-3xl lg:text-4xl font-bold text-foreground leading-tight ${
+          isDyslexicFriendly && "font-dyslexic"
+        }`}
+      >
+        {billTitle}
+      </h1>
+    </div>
   );
 };
 

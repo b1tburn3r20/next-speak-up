@@ -10,7 +10,7 @@ import {
 } from "./components/CongressSearchAndPagination";
 
 export const metadata: Metadata = {
-  title: "Congress Members | Speakup",
+  title: "Congress Members | Together",
   description: "Browse and search through all current members of Congress",
   openGraph: {
     title: "Congress Members",

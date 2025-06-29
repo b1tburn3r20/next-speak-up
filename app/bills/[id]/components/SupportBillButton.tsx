@@ -4,10 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Legislation } from "@prisma/client";
 import { X, Check } from "lucide-react";
 import { BillVote } from "@/lib/services/legislation_two";
-
 import {
   initializeCards,
-  createEntryAnimations,
   setupHoverAnimations,
   playVoteAnimation,
 } from "@/app/federal/bills/[billId]/components/UserVote/components/animations";
@@ -24,120 +22,80 @@ interface VoteCardsProps {
 
 export function SupportBillButton({
   bill,
-  votes,
   onVoteSuccess,
   className,
 }: VoteCardsProps) {
   const noCardRef = useRef<HTMLDivElement>(null);
   const yesCardRef = useRef<HTMLDivElement>(null);
-  const [cardsReady, setCardsReady] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
-  const [isLoading, setIsLoading] = useState(false);
   const setBillData = useBillPageStore((d) => d.setBillData);
 
-  // Detect mobile
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-
-    return () => window.removeEventListener("resize", checkMobile);
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {
     const noCard = noCardRef.current;
     const yesCard = yesCardRef.current;
-    let cleanupFunctions: Array<() => void> = [];
 
-    // Initialize cards
     initializeCards(noCard, yesCard);
 
-    // Create entry animations with hover setup in completion
-    const timeline = createEntryAnimations(noCard, yesCard, {
-      onComplete: () => {
-        setCardsReady(true);
-
-        // Setup hover animations (only on desktop)
-        if (noCard && yesCard && !isMobile) {
-          const cleanupYesHover = setupHoverAnimations(yesCard, noCard, 8);
-          const cleanupNoHover = setupHoverAnimations(noCard, yesCard, -8);
-
-          if (cleanupYesHover) cleanupFunctions.push(cleanupYesHover);
-          if (cleanupNoHover) cleanupFunctions.push(cleanupNoHover);
-        }
-      },
-    });
-
-    return () => {
-      timeline?.kill();
-      cleanupFunctions.forEach((cleanup) => cleanup());
-    };
+    if (!isMobile && noCard && yesCard) {
+      const cleanYes = setupHoverAnimations(yesCard, noCard, 8);
+      const cleanNo = setupHoverAnimations(noCard, yesCard, -8);
+      return () => {
+        cleanYes?.();
+        cleanNo?.();
+      };
+    }
   }, [isMobile]);
 
-  const handleVote = async (isYesVote: boolean) => {
+  const handleVote = async (isYes: boolean) => {
     if (isLoading) return;
-
     setIsLoading(true);
 
-    // Play animation
-    playVoteAnimation(
-      isYesVote ? yesCardRef.current : noCardRef.current,
-      isYesVote ? noCardRef.current : yesCardRef.current,
-      isYesVote
-    );
+    const thisCard = isYes ? yesCardRef.current : noCardRef.current;
+    const otherCard = isYes ? noCardRef.current : yesCardRef.current;
 
-    const vote = isYesVote ? "YEA" : "NAY";
+    playVoteAnimation(thisCard, otherCard, isYes);
 
     try {
-      const response = await fetch("/api/bills/vote", {
+      const res = await fetch("/api/bills/vote", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           legislationNameId: bill.name_id,
-          vote,
+          vote: isYes ? "YEA" : "NAY",
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      const data = await res.json();
+      setBillData(data.data);
 
-      const voteData: any = await response.json();
-      setBillData(voteData.data);
-
-      // Call success callback after successful vote
-      if (onVoteSuccess) {
-        // Small delay to let animation finish
-        setTimeout(() => {
-          onVoteSuccess();
-        }, 1000);
-      }
-    } catch (error) {
-      console.error("Failed to submit vote:", error);
+      if (onVoteSuccess) setTimeout(onVoteSuccess, 1000);
+    } catch (err) {
+      console.error("Vote failed", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const CardContent = ({ children }: { children: React.ReactNode }) => {
-    return isDarkMode ? (
+  const CardContent = ({ children }: { children: React.ReactNode }) =>
+    isDarkMode ? (
       <MagicCard className="flex items-center justify-center h-full">
         {children}
       </MagicCard>
     ) : (
       <div className="flex items-center justify-center h-full">{children}</div>
     );
-  };
 
-  // Mobile dimensions
-  const mobileCardStyle = {
+  const cardSize = {
     width: isMobile ? "140px" : "250px",
     height: isMobile ? "180px" : "400px",
   };
@@ -153,14 +111,10 @@ export function SupportBillButton({
       <div
         ref={noCardRef}
         onClick={() => handleVote(false)}
-        className={`z-20 rounded-lg shadow-2xl cursor-pointer flex-shrink-0 dark:bg-card bg-red-500 transition-opacity ${
+        className={`z-20 rounded-lg shadow-2xl cursor-pointer flex-shrink-0 dark:bg-card bg-red-500 transition-opacity duration-500 ${
           isLoading ? "opacity-50 pointer-events-none" : ""
         }`}
-        style={{
-          ...mobileCardStyle,
-          transformOrigin: "center center",
-          pointerEvents: cardsReady && !isLoading ? "auto" : "none",
-        }}
+        style={{ ...cardSize, transformOrigin: "center center" }}
       >
         <CardContent>
           <X
@@ -174,14 +128,10 @@ export function SupportBillButton({
       <div
         ref={yesCardRef}
         onClick={() => handleVote(true)}
-        className={`z-20 rounded-lg shadow-2xl cursor-pointer flex-shrink-0 dark:bg-card bg-green-500 transition-opacity ${
+        className={`z-20 rounded-lg shadow-2xl cursor-pointer flex-shrink-0 dark:bg-card bg-green-500 transition-opacity duration-500 ${
           isLoading ? "opacity-50 pointer-events-none" : ""
         }`}
-        style={{
-          ...mobileCardStyle,
-          transformOrigin: "center center",
-          pointerEvents: cardsReady && !isLoading ? "auto" : "none",
-        }}
+        style={{ ...cardSize, transformOrigin: "center center" }}
       >
         <CardContent>
           <Check

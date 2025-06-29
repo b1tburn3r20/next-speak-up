@@ -31,11 +31,5 @@ export function ResponsiveSupportBill({
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
-  // Render mobile version on small screens
-  if (isMobile) {
-    return <MobileSupportBillButton bill={bill} votes={votes} />;
-  }
-
-  // Render desktop version on larger screens
-  return <SupportBillButton bill={bill} votes={votes} />;
+  return <MobileSupportBillButton bill={bill} votes={votes} />;
 }
