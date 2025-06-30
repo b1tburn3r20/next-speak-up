@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,15 +13,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function ModeToggle() {
-  const { setTheme } = useTheme();
-
-  const handleModeToggleChange = (mode: string) => {
-    if (mode === "light") {
+  const { setTheme, theme } = useTheme();
+  useEffect(() => {
+    if (theme === "light") {
       document.documentElement.setAttribute("data-color-mode", "light");
     } else {
       document.documentElement.setAttribute("data-color-mode", "dark");
     }
-  };
+  }, [theme]);
 
   return (
     <DropdownMenu>
@@ -36,7 +35,6 @@ export function ModeToggle() {
         <DropdownMenuItem
           onClick={() => {
             setTheme("light");
-            handleModeToggleChange("light");
           }}
         >
           Light
@@ -44,7 +42,6 @@ export function ModeToggle() {
         <DropdownMenuItem
           onClick={() => {
             setTheme("dark");
-            handleModeToggleChange("dark");
           }}
         >
           Dark

@@ -7,12 +7,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 const NewFormSubmitButton = () => {
+  const router = useRouter();
+
   const type = useNewForumPostStore((f) => f.type);
   const title = useNewForumPostStore((f) => f.title);
   const body = useNewForumPostStore((f) => f.body);
-
+  const submitting = useNewForumPostStore((f) => f.submitting);
+  const setSubmitting = useNewForumPostStore((f) => f.setSubmitting);
   const getValidationErrors = () => {
     const errors = [];
 
@@ -42,8 +46,11 @@ const NewFormSubmitButton = () => {
         type: type,
       }),
     });
+    const responseBody = await response.json();
     if (!response.ok) {
       console.log("something went wrong");
+    } else {
+      router.push(`/forum/posts/${responseBody.created.id}`);
     }
   };
 
@@ -64,7 +71,18 @@ const NewFormSubmitButton = () => {
   };
 
   if (isReady) {
-    return <Button onClick={submitForumPost}>{getButtonText()}</Button>;
+    return (
+      <Button onClick={submitForumPost}>
+        {submitting ? (
+          <div className="flex items-center">
+            <span>Submitting </span>
+            <Loader2 className="animate-spin" />
+          </div>
+        ) : (
+          <p>{getButtonText()}</p>
+        )}
+      </Button>
+    );
   }
 
   return (

@@ -18,7 +18,7 @@ const DesktopSupportBillButtons = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <ShimmerButton className="shadow-2xl  w-full max-w-4xl fixed">
+        <ShimmerButton className="shadow-2xl  w-full mt-4 ">
           <span className="whitespace-pre-wrap text-center text-xl font-extrabold leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
             Vote
           </span>

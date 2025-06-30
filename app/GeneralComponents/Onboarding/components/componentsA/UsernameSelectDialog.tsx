@@ -1,3 +1,4 @@
+// components/UsernameSelectDialog.tsx (Improved version)
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -12,21 +13,32 @@ import {
 import { useDialogStore } from "@/app/stores/useDialogStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import _ from "lodash";
 
 interface UsernameSelectDialogProps {
   onUsernameCreation: (username: string) => void;
 }
 
-type UsernameStatus = "idle" | "checking" | "available" | "taken" | "error";
+type UsernameStatus =
+  | "idle"
+  | "checking"
+  | "available"
+  | "taken"
+  | "error"
+  | "invalid";
 
 const UsernameSelectDialog = ({
   onUsernameCreation,
 }: UsernameSelectDialogProps) => {
   const [username, setUsername] = useState("");
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const debouncedCheckRef = useRef<_.DebouncedFunc<
+    (username: string) => void
+  > | null>(null);
 
   const isUsernameDialogOpen = useDialogStore(
     (state) => state.isUsernameSelectDialogOpen
@@ -34,6 +46,32 @@ const UsernameSelectDialog = ({
   const setIsUsernameSelectDialogOpen = useDialogStore(
     (state) => state.setIsUsernameSelectDialogOpen
   );
+
+  // Client-side validation
+  const validateUsername = (
+    usernameToValidate: string
+  ): { isValid: boolean; message?: string } => {
+    if (usernameToValidate.length < 3) {
+      return {
+        isValid: false,
+        message: "Username must be at least 3 characters long",
+      };
+    }
+    if (usernameToValidate.length > 30) {
+      return {
+        isValid: false,
+        message: "Username must be less than 30 characters",
+      };
+    }
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+    if (!usernameRegex.test(usernameToValidate)) {
+      return {
+        isValid: false,
+        message: "Username can only contain letters, numbers, and underscores",
+      };
+    }
+    return { isValid: true };
+  };
 
   const checkIfUsernameIsAvailable = async (usernameToCheck: string) => {
     // Cancel any previous request
@@ -46,6 +84,7 @@ const UsernameSelectDialog = ({
 
     try {
       setUsernameStatus("checking");
+      setErrorMessage("");
 
       const response = await fetch("/api/user/check-username-availability", {
         method: "POST",
@@ -56,35 +95,50 @@ const UsernameSelectDialog = ({
         signal: abortControllerRef.current.signal,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to check username");
-      }
-
       const data = await response.json();
 
-      // data.isAvailable should be true if username is available, false if taken
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to check username");
+      }
+
       setUsernameStatus(data.isAvailable ? "available" : "taken");
-    } catch (error) {
+    } catch (error: any) {
       if (error.name === "AbortError") {
-        // Request was cancelled, don't update state
         return;
       }
       console.error("Error checking username:", error);
       setUsernameStatus("error");
+      setErrorMessage(error.message || "Error checking username");
     }
   };
 
   // Create debounced version of the check function
-  const debouncedUsernameCheck = useCallback(
-    _.debounce((usernameToCheck: string) => {
+  useEffect(() => {
+    debouncedCheckRef.current = _.debounce((usernameToCheck: string) => {
       if (usernameToCheck.trim().length > 0) {
+        const validation = validateUsername(usernameToCheck);
+        if (!validation.isValid) {
+          setUsernameStatus("invalid");
+          setErrorMessage(validation.message || "Invalid username");
+          return;
+        }
         checkIfUsernameIsAvailable(usernameToCheck);
       } else {
         setUsernameStatus("idle");
+        setErrorMessage("");
       }
-    }, 500),
-    []
-  );
+    }, 500);
+
+    return () => {
+      // Cleanup on unmount
+      if (debouncedCheckRef.current) {
+        debouncedCheckRef.current.cancel();
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUsername = e.target.value;
@@ -93,40 +147,72 @@ const UsernameSelectDialog = ({
     // Reset status when user starts typing
     if (usernameStatus !== "checking") {
       setUsernameStatus("idle");
+      setErrorMessage("");
     }
 
     // Trigger debounced check
-    debouncedUsernameCheck(newUsername);
+    if (debouncedCheckRef.current) {
+      debouncedCheckRef.current(newUsername);
+    }
   };
 
   const handleSetUsername = async () => {
-    if (usernameStatus === "available" && username.trim()) {
-      onUsernameCreation(username);
-      setIsUsernameSelectDialogOpen(false);
-      // Reset form state
-      setUsername("");
-      setUsernameStatus("idle");
+    if (usernameStatus === "available" && username.trim() && !isSubmitting) {
+      setIsSubmitting(true);
+      try {
+        const response = await fetch("/api/user/set-username", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username: username.trim() }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to set username");
+        }
+
+        onUsernameCreation(username.trim());
+        setIsUsernameSelectDialogOpen(false);
+        resetForm();
+      } catch (error: any) {
+        console.error("Error setting username:", error);
+        setErrorMessage(error.message || "Failed to set username");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
+  };
+
+  const resetForm = () => {
+    setUsername("");
+    setUsernameStatus("idle");
+    setErrorMessage("");
+    setIsSubmitting(false);
   };
 
   const handleOpenChange = (open: boolean) => {
     setIsUsernameSelectDialogOpen(open);
     if (!open) {
-      // Reset form state when dialog closes
-      setUsername("");
-      setUsernameStatus("idle");
+      resetForm();
     }
   };
 
   const getStatusIcon = () => {
+    if (isSubmitting) {
+      return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
+    }
+
     switch (usernameStatus) {
       case "checking":
         return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
       case "available":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case "taken":
-        return <X className="h-4 w-4 text-red-500" />;
       case "error":
+      case "invalid":
         return <X className="h-4 w-4 text-red-500" />;
       default:
         return null;
@@ -134,6 +220,10 @@ const UsernameSelectDialog = ({
   };
 
   const getStatusMessage = () => {
+    if (errorMessage) {
+      return <span className="text-sm text-red-500">{errorMessage}</span>;
+    }
+
     switch (usernameStatus) {
       case "checking":
         return (
@@ -160,7 +250,8 @@ const UsernameSelectDialog = ({
     }
   };
 
-  const isSubmitDisabled = usernameStatus !== "available" || !username.trim();
+  const isSubmitDisabled =
+    usernameStatus !== "available" || !username.trim() || isSubmitting;
 
   return (
     <Dialog open={isUsernameDialogOpen} onOpenChange={handleOpenChange}>
@@ -177,10 +268,11 @@ const UsernameSelectDialog = ({
             <Label>Username</Label>
             <div className="relative">
               <Input
-                placeholder="Enter your new username"
+                placeholder="Enter your new username (3-30 characters, letters, numbers, _)"
                 onChange={handleUsernameChange}
                 value={username}
                 className="pr-8"
+                disabled={isSubmitting}
               />
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                 {getStatusIcon()}
@@ -193,7 +285,14 @@ const UsernameSelectDialog = ({
             onClick={handleSetUsername}
             disabled={isSubmitDisabled}
           >
-            Ready to go!
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Setting username...
+              </>
+            ) : (
+              "Ready to go!"
+            )}
           </Button>
         </div>
       </DialogContent>

@@ -18,6 +18,7 @@ export const getAllPosts = async (userId: string | null, userRole: string) => {
           id: true,
           name: true,
           username: true,
+          image: true, // Added profile image
         },
       },
       _count: {
@@ -52,14 +53,13 @@ export const getAllPosts = async (userId: string | null, userRole: string) => {
           hasDownvoted: post.downvotes?.length > 0,
         }
       : null,
-    // Remove the raw vote arrays from the response
-    upvotes: undefined,
-    downvotes: undefined,
   }));
 
   await logUserAction(userId, "getAllPosts", null, userRole);
   return postsWithVoteStatus;
-}; // Increment post views
+};
+
+// Increment post views
 export const incrementPostViews = async (
   postId: number,
   userId: string | null,
@@ -159,6 +159,7 @@ export const createComment = async (
 };
 
 // Bookmark a post
+
 export const bookmarkPost = async (
   postId: number,
   userId: string,
@@ -175,7 +176,7 @@ export const bookmarkPost = async (
       userId,
       postId,
     },
-    update: {}, // If already exists, do nothing
+    update: {},
     include: {
       post: true,
       user: true,
@@ -551,4 +552,133 @@ export const pinPost = async (
     userRole
   );
   return post;
+};
+export const getPostById = async (userId, userRole, postId) => {
+  const response = await prisma.forumPost.findUnique({
+    where: {
+      id: Number(postId),
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          image: true,
+          role: true,
+        },
+      },
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
+      _count: {
+        select: {
+          comments: true,
+          upvotes: true,
+          downvotes: true,
+        },
+      },
+      comments: {
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              image: true,
+              role: true,
+            },
+          },
+          // Add these for comment voting
+          upvotes: userId
+            ? {
+                where: { userId },
+                select: { id: true },
+                take: 1,
+              }
+            : true,
+          downvotes: userId
+            ? {
+                where: { userId },
+                select: { id: true },
+                take: 1,
+              }
+            : true,
+          _count: {
+            select: {
+              upvotes: true,
+              downvotes: true,
+            },
+          },
+          replies: {
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  name: true,
+                  username: true,
+                  image: true,
+                  role: true,
+                },
+              },
+              // Don't forget to add voting info for replies too if needed
+              upvotes: userId
+                ? {
+                    where: { userId },
+                    select: { id: true },
+                    take: 1,
+                  }
+                : true,
+              downvotes: userId
+                ? {
+                    where: { userId },
+                    select: { id: true },
+                    take: 1,
+                  }
+                : true,
+              _count: {
+                select: {
+                  upvotes: true,
+                  downvotes: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      upvotes: userId
+        ? {
+            where: { userId },
+            select: { id: true },
+            take: 1,
+          }
+        : true,
+      downvotes: userId
+        ? {
+            where: { userId },
+            select: { id: true },
+            take: 1,
+          }
+        : true,
+      bookmarks: true,
+    },
+  });
+
+  // Transform the data to include userVoteStatus
+  const postWithVoteStatus = response
+    ? {
+        ...response,
+        userVoteStatus: userId
+          ? {
+              hasUpvoted: response.upvotes?.length > 0,
+              hasDownvoted: response.downvotes?.length > 0,
+            }
+          : null,
+      }
+    : null;
+
+  await logUserAction(userId, "getPostById", postId, userRole);
+  return postWithVoteStatus;
 };

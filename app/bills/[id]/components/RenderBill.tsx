@@ -48,7 +48,7 @@ const RenderBill = ({ bill, session, isDyslexicFriendly }: RenderBillProps) => {
       <div className="container mx-auto px-0 sm:px-6 lg:px-8 py-0 sm:py-6 lg:py-8">
         <div className="max-w-4xl mx-auto">
           {/* Bill Content Card */}
-          <div className="bg-card border-0 sm:border sm:rounded-lg sm:rounded-xl sm:shadow-sm overflow-hidden">
+          <div className="bg-card border-0 sm:border  sm:rounded-xl sm:shadow-sm overflow-hidden">
             <div className="p-0 sm:p-6 lg:p-8 space-y-2 sm:space-y-6">
               {/* Bill Title Section */}
               <div className="text-center px-4 py-4 sm:px-0 sm:py-0">
@@ -64,7 +64,6 @@ const RenderBill = ({ bill, session, isDyslexicFriendly }: RenderBillProps) => {
               </div>
             </div>
           </div>
-
           {/* Support Button - Drawer on mobile, inline on desktop */}
           {hasUser && (
             <>
@@ -74,9 +73,7 @@ const RenderBill = ({ bill, session, isDyslexicFriendly }: RenderBillProps) => {
               </div>
 
               {/* Desktop: Inline button */}
-              <div className="hidden sm:block mt-6 text-center">
-                <DesktopSupportBillButtons />
-              </div>
+              <DesktopSupportBillButtons />
 
               {/* Spacer for fixed button on mobile */}
               <div className="h-20 sm:hidden" />

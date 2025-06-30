@@ -21,7 +21,7 @@ const NewForumBody = () => {
   const getLabel = () => {
     switch (type) {
       case "Bill Suggestion":
-        return "Describe Your Bill";
+        return "Describe The Purpose";
       case "Site Suggestion":
         return "Describe Your Suggestion";
       case "Site Bug":

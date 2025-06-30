@@ -2,27 +2,33 @@
 
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface UserVoteStatus {
   hasUpvoted: boolean;
   hasDownvoted: boolean;
 }
 
-interface ForumLandingPostVoteButtonsProps {
+interface PostInfoVoteButtonsProps {
   postId: number;
   userId?: string;
   netVotes: number;
   userVoteStatus?: UserVoteStatus | null;
-  isUserAuthor?: boolean; // Already added in interface
+  isUserAuthor?: boolean; // Add this prop
 }
 
-const ForumLandingPostVoteButtons = ({
+const PostInfoVoteButtons = ({
   postId,
   userId,
   netVotes,
   userVoteStatus,
-  isUserAuthor = false, // Add default value and destructure
-}: ForumLandingPostVoteButtonsProps) => {
+  isUserAuthor = false, // Default to false
+}: PostInfoVoteButtonsProps) => {
   // Local state to handle optimistic updates
   const [localVoteStatus, setLocalVoteStatus] = useState(userVoteStatus);
   const [localNetVotes, setLocalNetVotes] = useState(netVotes);
@@ -133,39 +139,66 @@ const ForumLandingPostVoteButtons = ({
   const showUpvoted = isUserAuthor || hasUpvoted;
 
   return (
-    <div className="flex flex-col items-center justify-between p-2 bg-secondary/50 rounded-l-lg">
-      <button
-        onClick={handleUpvote}
-        disabled={!userId || isVoting || isUserAuthor} // Disable if user is author
-        className={`p-1 hover:bg-accent rounded transition-colors disabled:opacity-50 ${
-          showUpvoted
-            ? "text-green-600 bg-green-500/10"
-            : "text-muted-foreground hover:text-primary"
-        }`}
-        title={isUserAuthor ? "You cannot vote on your own post" : undefined} // Tooltip for clarity
-      >
-        <ChevronUp size={16} className={showUpvoted ? "text-green-600" : ""} />
-      </button>
-      <span className="text-sm font-extrabold py-1">
-        {localNetVotes > 0 ? `+${localNetVotes}` : localNetVotes}
-      </span>
-      <button
-        onClick={handleDownvote}
-        disabled={!userId || isVoting || isUserAuthor} // Disable if user is author
-        className={`p-1 hover:bg-accent rounded transition-colors disabled:opacity-50 ${
-          hasDownvoted && !isUserAuthor
-            ? "text-red-600 bg-red-500/10"
-            : "text-muted-foreground hover:text-primary"
-        }`}
-        title={isUserAuthor ? "You cannot vote on your own post" : undefined} // Tooltip for clarity
-      >
-        <ChevronDown
-          size={16}
-          className={hasDownvoted && !isUserAuthor ? "text-red-600" : ""}
-        />
-      </button>
-    </div>
+    <TooltipProvider>
+      <div className="flex flex-col items-center justify-between p-2 sm:p-3 bg-secondary/50 rounded-lg min-h-[100px] sm:min-h-[110px]">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleUpvote}
+              disabled={!userId || isVoting || isUserAuthor}
+              className={`p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors disabled:opacity-50 touch-manipulation ${
+                showUpvoted
+                  ? "text-green-600 bg-green-500/10"
+                  : "text-muted-foreground hover:text-primary"
+              }`}
+            >
+              <ChevronUp
+                size={18}
+                className={`sm:w-5 sm:h-5 ${
+                  showUpvoted ? "text-green-600" : ""
+                }`}
+              />
+            </button>
+          </TooltipTrigger>
+          {isUserAuthor && (
+            <TooltipContent>
+              <p>You cannot vote on your own post</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+
+        <span className="text-sm sm:text-base font-extrabold py-1.5 px-1 text-center min-w-[1.5rem]">
+          {localNetVotes > 0 ? `+${localNetVotes}` : localNetVotes}
+        </span>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleDownvote}
+              disabled={!userId || isVoting || isUserAuthor}
+              className={`p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors disabled:opacity-50  touch-manipulation ${
+                hasDownvoted && !isUserAuthor
+                  ? "text-red-600 bg-red-500/10"
+                  : "text-muted-foreground hover:text-primary"
+              }`}
+            >
+              <ChevronDown
+                size={18}
+                className={`sm:w-5 sm:h-5 ${
+                  hasDownvoted && !isUserAuthor ? "text-red-600" : ""
+                }`}
+              />
+            </button>
+          </TooltipTrigger>
+          {isUserAuthor && (
+            <TooltipContent>
+              <p>You cannot vote on your own post</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </div>
+    </TooltipProvider>
   );
 };
 
-export default ForumLandingPostVoteButtons;
+export default PostInfoVoteButtons;

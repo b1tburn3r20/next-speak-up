@@ -23,8 +23,8 @@ const HasVotedBillPage = ({ session }: HasVotedBillPageProps) => {
         <div className="lg:col-span-1">
           <div className="sticky top-6 space-y-4">
             <EmptyBillCard
-              title="Not Voted Yet"
-              message="This legislation has not gone up for vote yet."
+              title="No House Vote"
+              message="This legislation has been voted on in the House of Representatives."
             />
             <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
               <div className="flex-1">

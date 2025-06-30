@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     siteName: "Together",
     title: {
-      default: "Congress Directory",
+      default: "Together | Make a change in the US 1 person at a time.",
       template: "%s | Together",
     },
     description: "Comprehensive directory and data about the U.S. Congress",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: {
-      default: "Congress Directory",
+      default: "Together | Make a change in the US 1 person at a time.",
       template: "%s | Together",
     },
     description: "Comprehensive directory and data about the U.S. Congress",
@@ -76,7 +76,7 @@ export default function RootLayout({
               </main>
             </Navbar>
             <Toaster />
-            <OnboardingModal />
+            {/* <OnboardingModal /> */}
           </ThemeProvider>
         </AuthProvider>
       </body>

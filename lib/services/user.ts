@@ -247,3 +247,34 @@ export async function checkIfUsernameIsAvailable(username: string) {
     },
   });
 }
+export async function updateUserUsername(
+  userId: string,
+  userRole: string,
+  newUsername: string
+) {
+  try {
+    // First check if username is available
+    const existingUser = await checkIfUsernameIsAvailable(newUsername);
+    if (existingUser && existingUser.id !== userId) {
+      throw new Error("Username is already taken");
+    }
+
+    // Update the user's username
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        username: newUsername,
+      },
+    });
+
+    // Log the action
+    await logUserAction(userId, "updateUsername", null, userRole);
+
+    return updatedUser;
+  } catch (error) {
+    console.error("Error updating username:", error);
+    throw error;
+  }
+}

@@ -1,5 +1,5 @@
 import { FullLandingForumPost } from "@/lib/types/forum-types";
-import { MessageCircle, Pin, Lock } from "lucide-react";
+import { MessageCircle, Pin, Lock, Eye } from "lucide-react";
 import ForumLandingPostVoteButtons from "./ForumLandingPostVoteButtons";
 import Link from "next/link";
 
@@ -11,20 +11,20 @@ interface ForumLandingPostProps {
 const ForumLandingPost = ({ post, userId }: ForumLandingPostProps) => {
   const netVotes = post._count.upvotes - post._count.downvotes;
   const timeAgo = getTimeAgo(post.createdAt);
+  const isUserAuthor = userId ? post.author.id === userId : false;
 
   return (
     <div className="border rounded-lg">
       <div className="flex">
-        {/* Vote Section - Client Component */}
         <ForumLandingPostVoteButtons
           postId={post.id}
           userId={userId}
           netVotes={netVotes}
+          userVoteStatus={post.userVoteStatus}
+          isUserAuthor={isUserAuthor}
         />
 
-        {/* Content Section - Server Component */}
         <div className="flex-1 p-3">
-          {/* Header with badges */}
           <div className="flex items-center gap-2 mb-2">
             {post.isPinned && <Pin size={14} className="text-primary" />}
             {post.isLocked && <Lock size={14} className="text-destructive" />}
@@ -33,7 +33,6 @@ const ForumLandingPost = ({ post, userId }: ForumLandingPostProps) => {
             </span>
           </div>
 
-          {/* Title */}
           <Link
             href={`/forum/posts/${post.id}`}
             className="font-semibold mb-2 hover:text-primary cursor-pointer transition-colors"
@@ -44,6 +43,12 @@ const ForumLandingPost = ({ post, userId }: ForumLandingPostProps) => {
           {/* Post metadata */}
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
+              <div className="flex gap-1 items-center">
+                <Eye className="h-4 w-4" />
+                <span className="font-medium">{post.views}</span>
+              </div>
+
+              <span>•</span>
               <span className="font-medium">u/{post.author.username}</span>
               <span>•</span>
               <span>{timeAgo}</span>

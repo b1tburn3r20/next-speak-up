@@ -13,10 +13,11 @@ export type UserSession = {
 export type AuthSession = {
   user: UserSession;
 };
+// In your user-types file
 export type UserSessionRole = {
   id: number;
   name: string;
+  createdAt: Date;
+  updatedAt: Date;
   description: string;
-  createdAt: string;
-  updatedAt: string;
 };

@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronUp, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { useState } from "react";
 
 interface UserVoteStatus {
@@ -8,28 +9,30 @@ interface UserVoteStatus {
   hasDownvoted: boolean;
 }
 
-interface ForumLandingPostVoteButtonsProps {
-  postId: number;
-  userId?: string;
-  netVotes: number;
+interface ForumCommentVoteButtonsProps {
+  commentId: number;
+  upvotes: number;
+  downvotes: number;
   userVoteStatus?: UserVoteStatus | null;
-  isUserAuthor?: boolean; // Already added in interface
+  userId?: string;
+  isUserAuthor?: boolean;
 }
 
-const ForumLandingPostVoteButtons = ({
-  postId,
-  userId,
-  netVotes,
+const ForumCommentVoteButtons = ({
+  commentId,
+  upvotes,
+  downvotes,
   userVoteStatus,
-  isUserAuthor = false, // Add default value and destructure
-}: ForumLandingPostVoteButtonsProps) => {
+  userId,
+  isUserAuthor = false,
+}: ForumCommentVoteButtonsProps) => {
   // Local state to handle optimistic updates
   const [localVoteStatus, setLocalVoteStatus] = useState(userVoteStatus);
-  const [localNetVotes, setLocalNetVotes] = useState(netVotes);
+  const [localUpvotes, setLocalUpvotes] = useState(upvotes);
+  const [localDownvotes, setLocalDownvotes] = useState(downvotes);
   const [isVoting, setIsVoting] = useState(false);
-
   const handleUpvote = async () => {
-    if (!userId || isVoting || isUserAuthor) return; // Prevent voting if user is author
+    if (!userId || isVoting || isUserAuthor) return;
 
     setIsVoting(true);
 
@@ -42,19 +45,22 @@ const ForumLandingPostVoteButtons = ({
       setLocalVoteStatus((prev) =>
         prev ? { ...prev, hasUpvoted: false } : null
       );
-      setLocalNetVotes((prev) => prev - 1);
+      setLocalUpvotes((prev) => prev - 1);
     } else {
       // Add upvote (and remove downvote if exists)
       setLocalVoteStatus((prev) => ({ hasUpvoted: true, hasDownvoted: false }));
-      setLocalNetVotes((prev) => prev + 1 + (wasDownvoted ? 1 : 0));
+      setLocalUpvotes((prev) => prev + 1);
+      if (wasDownvoted) {
+        setLocalDownvotes((prev) => prev - 1);
+      }
     }
 
     try {
-      const response = await fetch("/api/forum/post-vote", {
+      const response = await fetch("/api/forum/comment-vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          postId,
+          commentId,
           userId,
           type: wasUpvoted ? "remove-upvote" : "upvote",
         }),
@@ -65,20 +71,22 @@ const ForumLandingPostVoteButtons = ({
       }
 
       const result = await response.json();
-      // Update with actual server response if needed
-      setLocalNetVotes(result.netVotes);
+      // Update with actual server response
+      setLocalUpvotes(result.upvotes);
+      setLocalDownvotes(result.downvotes);
     } catch (error) {
       console.error("Vote failed:", error);
       // Revert optimistic update on error
       setLocalVoteStatus(userVoteStatus);
-      setLocalNetVotes(netVotes);
+      setLocalUpvotes(upvotes);
+      setLocalDownvotes(downvotes);
     } finally {
       setIsVoting(false);
     }
   };
 
   const handleDownvote = async () => {
-    if (!userId || isVoting || isUserAuthor) return; // Prevent voting if user is author
+    if (!userId || isVoting || isUserAuthor) return;
 
     setIsVoting(true);
 
@@ -91,19 +99,22 @@ const ForumLandingPostVoteButtons = ({
       setLocalVoteStatus((prev) =>
         prev ? { ...prev, hasDownvoted: false } : null
       );
-      setLocalNetVotes((prev) => prev + 1);
+      setLocalDownvotes((prev) => prev - 1);
     } else {
       // Add downvote (and remove upvote if exists)
       setLocalVoteStatus((prev) => ({ hasUpvoted: false, hasDownvoted: true }));
-      setLocalNetVotes((prev) => prev - 1 - (wasUpvoted ? 1 : 0));
+      setLocalDownvotes((prev) => prev + 1);
+      if (wasUpvoted) {
+        setLocalUpvotes((prev) => prev - 1);
+      }
     }
 
     try {
-      const response = await fetch("/api/forum/post-vote", {
+      const response = await fetch("/api/forum/comment-vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          postId,
+          commentId,
           userId,
           type: wasDownvoted ? "remove-downvote" : "downvote",
         }),
@@ -114,13 +125,15 @@ const ForumLandingPostVoteButtons = ({
       }
 
       const result = await response.json();
-      // Update with actual server response if needed
-      setLocalNetVotes(result.netVotes);
+      // Update with actual server response
+      setLocalUpvotes(result.upvotes);
+      setLocalDownvotes(result.downvotes);
     } catch (error) {
       console.error("Vote failed:", error);
       // Revert optimistic update on error
       setLocalVoteStatus(userVoteStatus);
-      setLocalNetVotes(netVotes);
+      setLocalUpvotes(upvotes);
+      setLocalDownvotes(downvotes);
     } finally {
       setIsVoting(false);
     }
@@ -133,39 +146,36 @@ const ForumLandingPostVoteButtons = ({
   const showUpvoted = isUserAuthor || hasUpvoted;
 
   return (
-    <div className="flex flex-col items-center justify-between p-2 bg-secondary/50 rounded-l-lg">
-      <button
+    <div className="flex items-center gap-1">
+      <Button
+        variant="ghost"
+        size="sm"
+        className={`h-6 px-2 gap-1 ${
+          showUpvoted ? "text-primary" : ""
+        } disabled:opacity-50`}
         onClick={handleUpvote}
-        disabled={!userId || isVoting || isUserAuthor} // Disable if user is author
-        className={`p-1 hover:bg-accent rounded transition-colors disabled:opacity-50 ${
-          showUpvoted
-            ? "text-green-600 bg-green-500/10"
-            : "text-muted-foreground hover:text-primary"
-        }`}
-        title={isUserAuthor ? "You cannot vote on your own post" : undefined} // Tooltip for clarity
+        disabled={!userId || isVoting || isUserAuthor}
+        title={isUserAuthor ? "You cannot vote on your own comment" : undefined}
       >
-        <ChevronUp size={16} className={showUpvoted ? "text-green-600" : ""} />
-      </button>
-      <span className="text-sm font-extrabold py-1">
-        {localNetVotes > 0 ? `+${localNetVotes}` : localNetVotes}
-      </span>
-      <button
+        <ArrowUp className="h-3 w-3" />
+        <span>{localUpvotes}</span>
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        className={`h-6 px-2 gap-1 ${
+          hasDownvoted && !isUserAuthor ? "text-destructive" : ""
+        } disabled:opacity-50`}
         onClick={handleDownvote}
-        disabled={!userId || isVoting || isUserAuthor} // Disable if user is author
-        className={`p-1 hover:bg-accent rounded transition-colors disabled:opacity-50 ${
-          hasDownvoted && !isUserAuthor
-            ? "text-red-600 bg-red-500/10"
-            : "text-muted-foreground hover:text-primary"
-        }`}
-        title={isUserAuthor ? "You cannot vote on your own post" : undefined} // Tooltip for clarity
+        disabled={!userId || isVoting || isUserAuthor}
+        title={isUserAuthor ? "You cannot vote on your own comment" : undefined}
       >
-        <ChevronDown
-          size={16}
-          className={hasDownvoted && !isUserAuthor ? "text-red-600" : ""}
-        />
-      </button>
+        <ArrowDown className="h-3 w-3" />
+        <span>{localDownvotes}</span>
+      </Button>
     </div>
   );
 };
 
-export default ForumLandingPostVoteButtons;
+export default ForumCommentVoteButtons;
