@@ -5,11 +5,14 @@ export type ForumPostDetailsStore = {
   setPostComments: (data: any) => void;
   isPostBookmarked: boolean;
   setIsPostBookmarked: (data: boolean) => void;
+  isMakingAPICall: boolean;
+  setIsMakingAPICall: (isLoading: boolean) => void;
 };
 
 const initialPostData = {
   postComments: [],
   isPostBookmarked: false,
+  isMakingAPICall: false,
 };
 
 export const useForumPostDetailsStore = create<ForumPostDetailsStore>(
@@ -17,5 +20,7 @@ export const useForumPostDetailsStore = create<ForumPostDetailsStore>(
     ...initialPostData,
     setIsPostBookmarked: (data: boolean) => set({ isPostBookmarked: data }),
     setPostComments: (data: any) => set({ postComments: data }),
+    setIsMakingAPICall: (isLoading: boolean) =>
+      set({ isMakingAPICall: isLoading }),
   })
 );

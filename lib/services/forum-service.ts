@@ -759,3 +759,127 @@ export const getPostById = async (userId, userRole, postId) => {
   await logUserAction(userId, "getPostById", postId, userRole);
   return postWithVoteStatus;
 };
+
+// Soft delete a comment (user deletes their own comment)
+export const softDeleteComment = async (
+  commentId: number,
+  userId: string,
+  userRole: string
+) => {
+  // First verify the user owns this comment
+  const comment = await prisma.forumComment.findUnique({
+    where: { id: commentId },
+    select: { authorId: true, isDeleted: true },
+  });
+
+  if (!comment) {
+    throw new Error("Comment not found");
+  }
+
+  if (comment.authorId !== userId) {
+    throw new Error("Unauthorized: You can only delete your own comments");
+  }
+
+  if (comment.isDeleted) {
+    throw new Error("Comment is already deleted");
+  }
+
+  // Soft delete the comment - preserve structure but remove content and PII
+  const deletedComment = await prisma.forumComment.update({
+    where: { id: commentId },
+    data: {
+      body: "[deleted]", // Replace content with [deleted]
+      isDeleted: true, // Mark as deleted
+      isEdited: false, // Reset edited flag since content is gone
+      updatedAt: new Date(),
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          image: true,
+          role: true,
+        },
+      },
+      post: true,
+      parent: true,
+      replies: true,
+      upvotes: true,
+      downvotes: true,
+      _count: {
+        select: {
+          upvotes: true,
+          downvotes: true,
+        },
+      },
+    },
+  });
+
+  await logUserAction(userId, "softDeleteComment", String(commentId), userRole);
+  return deletedComment;
+};
+export const softDeletePost = async (
+  postId: number,
+  userId: string,
+  userRole: string
+) => {
+  const post = await prisma.forumPost.findUnique({
+    where: { id: postId },
+    select: { authorId: true, isDeleted: true },
+  });
+
+  if (!post) {
+    throw new Error("Post not found");
+  }
+
+  if (post.authorId !== userId) {
+    throw new Error("Unauthorized: You can only delete your own posts");
+  }
+
+  if (post.isDeleted) {
+    throw new Error("Post is already deleted");
+  }
+
+  // Soft delete - keep author but mark as deleted and clear content
+  const deletedPost = await prisma.forumPost.update({
+    where: { id: postId },
+    data: {
+      title: "[deleted]",
+      body: "[deleted]",
+      isDeleted: true, // Mark as deleted
+      isEdited: false,
+      updatedAt: new Date(),
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          image: true,
+          role: true,
+        },
+      },
+      tags: {
+        include: {
+          tag: true,
+        },
+      },
+      _count: {
+        select: {
+          comments: true,
+          upvotes: true,
+          downvotes: true,
+        },
+      },
+      upvotes: true,
+      downvotes: true,
+      bookmarks: true,
+    },
+  });
+
+  await logUserAction(userId, "softDeletePost", String(postId), userRole);
+  return deletedPost;
+};

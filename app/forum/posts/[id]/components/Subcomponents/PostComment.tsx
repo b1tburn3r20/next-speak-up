@@ -8,9 +8,36 @@ import {
   MessageSquare,
   Minus,
   Plus,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import ForumCommentVoteButtons from "./ForumCommentVoteButtons";
+import { toast } from "sonner";
+import { useForumPostDetailsStore } from "../../useForumPostDetailsStore";
+
+// Helper function to format time like Reddit
+const formatTimeAgo = (date: Date): string => {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  const intervals = [
+    { label: "y", seconds: 31536000 },
+    { label: "mo", seconds: 2592000 },
+    { label: "d", seconds: 86400 },
+    { label: "h", seconds: 3600 },
+    { label: "m", seconds: 60 },
+  ];
+
+  for (const interval of intervals) {
+    const count = Math.floor(diffInSeconds / interval.seconds);
+    if (count >= 1) {
+      return `${count}${interval.label}`;
+    }
+  }
+
+  return "now";
+};
 
 // Main PostComment Component
 interface PostCommentProps {
@@ -34,12 +61,23 @@ const PostComment = ({
   replyingToId,
   replyForm,
 }: PostCommentProps) => {
+  // Each comment manages its own deletion state
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Get store functions
+  const postComments = useForumPostDetailsStore((f) => f.postComments);
+  const setPostComments = useForumPostDetailsStore((f) => f.setPostComments);
+  const isMakingAPICall = useForumPostDetailsStore((f) => f.isMakingAPICall);
+  const setIsMakingAPICall = useForumPostDetailsStore(
+    (f) => f.setIsMakingAPICall
+  );
 
   // Find direct replies to this comment
   const replies = allComments.filter((c) => c.parentId === comment.id);
   const hasReplies = replies.length > 0;
   const isUserAuthor = userId ? comment.authorId === userId : false;
+  const isDeleted = comment.isDeleted; // Check if comment is soft deleted
 
   // Calculate indentation based on depth (max out at certain depth)
   const maxDepth = 8;
@@ -58,6 +96,50 @@ const PostComment = ({
   };
 
   const totalRepliesCount = getTotalRepliesCount(comment.id);
+
+  // Display data based on deletion status
+  const displayUsername = isDeleted
+    ? "[deleted]"
+    : comment.author.username || comment.author.name;
+  const displayName = isDeleted ? "[deleted]" : comment.author.name;
+
+  // Handle comment deletion - now respects global API state
+  const handleDeleteComment = async () => {
+    // Check if already making an API call
+    if (isMakingAPICall) {
+      toast.warning("Another operation is in progress. Please try again.");
+      return;
+    }
+
+    try {
+      setIsMakingAPICall(true);
+
+      const response = await fetch("/api/forum/comments/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ commentId: comment.id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete comment");
+      }
+
+      // Update the comments in the store to reflect the soft deletion
+      const updatedComments = postComments.map((c) =>
+        c.id === comment.id ? { ...c, isDeleted: true, body: "[deleted]" } : c
+      );
+      setPostComments(updatedComments);
+      toast.success("Comment deleted successfully");
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      toast.error(error.message || "Failed to delete comment");
+    } finally {
+      setIsMakingAPICall(false);
+    }
+  };
 
   // Much smaller spacing - reduced from 20px to 8px per level
   const indentPerLevel = 8;
@@ -89,7 +171,11 @@ const PostComment = ({
         {/* Comment Header and Content */}
         <div className="group">
           {/* Main Comment Row */}
-          <div className="py-1 px-2 rounded hover:bg-muted/30 transition-colors">
+          <div
+            className={`py-1 px-2 rounded hover:bg-muted/30 transition-colors ${
+              isDeleted ? "opacity-70" : ""
+            }`}
+          >
             {/* Header with avatar, username, and metadata */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
               {/* Collapse Toggle - positioned before username */}
@@ -108,40 +194,44 @@ const PostComment = ({
                 </Button>
               )}
 
-              {/* Avatar next to username */}
-              <Avatar className="w-6 h-6 shrink-0 rounded-lg">
-                <AvatarImage
-                  src={comment.author.image}
-                  alt={comment.author.name}
-                  referrerPolicy="no-referrer"
-                />
-                <AvatarFallback className="text-xs">
-                  {comment.author.name?.charAt(0) || "U"}
-                </AvatarFallback>
-              </Avatar>
-
-              <span className="font-medium text-foreground">
-                {comment.author.username}
-              </span>
-              {comment.author.role && (
-                <>
-                  <span>•</span>
-                  <span className="text-xs">{comment.author.role.name}</span>
-                </>
+              {/* Avatar - only show if not deleted */}
+              {!isDeleted && (
+                <Avatar className="w-6 h-6 shrink-0 rounded-lg">
+                  <AvatarImage
+                    src={comment.author.image}
+                    alt={comment.author.name}
+                    referrerPolicy="no-referrer"
+                  />
+                  <AvatarFallback className="text-xs">
+                    {comment.author.name?.charAt(0) || "U"}
+                  </AvatarFallback>
+                </Avatar>
               )}
-              <span>•</span>
-              <span>
-                {formatDistanceToNow(new Date(comment.createdAt), {
-                  addSuffix: true,
-                })}
+
+              <div></div>
+              <span
+                className={`font-medium ${
+                  isDeleted ? "text-muted-foreground" : "text-foreground"
+                }`}
+              >
+                {displayUsername}
               </span>
-              {comment.isEdited && <span className="italic">(edited)</span>}
+
+              <span>•</span>
+              <span>{formatTimeAgo(new Date(comment.createdAt))}</span>
+
+              {/* Edited indicator - don't show for deleted comments */}
+              {!isDeleted && comment.isEdited && (
+                <span className="italic">(edited)</span>
+              )}
             </div>
 
             {/* Comment Body */}
             <div className="flex-1 min-w-0">
               <div
-                className={`text-sm ${isCollapsed ? "line-clamp-2" : ""}`}
+                className={`text-sm ${isCollapsed ? "line-clamp-2" : ""} ${
+                  isDeleted ? "italic text-muted-foreground" : ""
+                }`}
                 style={{
                   marginLeft: hasReplies ? "24px" : "20px", // Align with username
                 }}
@@ -159,7 +249,7 @@ const PostComment = ({
                     marginLeft: hasReplies ? "24px" : "20px", // Align with body
                   }}
                 >
-                  {/* Vote Buttons */}
+                  {/* Vote Buttons - disable for deleted comments or during API calls */}
                   <ForumCommentVoteButtons
                     commentId={comment.id}
                     upvotes={upvoteCount}
@@ -167,9 +257,10 @@ const PostComment = ({
                     userVoteStatus={comment.userVoteStatus}
                     userId={userId}
                     isUserAuthor={isUserAuthor}
+                    disabled={isDeleted || isMakingAPICall} // Disable during global API calls
                   />
 
-                  {/* Reply Button */}
+                  {/* Reply Button - disable for deleted comments or during API calls */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -177,11 +268,30 @@ const PostComment = ({
                       isReplying ? "bg-muted" : ""
                     }`}
                     onClick={() => onReply?.(comment.id)}
-                    disabled={!userId || isReplying}
+                    disabled={
+                      !userId || isReplying || isDeleted || isMakingAPICall
+                    } // Disable during global API calls
                   >
                     <MessageSquare className="h-3 w-3 mr-1" />
                     <span>{isReplying ? "Replying..." : "Reply"}</span>
                   </Button>
+
+                  {/* Delete Button - only show for comment author and not already deleted */}
+                  {!isDeleted && isUserAuthor && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={handleDeleteComment}
+                      disabled={isMakingAPICall} // Disable during global API calls
+                    >
+                      {isMakingAPICall ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3 w-3 mr-1" />
+                      )}
+                    </Button>
+                  )}
                 </div>
               )}
 
@@ -205,17 +315,20 @@ const PostComment = ({
             </div>
           </div>
 
-          {/* Reply Form for this comment */}
-          {replyingToId === comment.id && replyForm && !isCollapsed && (
-            <div
-              className="mt-2"
-              style={{
-                marginLeft: hasReplies ? "24px" : "20px", // Align with body
-              }}
-            >
-              {replyForm}
-            </div>
-          )}
+          {/* Reply Form for this comment - don't show for deleted comments */}
+          {!isDeleted &&
+            replyingToId === comment.id &&
+            replyForm &&
+            !isCollapsed && (
+              <div
+                className="mt-2"
+                style={{
+                  marginLeft: hasReplies ? "24px" : "20px", // Align with body
+                }}
+              >
+                {replyForm}
+              </div>
+            )}
         </div>
 
         {/* Nested Replies */}

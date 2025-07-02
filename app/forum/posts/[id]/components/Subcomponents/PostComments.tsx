@@ -6,6 +6,7 @@ import PostComment from "./PostComment";
 import PostReply from "./PostReply";
 import { FullForumPost } from "@/lib/types/forum-types";
 import { useForumPostDetailsStore } from "../../useForumPostDetailsStore";
+import { toast } from "sonner";
 
 interface PostCommentsProps {
   post: FullForumPost;
@@ -20,15 +21,25 @@ const PostComments = ({
 }: PostCommentsProps) => {
   // Track which comment is being replied to (null means no active reply)
   const [replyingToId, setReplyingToId] = useState<number | null>(null);
+
   const setPostComments = useForumPostDetailsStore((f) => f.setPostComments);
+  const isMakingAPICall = useForumPostDetailsStore((f) => f.isMakingAPICall);
+  const setIsMakingAPICall = useForumPostDetailsStore(
+    (f) => f.setIsMakingAPICall
+  );
+
   // Filter out only root-level comments (parentId === null)
   const postComments = useForumPostDetailsStore((f) => f.postComments);
-
   const rootComments = postComments.filter(
     (comment) => comment.parentId === null
   );
 
   const handleReply = (commentId: number) => {
+    // Don't allow opening reply form if API call is in progress
+    if (isMakingAPICall) {
+      toast.warning("Please wait for the current operation to complete");
+      return;
+    }
     setReplyingToId(commentId);
   };
 
@@ -37,7 +48,15 @@ const PostComments = ({
   };
 
   const handleSubmitReply = async (commentId: number, replyText: string) => {
+    // Check if already making an API call
+    if (isMakingAPICall) {
+      toast.warning("Another operation is in progress. Please try again.");
+      return;
+    }
+
     try {
+      setIsMakingAPICall(true);
+
       // Submit the reply to your API
       const response = await fetch("/api/forum/comments", {
         method: "POST",
@@ -52,22 +71,19 @@ const PostComments = ({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit reply");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to submit reply");
       }
+
       const data = await response.json();
-      if (response.ok) {
-        // console.log(data);
-        setPostComments(data);
-      }
-
-      // Close the reply form
-      setReplyingToId(null);
-
-      // Refresh comments using your store's refresh method
-      // You might need to add this method to your store
+      setPostComments(data);
+      setReplyingToId(null); // Close the reply form
+      toast.success("Reply submitted successfully");
     } catch (error) {
       console.error("Failed to submit reply:", error);
-      throw error;
+      toast.error(error.message || "Failed to submit reply");
+    } finally {
+      setIsMakingAPICall(false);
     }
   };
 
@@ -101,6 +117,10 @@ const PostComments = ({
           <h3 className="text-lg font-semibold">
             Comments ({postComments.length})
           </h3>
+          {/* Show loading indicator when API call is in progress */}
+          {isMakingAPICall && (
+            <div className="text-xs text-muted-foreground">Processing...</div>
+          )}
         </div>
 
         {/* Comments List */}

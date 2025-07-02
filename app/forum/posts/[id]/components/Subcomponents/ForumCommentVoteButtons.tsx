@@ -16,6 +16,7 @@ interface ForumCommentVoteButtonsProps {
   userVoteStatus?: UserVoteStatus | null;
   userId?: string;
   isUserAuthor?: boolean;
+  disabled?: boolean;
 }
 
 const ForumCommentVoteButtons = ({
@@ -25,6 +26,7 @@ const ForumCommentVoteButtons = ({
   userVoteStatus,
   userId,
   isUserAuthor = false,
+  disabled,
 }: ForumCommentVoteButtonsProps) => {
   // Local state to handle optimistic updates
   const [localVoteStatus, setLocalVoteStatus] = useState(userVoteStatus);
@@ -154,7 +156,7 @@ const ForumCommentVoteButtons = ({
           showUpvoted ? "text-primary" : ""
         } disabled:opacity-50`}
         onClick={handleUpvote}
-        disabled={!userId || isVoting || isUserAuthor}
+        disabled={!userId || isVoting || isUserAuthor || disabled}
         title={isUserAuthor ? "You cannot vote on your own comment" : undefined}
       >
         <ArrowUp className="h-3 w-3" />
@@ -168,7 +170,7 @@ const ForumCommentVoteButtons = ({
           hasDownvoted && !isUserAuthor ? "text-destructive" : ""
         } disabled:opacity-50`}
         onClick={handleDownvote}
-        disabled={!userId || isVoting || isUserAuthor}
+        disabled={!userId || isVoting || isUserAuthor || disabled}
         title={isUserAuthor ? "You cannot vote on your own comment" : undefined}
       >
         <ArrowDown className="h-3 w-3" />

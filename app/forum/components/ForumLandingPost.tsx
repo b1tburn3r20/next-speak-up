@@ -49,7 +49,7 @@ const ForumLandingPost = ({ post, userId }: ForumLandingPostProps) => {
               </div>
 
               <span>•</span>
-              <span className="font-medium">u/{post.author.username}</span>
+              <span className="font-medium">{post.author.username}</span>
               <span>•</span>
               <span>{timeAgo}</span>
             </div>

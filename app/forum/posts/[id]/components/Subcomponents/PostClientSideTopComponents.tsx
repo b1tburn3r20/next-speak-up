@@ -23,6 +23,7 @@ const PostClientSideTopComponents = ({
   useEffect(() => {
     setPostComments(post.comments);
   }, []);
+  const isDeleted = post.title === "[deleted]" && post.body === "[deleted]";
 
   return (
     <div className="w-full">
@@ -35,6 +36,7 @@ const PostClientSideTopComponents = ({
           userId={userId}
           netVotes={netVotes}
           isUserAuthor={isUserAuthor}
+          isDeleted={isDeleted} // Pass the deleted status
         />
 
         {/* Secondary actions with consistent spacing */}

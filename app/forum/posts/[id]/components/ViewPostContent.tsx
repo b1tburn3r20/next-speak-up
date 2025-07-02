@@ -10,7 +10,7 @@ const ViewPostContent = ({ post }: ViewPostContentProps) => {
   return (
     <div className="flex flex-col space-y-4 w-full">
       {/* Responsive title */}
-      <div className="text-primary text-xl sm:text-2xl lg:text-3xl font-extrabold leading-tight break-words">
+      <div className="mt-2 lg:mt-0 text-primary text-xl sm:text-2xl lg:text-3xl font-extrabold leading-tight break-words">
         {post.title}
       </div>
 

@@ -49,6 +49,7 @@ model ForumPost {
   id        Int      @id @default(autoincrement())
   type      String // "feature_request", "bill_discussion", "bug_report", "general"
   title     String
+  isDeleted Boolean  @default(false) // Add this
   body      String   @db.Text
   authorId  String // Required - all posts must have an author
   isLocked  Boolean  @default(false)
