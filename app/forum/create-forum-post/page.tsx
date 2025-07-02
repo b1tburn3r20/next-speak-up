@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 const Page = () => {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 p-2 lg:p-0 ">
       <NewForumPostMessage />
       <NewForumPostForm />
       <NewFormSubmitButton />

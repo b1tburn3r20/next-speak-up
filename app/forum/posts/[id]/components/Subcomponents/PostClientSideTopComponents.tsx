@@ -19,20 +19,30 @@ const PostClientSideTopComponents = ({
   const netVotes = post._count.upvotes - post._count.downvotes;
   const isUserAuthor = userId ? post.authorId === userId : false;
   const setPostComments = useForumPostDetailsStore((f) => f.setPostComments);
+
   useEffect(() => {
     setPostComments(post.comments);
   }, []);
+
   return (
-    <div className="flex items-center gap-8">
-      <PostInfoVoteButtons
-        postId={post.id}
-        userVoteStatus={post.userVoteStatus}
-        userId={userId}
-        netVotes={netVotes}
-        isUserAuthor={isUserAuthor}
-      />
-      <PostBookmark userId={userId} postId={post.id} />
-      <ForumPostViews postViews={post.views} />
+    <div className="w-full">
+      {/* Horizontal layout with proper spacing and alignment */}
+      <div className="flex items-center justify-start gap-4 sm:gap-6 lg:gap-8">
+        {/* Vote buttons - main action */}
+        <PostInfoVoteButtons
+          postId={post.id}
+          userVoteStatus={post.userVoteStatus}
+          userId={userId}
+          netVotes={netVotes}
+          isUserAuthor={isUserAuthor}
+        />
+
+        {/* Secondary actions with consistent spacing */}
+        <div className="flex items-center gap-4 sm:gap-6">
+          <PostBookmark userId={userId} postId={post.id} />
+          <ForumPostViews postViews={post.views} />
+        </div>
+      </div>
     </div>
   );
 };

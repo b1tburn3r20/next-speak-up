@@ -118,7 +118,15 @@ export const createPost = async (
   return post;
 };
 
-// Create a new comment
+// Updated getCommentsForPost to use upvote sorting (for non-create scenarios)
+export const getCommentsForPost = async (
+  postId: number,
+  userId: string | null
+) => {
+  return await getCommentsForPostWithUserPriority(postId, userId);
+};
+
+// Updated createComment to return sorted comments with user's comment at position #2
 export const createComment = async (
   data: {
     body: string;
@@ -139,25 +147,154 @@ export const createComment = async (
     depth = (parentComment?.depth || 0) + 1;
   }
 
+  // Create the comment
   const comment = await prisma.forumComment.create({
     data: {
       ...data,
       depth,
     },
-    include: {
-      author: true,
-      post: true,
-      parent: true,
-      replies: true,
-      upvotes: true,
-      downvotes: true,
-    },
   });
 
   await logUserAction(userId, "createComment", String(comment.id), userRole);
-  return comment;
+
+  // Get comments with smart sorting prioritizing the new comment at position #2
+  const comments = await getCommentsForPostWithUserPriority(
+    data.postId,
+    userId,
+    comment.id
+  );
+
+  return comments;
 };
 
+// Smart sorting: Upvotes first, user's new comment at #2 position
+export const getCommentsForPostWithUserPriority = async (
+  postId: number,
+  userId: string | null,
+  newCommentId?: number
+) => {
+  // Get all comments with upvote counts
+  const comments = await prisma.forumComment.findMany({
+    where: {
+      postId: Number(postId),
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          image: true,
+          role: true,
+        },
+      },
+      upvotes: userId
+        ? {
+            where: { userId },
+            select: { id: true },
+            take: 1,
+          }
+        : true,
+      downvotes: userId
+        ? {
+            where: { userId },
+            select: { id: true },
+            take: 1,
+          }
+        : true,
+      _count: {
+        select: {
+          upvotes: true,
+          downvotes: true,
+        },
+      },
+      replies: {
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              image: true,
+              role: true,
+            },
+          },
+          upvotes: userId
+            ? {
+                where: { userId },
+                select: { id: true },
+                take: 1,
+              }
+            : true,
+          downvotes: userId
+            ? {
+                where: { userId },
+                select: { id: true },
+                take: 1,
+              }
+            : true,
+          _count: {
+            select: {
+              upvotes: true,
+              downvotes: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Function to sort by upvotes with user comment at position #2
+  const smartSort = (commentList) => {
+    if (!commentList || commentList.length === 0) return commentList;
+
+    // First, sort by upvotes (descending), then by creation date
+    const sorted = [...commentList].sort((a, b) => {
+      const aNetVotes = a._count.upvotes - a._count.downvotes;
+      const bNetVotes = b._count.upvotes - b._count.downvotes;
+
+      if (aNetVotes !== bNetVotes) {
+        return bNetVotes - aNetVotes; // Higher net votes first
+      }
+
+      // If net votes are equal, sort by total upvotes
+      if (a._count.upvotes !== b._count.upvotes) {
+        return b._count.upvotes - a._count.upvotes;
+      }
+
+      // Finally, sort by creation date (newest first)
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    // If there's a new comment and it's not already at position 0, move it to position 1 (#2)
+    if (newCommentId && sorted.length > 1) {
+      const newCommentIndex = sorted.findIndex((c) => c.id === newCommentId);
+
+      if (newCommentIndex > 1) {
+        // Remove the new comment from its current position
+        const newComment = sorted.splice(newCommentIndex, 1)[0];
+        // Insert it at position 1 (second place, keeping top upvoted at #1)
+        sorted.splice(1, 0, newComment);
+      }
+      // If newCommentIndex is 0, it's already the top comment by upvotes, leave it there
+      // If newCommentIndex is 1, it's already at position #2, leave it there
+    }
+
+    return sorted;
+  };
+
+  // Sort root comments with smart sorting
+  const sortedComments = smartSort(comments);
+
+  // Apply smart sorting to replies at each level
+  sortedComments.forEach((comment) => {
+    if (comment.replies && comment.replies.length > 0) {
+      comment.replies = smartSort(comment.replies);
+    }
+  });
+
+  return sortedComments;
+};
 // Bookmark a post
 
 export const bookmarkPost = async (
@@ -553,6 +690,7 @@ export const pinPost = async (
   );
   return post;
 };
+// Also update getPostById to use the new sorting
 export const getPostById = async (userId, userRole, postId) => {
   const response = await prisma.forumPost.findUnique({
     where: {
@@ -580,74 +718,6 @@ export const getPostById = async (userId, userRole, postId) => {
           downvotes: true,
         },
       },
-      comments: {
-        include: {
-          author: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              image: true,
-              role: true,
-            },
-          },
-          // Add these for comment voting
-          upvotes: userId
-            ? {
-                where: { userId },
-                select: { id: true },
-                take: 1,
-              }
-            : true,
-          downvotes: userId
-            ? {
-                where: { userId },
-                select: { id: true },
-                take: 1,
-              }
-            : true,
-          _count: {
-            select: {
-              upvotes: true,
-              downvotes: true,
-            },
-          },
-          replies: {
-            include: {
-              author: {
-                select: {
-                  id: true,
-                  name: true,
-                  username: true,
-                  image: true,
-                  role: true,
-                },
-              },
-              // Don't forget to add voting info for replies too if needed
-              upvotes: userId
-                ? {
-                    where: { userId },
-                    select: { id: true },
-                    take: 1,
-                  }
-                : true,
-              downvotes: userId
-                ? {
-                    where: { userId },
-                    select: { id: true },
-                    take: 1,
-                  }
-                : true,
-              _count: {
-                select: {
-                  upvotes: true,
-                  downvotes: true,
-                },
-              },
-            },
-          },
-        },
-      },
       upvotes: userId
         ? {
             where: { userId },
@@ -666,10 +736,17 @@ export const getPostById = async (userId, userRole, postId) => {
     },
   });
 
-  // Transform the data to include userVoteStatus
+  // Get comments using the new smart sorting
+  const comments = await getCommentsForPostWithUserPriority(
+    Number(postId),
+    userId
+  );
+
+  // Transform the data to include userVoteStatus and comments
   const postWithVoteStatus = response
     ? {
         ...response,
+        comments, // Use the smartly sorted comments
         userVoteStatus: userId
           ? {
               hasUpvoted: response.upvotes?.length > 0,

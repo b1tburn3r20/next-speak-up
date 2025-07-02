@@ -19,7 +19,7 @@ interface PostInfoVoteButtonsProps {
   userId?: string;
   netVotes: number;
   userVoteStatus?: UserVoteStatus | null;
-  isUserAuthor?: boolean; // Add this prop
+  isUserAuthor?: boolean;
 }
 
 const PostInfoVoteButtons = ({
@@ -27,7 +27,7 @@ const PostInfoVoteButtons = ({
   userId,
   netVotes,
   userVoteStatus,
-  isUserAuthor = false, // Default to false
+  isUserAuthor = false,
 }: PostInfoVoteButtonsProps) => {
   // Local state to handle optimistic updates
   const [localVoteStatus, setLocalVoteStatus] = useState(userVoteStatus);
@@ -35,7 +35,7 @@ const PostInfoVoteButtons = ({
   const [isVoting, setIsVoting] = useState(false);
 
   const handleUpvote = async () => {
-    if (!userId || isVoting || isUserAuthor) return; // Prevent voting if user is author
+    if (!userId || isVoting || isUserAuthor) return;
 
     setIsVoting(true);
 
@@ -71,7 +71,6 @@ const PostInfoVoteButtons = ({
       }
 
       const result = await response.json();
-      // Update with actual server response if needed
       setLocalNetVotes(result.netVotes);
     } catch (error) {
       console.error("Vote failed:", error);
@@ -84,7 +83,7 @@ const PostInfoVoteButtons = ({
   };
 
   const handleDownvote = async () => {
-    if (!userId || isVoting || isUserAuthor) return; // Prevent voting if user is author
+    if (!userId || isVoting || isUserAuthor) return;
 
     setIsVoting(true);
 
@@ -120,7 +119,6 @@ const PostInfoVoteButtons = ({
       }
 
       const result = await response.json();
-      // Update with actual server response if needed
       setLocalNetVotes(result.netVotes);
     } catch (error) {
       console.error("Vote failed:", error);
@@ -140,23 +138,23 @@ const PostInfoVoteButtons = ({
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col items-center justify-between p-2 sm:p-3 bg-secondary/50 rounded-lg min-h-[100px] sm:min-h-[110px]">
+      <div className="flex items-center gap-2 sm:gap-3 bg-secondary/30 rounded-lg px-3 py-2 border border-border/50">
+        {/* Upvote Button */}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={handleUpvote}
               disabled={!userId || isVoting || isUserAuthor}
-              className={`p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors disabled:opacity-50 touch-manipulation ${
+              className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${
                 showUpvoted
-                  ? "text-green-600 bg-green-500/10"
-                  : "text-muted-foreground hover:text-primary"
+                  ? "text-green-600 bg-green-50 dark:bg-green-950/50 shadow-sm"
+                  : "text-muted-foreground hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950/50"
               }`}
             >
               <ChevronUp
-                size={18}
-                className={`sm:w-5 sm:h-5 ${
-                  showUpvoted ? "text-green-600" : ""
-                }`}
+                size={20}
+                className={`${showUpvoted ? "text-green-600" : ""}`}
+                strokeWidth={2.5}
               />
             </button>
           </TooltipTrigger>
@@ -167,26 +165,39 @@ const PostInfoVoteButtons = ({
           )}
         </Tooltip>
 
-        <span className="text-sm sm:text-base font-extrabold py-1.5 px-1 text-center min-w-[1.5rem]">
-          {localNetVotes > 0 ? `+${localNetVotes}` : localNetVotes}
-        </span>
+        {/* Vote Count */}
+        <div className="flex items-center justify-center min-w-[3rem] px-2">
+          <span
+            className={`text-sm sm:text-base font-bold text-center ${
+              localNetVotes > 0
+                ? "text-green-600"
+                : localNetVotes < 0
+                ? "text-red-600"
+                : "text-muted-foreground"
+            }`}
+          >
+            {localNetVotes > 0 ? `+${localNetVotes}` : localNetVotes}
+          </span>
+        </div>
 
+        {/* Downvote Button */}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={handleDownvote}
               disabled={!userId || isVoting || isUserAuthor}
-              className={`p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors disabled:opacity-50  touch-manipulation ${
+              className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${
                 hasDownvoted && !isUserAuthor
-                  ? "text-red-600 bg-red-500/10"
-                  : "text-muted-foreground hover:text-primary"
+                  ? "text-red-600 bg-red-50 dark:bg-red-950/50 shadow-sm"
+                  : "text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
               }`}
             >
               <ChevronDown
-                size={18}
-                className={`sm:w-5 sm:h-5 ${
+                size={20}
+                className={`${
                   hasDownvoted && !isUserAuthor ? "text-red-600" : ""
                 }`}
+                strokeWidth={2.5}
               />
             </button>
           </TooltipTrigger>

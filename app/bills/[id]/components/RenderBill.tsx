@@ -73,7 +73,9 @@ const RenderBill = ({ bill, session, isDyslexicFriendly }: RenderBillProps) => {
               </div>
 
               {/* Desktop: Inline button */}
-              <DesktopSupportBillButtons />
+              <div className="hidden sm:block">
+                <DesktopSupportBillButtons />
+              </div>
 
               {/* Spacer for fixed button on mobile */}
               <div className="h-20 sm:hidden" />

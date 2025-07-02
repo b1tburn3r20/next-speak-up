@@ -1,38 +1,16 @@
 "use client";
-import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { formatDistanceToNow } from "date-fns";
 import {
   ChevronDown,
   ChevronRight,
   MessageSquare,
-  ArrowUp,
-  ArrowDown,
+  Minus,
+  Plus,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { useState } from "react";
 import ForumCommentVoteButtons from "./ForumCommentVoteButtons";
-
-// Reply Button Component
-interface ReplyButtonProps {
-  onReply?: () => void;
-  disabled?: boolean;
-}
-
-const ReplyButton = ({ onReply, disabled = false }: ReplyButtonProps) => {
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="h-6 px-2 gap-1"
-      onClick={onReply}
-      disabled={disabled}
-    >
-      <MessageSquare className="h-3 w-3" />
-      <span>Reply</span>
-    </Button>
-  );
-};
 
 // Main PostComment Component
 interface PostCommentProps {
@@ -40,6 +18,10 @@ interface PostCommentProps {
   allComments: any[];
   userId: string;
   depth?: number;
+  onReply?: (commentId: number) => void;
+  isReplying?: boolean;
+  replyingToId?: number | null;
+  replyForm?: React.ReactNode;
 }
 
 const PostComment = ({
@@ -47,6 +29,10 @@ const PostComment = ({
   allComments,
   userId,
   depth = 0,
+  onReply,
+  isReplying = false,
+  replyingToId,
+  replyForm,
 }: PostCommentProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -56,129 +42,201 @@ const PostComment = ({
   const isUserAuthor = userId ? comment.authorId === userId : false;
 
   // Calculate indentation based on depth (max out at certain depth)
-  const maxDepth = 6;
+  const maxDepth = 8;
   const currentDepth = Math.min(depth, maxDepth);
-  const indentationClass =
-    currentDepth > 0
-      ? `ml-${currentDepth * 4} border-l-2 border-muted pl-4`
-      : "";
 
   // Get vote counts from comment._count
   const upvoteCount = comment._count?.upvotes || 0;
   const downvoteCount = comment._count?.downvotes || 0;
 
+  // Calculate total replies count (including nested)
+  const getTotalRepliesCount = (commentId: number): number => {
+    const directReplies = allComments.filter((c) => c.parentId === commentId);
+    return directReplies.reduce((total, reply) => {
+      return total + 1 + getTotalRepliesCount(reply.id);
+    }, 0);
+  };
+
+  const totalRepliesCount = getTotalRepliesCount(comment.id);
+
+  // Much smaller spacing - reduced from 20px to 8px per level
+  const indentPerLevel = 8;
+  const lineOffset = 4; // Reduced from 12px to 4px
+
   return (
-    <div className={`flex flex-col ${indentationClass}`}>
-      {/* Main Comment */}
-      <div className="flex gap-4 p-3 items-center rounded-lg hover:bg-muted/50 transition-colors">
-        {/* Avatar */}
-        <Avatar className="w-8 h-8 rounded-lg flex-shrink-0">
-          <AvatarImage
-            src={comment.author.image}
-            alt={comment.author.name}
-            referrerPolicy="no-referrer"
-          />
-          <AvatarFallback className="rounded-lg bg-primary/10">
-            {comment.author.name?.charAt(0) || "U"}
-          </AvatarFallback>
-        </Avatar>
+    <div className="relative">
+      {/* Collapse line indicator - much thinner and closer to left */}
+      {currentDepth > 0 && (
+        <div
+          className="absolute left-0 top-0 bottom-0 w-px bg-border hover:bg-foreground/20 cursor-pointer transition-colors"
+          onClick={() => hasReplies && setIsCollapsed(!isCollapsed)}
+          style={{
+            marginLeft: `${lineOffset + (currentDepth - 1) * indentPerLevel}px`,
+          }}
+        />
+      )}
 
-        {/* Comment Content */}
-        <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="flex items-center gap-2 text-muted-foreground mb-1 flex-wrap">
-            <span className="text-xs text-muted-foreground">
-              u/{comment.author.username}
-            </span>
-            <span>•</span>
+      {/* Main Comment Container */}
+      <div
+        className="relative"
+        style={{
+          marginLeft:
+            currentDepth > 0
+              ? `${lineOffset * 2 + (currentDepth - 1) * indentPerLevel}px`
+              : "0",
+        }}
+      >
+        {/* Comment Header and Content */}
+        <div className="group">
+          {/* Main Comment Row */}
+          <div className="py-1 px-2 rounded hover:bg-muted/30 transition-colors">
+            {/* Header with avatar, username, and metadata */}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+              {/* Collapse Toggle - positioned before username */}
+              {hasReplies && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0 hover:bg-muted shrink-0"
+                  onClick={() => setIsCollapsed(!isCollapsed)}
+                >
+                  {isCollapsed ? (
+                    <Plus className="h-2.5 w-2.5" />
+                  ) : (
+                    <Minus className="h-2.5 w-2.5" />
+                  )}
+                </Button>
+              )}
 
-            {comment.author.role && (
-              <p className="text-xs">{comment.author.role.name}</p>
-            )}
-            <span>•</span>
+              {/* Avatar next to username */}
+              <Avatar className="w-6 h-6 shrink-0 rounded-lg">
+                <AvatarImage
+                  src={comment.author.image}
+                  alt={comment.author.name}
+                  referrerPolicy="no-referrer"
+                />
+                <AvatarFallback className="text-xs">
+                  {comment.author.name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
 
-            <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(comment.createdAt), {
-                addSuffix: true,
-              })}
-            </span>
-            {comment.isEdited && (
-              <span className="text-xs text-muted-foreground italic">
-                (edited)
+              <span className="font-medium text-foreground">
+                {comment.author.username}
               </span>
-            )}
+              {comment.author.role && (
+                <>
+                  <span>•</span>
+                  <span className="text-xs">{comment.author.role.name}</span>
+                </>
+              )}
+              <span>•</span>
+              <span>
+                {formatDistanceToNow(new Date(comment.createdAt), {
+                  addSuffix: true,
+                })}
+              </span>
+              {comment.isEdited && <span className="italic">(edited)</span>}
+            </div>
+
+            {/* Comment Body */}
+            <div className="flex-1 min-w-0">
+              <div
+                className={`text-sm ${isCollapsed ? "line-clamp-2" : ""}`}
+                style={{
+                  marginLeft: hasReplies ? "24px" : "20px", // Align with username
+                }}
+              >
+                <div className="whitespace-pre-wrap break-words">
+                  {comment.body}
+                </div>
+              </div>
+
+              {/* Actions - Only show when not collapsed */}
+              {!isCollapsed && (
+                <div
+                  className="flex items-center gap-1 mt-2"
+                  style={{
+                    marginLeft: hasReplies ? "24px" : "20px", // Align with body
+                  }}
+                >
+                  {/* Vote Buttons */}
+                  <ForumCommentVoteButtons
+                    commentId={comment.id}
+                    upvotes={upvoteCount}
+                    downvotes={downvoteCount}
+                    userVoteStatus={comment.userVoteStatus}
+                    userId={userId}
+                    isUserAuthor={isUserAuthor}
+                  />
+
+                  {/* Reply Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`h-6 px-2 text-xs ${
+                      isReplying ? "bg-muted" : ""
+                    }`}
+                    onClick={() => onReply?.(comment.id)}
+                    disabled={!userId || isReplying}
+                  >
+                    <MessageSquare className="h-3 w-3 mr-1" />
+                    <span>{isReplying ? "Replying..." : "Reply"}</span>
+                  </Button>
+                </div>
+              )}
+
+              {/* Collapsed indicator */}
+              {isCollapsed && hasReplies && (
+                <div
+                  className="mt-1 text-xs text-muted-foreground"
+                  style={{
+                    marginLeft: hasReplies ? "24px" : "20px",
+                  }}
+                >
+                  <span
+                    className="cursor-pointer hover:underline"
+                    onClick={() => setIsCollapsed(false)}
+                  >
+                    {totalRepliesCount} more repl
+                    {totalRepliesCount === 1 ? "y" : "ies"}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Comment Body */}
-          {!isCollapsed && (
-            <div className="text-sm mb-2 whitespace-pre-wrap">
-              {comment.body}
+          {/* Reply Form for this comment */}
+          {replyingToId === comment.id && replyForm && !isCollapsed && (
+            <div
+              className="mt-2"
+              style={{
+                marginLeft: hasReplies ? "24px" : "20px", // Align with body
+              }}
+            >
+              {replyForm}
             </div>
           )}
+        </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 text-xs">
-            {/* Vote Buttons */}
-            <ForumCommentVoteButtons
-              commentId={comment.id}
-              upvotes={upvoteCount}
-              downvotes={downvoteCount}
-              userVoteStatus={comment.userVoteStatus}
-              userId={userId}
-              isUserAuthor={isUserAuthor}
-            />
-
-            {/* Reply Button */}
-            {/* <ReplyButton /> */}
-
-            {/* Collapse/Expand Button */}
-            {hasReplies && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 gap-1"
-                onClick={() => setIsCollapsed(!isCollapsed)}
-              >
-                {isCollapsed ? (
-                  <>
-                    <ChevronRight className="h-3 w-3" />
-                    <span>
-                      {replies.length} repl{replies.length === 1 ? "y" : "ies"}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-3 w-3" />
-                    <span>Collapse</span>
-                  </>
-                )}
-              </Button>
-            )}
+        {/* Nested Replies */}
+        {hasReplies && !isCollapsed && (
+          <div className="mt-1">
+            {replies.map((reply) => (
+              <PostComment
+                key={reply.id}
+                comment={reply}
+                allComments={allComments}
+                userId={userId}
+                depth={depth + 1}
+                onReply={onReply}
+                isReplying={replyingToId === reply.id}
+                replyingToId={replyingToId}
+                replyForm={replyForm}
+              />
+            ))}
           </div>
-        </div>
+        )}
       </div>
-
-      {/* Nested Replies */}
-      {hasReplies && !isCollapsed && (
-        <div className="mt-2">
-          {replies.map((reply) => (
-            <PostComment
-              key={reply.id}
-              comment={reply}
-              allComments={allComments}
-              userId={userId}
-              depth={depth + 1}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Collapsed State Indicator */}
-      {isCollapsed && hasReplies && (
-        <div className="ml-11 text-xs text-muted-foreground italic">
-          {replies.length} repl{replies.length === 1 ? "y" : "ies"} hidden
-        </div>
-      )}
     </div>
   );
 };

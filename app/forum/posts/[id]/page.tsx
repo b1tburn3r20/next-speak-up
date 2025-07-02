@@ -73,9 +73,19 @@ const Page = async ({ params }: PageProps) => {
   const postData = await getPostById(userId, userRole, id);
 
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <ViewPostContent post={postData} />
-      <ViewPostInfo userId={userId} post={postData} />
+    <div className="w-full  mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Mobile-first responsive layout */}
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-6">
+        {/* Main content - takes full width on mobile, 2/3 on desktop */}
+        <div className="lg:col-span-2">
+          <ViewPostContent post={postData} />
+        </div>
+
+        {/* Sidebar - stacked below on mobile, 1/3 on desktop */}
+        <div className="lg:col-span-1">
+          <ViewPostInfo userId={userId} post={postData} />
+        </div>
+      </div>
     </div>
   );
 };

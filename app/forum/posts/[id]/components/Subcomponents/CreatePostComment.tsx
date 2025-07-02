@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner"; // or whatever toast library you're using
-
+import { useForumPostDetailsStore } from "../../useForumPostDetailsStore";
 const CreatePostComment = ({ postId, userId }) => {
   const [value, setValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const setPostComments = useForumPostDetailsStore((f) => f.setPostComments);
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -37,6 +37,10 @@ const CreatePostComment = ({ postId, userId }) => {
 
       if (!response.ok) {
         throw new Error("Failed to create comment");
+      }
+      const data = await response.json();
+      if (response.ok) {
+        setPostComments(data);
       }
 
       // Clear the input

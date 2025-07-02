@@ -36,7 +36,7 @@ const UserReferenceContainer = ({
     >
       <Avatar className="w-8 h-8 rounded-lg">{renderAvatarContent()}</Avatar>
       <div className="flex flex-col justify-center">
-        <span className="text-sm text-muted-foreground  font-bold">
+        <span className="text-sm truncate text-muted-foreground  font-bold">
           {username || "User"}
         </span>
         <p className="text-muted-foreground italic text-xs">{role}</p>

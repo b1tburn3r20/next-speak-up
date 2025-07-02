@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { constructSystemPrompt } from "@/lib/ai/prompts";
+import { ratelimit } from "@/lib/ratelimiter";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
@@ -13,6 +14,15 @@ const DEFAULT_SETTINGS = {
 };
 
 export async function POST(req: Request) {
+  const ip =
+    req.headers.get("x-forwarded-for") ||
+    req.headers.get("x-real-ip") ||
+    "unknown";
+  const { success, limit } = await ratelimit.limit(ip);
+  if (!success) {
+    console.log("limit", limit);
+    return NextResponse.json({ error: "Rate Limit Error" }, { status: 429 });
+  }
   try {
     const session = await getServerSession(authOptions);
     const userName = session?.user?.name || "User";
