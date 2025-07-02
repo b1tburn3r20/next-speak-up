@@ -39,7 +39,7 @@ export async function POST(request) {
         ...(parentId && { parentId: parseInt(parentId) }),
       },
       session.user.id,
-      session.user.role || "user"
+      session.user.role.name
     );
 
     return NextResponse.json(comment, { status: 201 });
