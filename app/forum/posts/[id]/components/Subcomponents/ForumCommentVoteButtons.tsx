@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useState } from "react";
+import { useForumPostDetailsStore } from "../../useForumPostDetailsStore";
 
 interface UserVoteStatus {
   hasUpvoted: boolean;
@@ -33,8 +34,14 @@ const ForumCommentVoteButtons = ({
   const [localUpvotes, setLocalUpvotes] = useState(upvotes);
   const [localDownvotes, setLocalDownvotes] = useState(downvotes);
   const [isVoting, setIsVoting] = useState(false);
+
+  // Get post status from store
+  const isPostDeleted = useForumPostDetailsStore((f) => f.isPostDeleted);
+  const isPostLocked = useForumPostDetailsStore((f) => f.isPostLocked);
+
   const handleUpvote = async () => {
-    if (!userId || isVoting || isUserAuthor) return;
+    if (!userId || isVoting || isUserAuthor || isPostDeleted || isPostLocked)
+      return;
 
     setIsVoting(true);
 
@@ -88,7 +95,8 @@ const ForumCommentVoteButtons = ({
   };
 
   const handleDownvote = async () => {
-    if (!userId || isVoting || isUserAuthor) return;
+    if (!userId || isVoting || isUserAuthor || isPostDeleted || isPostLocked)
+      return;
 
     setIsVoting(true);
 
@@ -147,6 +155,23 @@ const ForumCommentVoteButtons = ({
   // Show upvoted state when user is author (visual indication)
   const showUpvoted = isUserAuthor || hasUpvoted;
 
+  // Determine if voting should be disabled
+  const isVotingDisabled =
+    !userId ||
+    isVoting ||
+    isUserAuthor ||
+    disabled ||
+    isPostDeleted ||
+    isPostLocked;
+
+  // Generate tooltip text
+  const getTooltipText = () => {
+    if (isUserAuthor) return "You cannot vote on your own comment";
+    if (isPostDeleted) return "Cannot vote on comments in deleted posts";
+    if (isPostLocked) return "Cannot vote on comments in locked posts";
+    return undefined;
+  };
+
   return (
     <div className="flex items-center gap-1">
       <Button
@@ -156,8 +181,8 @@ const ForumCommentVoteButtons = ({
           showUpvoted ? "text-primary" : ""
         } disabled:opacity-50`}
         onClick={handleUpvote}
-        disabled={!userId || isVoting || isUserAuthor || disabled}
-        title={isUserAuthor ? "You cannot vote on your own comment" : undefined}
+        disabled={isVotingDisabled}
+        title={getTooltipText()}
       >
         <ArrowUp className="h-3 w-3" />
         <span>{localUpvotes}</span>
@@ -170,8 +195,8 @@ const ForumCommentVoteButtons = ({
           hasDownvoted && !isUserAuthor ? "text-destructive" : ""
         } disabled:opacity-50`}
         onClick={handleDownvote}
-        disabled={!userId || isVoting || isUserAuthor || disabled}
-        title={isUserAuthor ? "You cannot vote on your own comment" : undefined}
+        disabled={isVotingDisabled}
+        title={getTooltipText()}
       >
         <ArrowDown className="h-3 w-3" />
         <span>{localDownvotes}</span>

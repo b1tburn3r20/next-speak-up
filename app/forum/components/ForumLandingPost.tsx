@@ -26,11 +26,11 @@ const ForumLandingPost = ({ post, userId }: ForumLandingPostProps) => {
 
         <div className="flex-1 p-3">
           <div className="flex items-center gap-2 mb-2">
-            {post.isPinned && <Pin size={14} className="text-primary" />}
-            {post.isLocked && <Lock size={14} className="text-destructive" />}
             <span className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
               {post.type}
             </span>
+            {post.isPinned && <Pin size={14} className="text-primary" />}
+            {post.isLocked && <Lock size={14} className="text-destructive" />}
           </div>
 
           <Link

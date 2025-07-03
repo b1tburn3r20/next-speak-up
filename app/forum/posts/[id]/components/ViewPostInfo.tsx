@@ -10,16 +10,28 @@ import PostClientSideTopComponents from "./Subcomponents/PostClientSideTopCompon
 interface ViewPostInfoProps {
   post: FullForumPost;
   userId: string | null;
+  userRole: string | null;
+  userName: string | null;
 }
 
-const ViewPostInfo = ({ post, userId }: ViewPostInfoProps) => {
+const ViewPostInfo = ({
+  post,
+  userId,
+  userRole,
+  userName,
+}: ViewPostInfoProps) => {
   return (
     <div className="w-full">
       {/* Mobile-first responsive header */}
       <div className="flex flex-col gap-2">
         {/* Top components - full width on mobile */}
         <div className="w-full sm:w-auto">
-          <PostClientSideTopComponents post={post} userId={userId} />
+          <PostClientSideTopComponents
+            post={post}
+            userId={userId}
+            userRole={userRole}
+            userName={userName}
+          />
         </div>
 
         {/* Author and date info - stacked on mobile, side by side on larger screens */}

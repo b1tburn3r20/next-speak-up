@@ -1,10 +1,17 @@
 "use client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { useSearchParams } from "next/navigation";
 
 import { signIn } from "next-auth/react";
 const LoginForm = () => {
+  const searchParams = useSearchParams();
+
   const handleGoogleSignin = async () => {
-    await signIn("google", { callbackUrl: "/" });
+    const callbackUrl =
+      searchParams.get("callbackUrl") ||
+      window.location.origin + window.location.pathname;
+
+    await signIn("google", { callbackUrl });
   };
   return (
     <Tabs defaultValue="providers">

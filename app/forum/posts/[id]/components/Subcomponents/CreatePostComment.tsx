@@ -6,28 +6,56 @@ import { Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useForumPostDetailsStore } from "../../useForumPostDetailsStore";
+import { useLoginStore } from "@/app/navbar/useLoginStore";
+import { useDialogStore } from "@/app/stores/useDialogStore";
+import UsernameSelectDialog from "@/app/GeneralComponents/Onboarding/components/componentsA/UsernameSelectDialog";
 
 interface CreatePostCommentProps {
   postId: string | number;
-  userId: string;
+  userId: string | null;
 }
 
 const CreatePostComment = ({ postId, userId }: CreatePostCommentProps) => {
   const [value, setValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const setIsLoginDialogOpen = useLoginStore((f) => f.setIsLoginDialogOpen);
+  const setIsUsernameSelectDialogOpen = useDialogStore(
+    (state) => state.setIsUsernameSelectDialogOpen
+  );
   const setPostComments = useForumPostDetailsStore((f) => f.setPostComments);
   const isMakingAPICall = useForumPostDetailsStore((f) => f.isMakingAPICall);
   const setIsMakingAPICall = useForumPostDetailsStore(
     (f) => f.setIsMakingAPICall
   );
+  const isPostDeleted = useForumPostDetailsStore((f) => f.isPostDeleted);
+  const isPostLocked = useForumPostDetailsStore((f) => f.isPostLocked);
+  const userName = useForumPostDetailsStore((f) => f.userName);
+  const setUserName = useForumPostDetailsStore((f) => f.setUserName);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!value.trim()) return;
+
     if (!userId) {
       toast.error("You must be logged in to comment");
+      setIsLoginDialogOpen(true);
+      return;
+    }
+
+    if (!userName) {
+      toast.error("You must set a username to comment");
+      setIsLoginDialogOpen(true); // This should open a dialog to set username
+      return;
+    }
+
+    // Check if post is deleted or locked
+    if (isPostDeleted || isPostLocked) {
+      toast.error(
+        isPostDeleted
+          ? "Cannot comment on a deleted post"
+          : "Cannot comment on a locked post"
+      );
       return;
     }
 
@@ -83,13 +111,60 @@ const CreatePostComment = ({ postId, userId }: CreatePostCommentProps) => {
     }
   };
 
-  // Disable if no text, submitting, or global API call is in progress
-  const isDisabled = !value.trim() || isSubmitting || isMakingAPICall;
+  // Disable if no text, submitting, global API call is in progress, or post is deleted/locked
+  const isDisabled =
+    !value.trim() ||
+    isSubmitting ||
+    isMakingAPICall ||
+    isPostDeleted ||
+    isPostLocked;
 
   if (!userId) {
     return (
-      <div className="w-full p-4 text-center text-muted-foreground border border-dashed rounded-lg">
-        Please log in to comment
+      <Button
+        variant="outline"
+        className="w-full p-4 h-auto text-muted-foreground border-dashed hover:border-primary/50 hover:text-primary transition-colors"
+        onClick={() => setIsLoginDialogOpen(true)}
+        disabled={isPostDeleted || isPostLocked}
+      >
+        {isPostDeleted
+          ? "Post has been deleted"
+          : isPostLocked
+          ? "Post is locked"
+          : "Please log in to comment"}
+      </Button>
+    );
+  }
+
+  if (!userName) {
+    return (
+      <>
+        <Button
+          variant="outline"
+          className="w-full p-4 h-auto text-muted-foreground border-dashed hover:border-primary/50 hover:text-primary transition-colors"
+          onClick={() => setIsUsernameSelectDialogOpen(true)}
+          disabled={isPostDeleted || isPostLocked}
+        >
+          {isPostDeleted
+            ? "Post has been deleted"
+            : isPostLocked
+            ? "Post is locked"
+            : "Please set a username to comment"}
+        </Button>
+        <UsernameSelectDialog
+          onUsernameCreation={(username) => setUserName(username)}
+        />
+      </>
+    );
+  }
+
+  // Show different UI when post is deleted or locked
+  if (isPostDeleted || isPostLocked) {
+    return (
+      <div className="w-full p-4 text-center text-muted-foreground bg-muted/30 rounded-md border border-dashed">
+        {isPostDeleted
+          ? "This post has been deleted. Comments are no longer allowed."
+          : "This post is locked. Comments are no longer allowed."}
       </div>
     );
   }
@@ -108,7 +183,7 @@ const CreatePostComment = ({ postId, userId }: CreatePostCommentProps) => {
         onChange={(e) => setValue(e.target.value)}
         onKeyPress={handleKeyPress}
         value={value}
-        disabled={isMakingAPICall} // Disable during any API call
+        disabled={isDisabled}
       />
       <Button
         type="submit"

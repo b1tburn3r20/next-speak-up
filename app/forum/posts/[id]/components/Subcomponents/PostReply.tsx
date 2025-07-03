@@ -121,11 +121,6 @@ const PostReply = ({
                 Ctrl+Enter to submit
               </span>
             )}
-            {isMakingAPICall && (
-              <span className="text-orange-500">
-                Please wait for the current operation to complete
-              </span>
-            )}
           </div>
 
           {/* Mobile character count */}

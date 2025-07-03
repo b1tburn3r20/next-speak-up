@@ -5,6 +5,7 @@ import { Metadata } from "next";
 import ViewPostContent from "./components/ViewPostContent";
 import ViewPostInfo from "./components/ViewPostInfo";
 import { incrementPostViews } from "@/lib/services/forum-service";
+import { AuthSession, UserSession } from "@/lib/types/user-types";
 
 type PageProps = {
   params: { id: string };
@@ -63,9 +64,10 @@ export async function generateMetadata({
 }
 
 const Page = async ({ params }: PageProps) => {
-  const session = await getServerSession(authOptions);
+  const session: AuthSession = await getServerSession(authOptions);
   const userId = session?.user?.id;
-  const userRole = session?.role?.name;
+  const userRole = session?.user.role?.name;
+  const userName = session?.user?.username;
   const { id } = await params;
 
   await incrementPostViews(Number(id), userId, userRole);
@@ -83,7 +85,12 @@ const Page = async ({ params }: PageProps) => {
 
         {/* Sidebar - stacked below on mobile, 1/3 on desktop */}
         <div className="lg:col-span-1">
-          <ViewPostInfo userId={userId} post={postData} />
+          <ViewPostInfo
+            userId={userId}
+            post={postData}
+            userRole={userRole}
+            userName={userName}
+          />
         </div>
       </div>
     </div>

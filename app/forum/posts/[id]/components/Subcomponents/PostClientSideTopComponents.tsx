@@ -6,22 +6,32 @@ import PostBookmark from "./PostBookmark";
 import ForumPostViews from "./ForumPostViews";
 import { useEffect } from "react";
 import { useForumPostDetailsStore } from "../../useForumPostDetailsStore";
+import PinForumPost from "./PinForumPost";
+import LockForumPost from "./LockForumPost";
 
 interface PostClientSideTopComponentsProps {
   post: FullForumPost;
   userId: string | null;
+  userRole: string | null;
+  userName: string | null;
 }
 
 const PostClientSideTopComponents = ({
   post,
   userId,
+  userRole,
+  userName,
 }: PostClientSideTopComponentsProps) => {
   const netVotes = post._count.upvotes - post._count.downvotes;
   const isUserAuthor = userId ? post.authorId === userId : false;
   const setPostComments = useForumPostDetailsStore((f) => f.setPostComments);
-
+  const setIsPostPinned = useForumPostDetailsStore((f) => f.setIsPostPinned);
+  const setIsPostLocked = useForumPostDetailsStore((f) => f.setIsPostLocked);
+  const setUserName = useForumPostDetailsStore((f) => f.setUserName);
   useEffect(() => {
     setPostComments(post.comments);
+    setIsPostPinned(post.isPinned);
+    setIsPostLocked(post.isLocked);
   }, []);
   const isDeleted = post.title === "[deleted]" && post.body === "[deleted]";
 
@@ -43,6 +53,8 @@ const PostClientSideTopComponents = ({
         <div className="flex items-center gap-4 sm:gap-6">
           <PostBookmark userId={userId} postId={post.id} />
           <ForumPostViews postViews={post.views} />
+          <PinForumPost userId={userId} postId={post.id} userRole={userRole} />
+          <LockForumPost userId={userId} postId={post.id} userRole={userRole} />
         </div>
       </div>
     </div>

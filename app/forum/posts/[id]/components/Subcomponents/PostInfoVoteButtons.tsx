@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useForumPostDetailsStore } from "../../useForumPostDetailsStore";
 
 interface UserVoteStatus {
   hasUpvoted: boolean;
@@ -51,12 +52,24 @@ const PostInfoVoteButtons = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // Get post status from store
+  const isPostDeleted = useForumPostDetailsStore((f) => f.isPostDeleted);
+  const isPostLocked = useForumPostDetailsStore((f) => f.isPostLocked);
+  const setIsPostDeleted = useForumPostDetailsStore((f) => f.setIsPostDeleted);
+
   // Check if current user can delete this post (and post is not already deleted)
   const canDelete =
-    userId && (userId === authorId || isUserAuthor) && !isDeleted;
+    userId &&
+    (userId === authorId || isUserAuthor) &&
+    !isDeleted &&
+    !isPostDeleted;
+
+  // Check if voting should be disabled
+  const isVotingDisabled =
+    !userId || isVoting || isUserAuthor || isPostDeleted || isPostLocked;
 
   const handleUpvote = async () => {
-    if (!userId || isVoting || isUserAuthor) return;
+    if (isVotingDisabled) return;
 
     setIsVoting(true);
 
@@ -104,7 +117,7 @@ const PostInfoVoteButtons = ({
   };
 
   const handleDownvote = async () => {
-    if (!userId || isVoting || isUserAuthor) return;
+    if (isVotingDisabled) return;
 
     setIsVoting(true);
 
@@ -170,6 +183,9 @@ const PostInfoVoteButtons = ({
       const result = await response.json();
       console.log("Post deleted successfully:", result.message);
       if (response.ok) {
+        // Update store to reflect deleted state
+        setIsPostDeleted(true);
+        // Optionally reload or navigate
         window.location.reload();
       }
       // Close the dialog
@@ -189,6 +205,14 @@ const PostInfoVoteButtons = ({
   // Show upvoted state when user is author (visual indication)
   const showUpvoted = isUserAuthor || hasUpvoted;
 
+  // Generate tooltip text for voting buttons
+  const getVoteTooltipText = () => {
+    if (isUserAuthor) return "You cannot vote on your own post";
+    if (isPostDeleted) return "Cannot vote on deleted posts";
+    if (isPostLocked) return "Cannot vote on locked posts";
+    return undefined;
+  };
+
   return (
     <TooltipProvider>
       <div className="flex items-center gap-2 sm:gap-3 bg-secondary/30 rounded-lg px-3 py-2 border border-border/50">
@@ -197,7 +221,7 @@ const PostInfoVoteButtons = ({
           <TooltipTrigger asChild>
             <button
               onClick={handleUpvote}
-              disabled={!userId || isVoting || isUserAuthor}
+              disabled={isVotingDisabled}
               className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${
                 showUpvoted
                   ? "text-green-600 bg-green-50 dark:bg-green-950/50 shadow-sm"
@@ -211,11 +235,9 @@ const PostInfoVoteButtons = ({
               />
             </button>
           </TooltipTrigger>
-          {isUserAuthor && (
-            <TooltipContent>
-              <p>You cannot vote on your own post</p>
-            </TooltipContent>
-          )}
+          <TooltipContent>
+            <p>{getVoteTooltipText() || "Upvote"}</p>
+          </TooltipContent>
         </Tooltip>
 
         {/* Vote Count */}
@@ -238,7 +260,7 @@ const PostInfoVoteButtons = ({
           <TooltipTrigger asChild>
             <button
               onClick={handleDownvote}
-              disabled={!userId || isVoting || isUserAuthor}
+              disabled={isVotingDisabled}
               className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${
                 hasDownvoted && !isUserAuthor
                   ? "text-red-600 bg-red-50 dark:bg-red-950/50 shadow-sm"
@@ -254,11 +276,9 @@ const PostInfoVoteButtons = ({
               />
             </button>
           </TooltipTrigger>
-          {isUserAuthor && (
-            <TooltipContent>
-              <p>You cannot vote on your own post</p>
-            </TooltipContent>
-          )}
+          <TooltipContent>
+            <p>{getVoteTooltipText() || "Downvote"}</p>
+          </TooltipContent>
         </Tooltip>
 
         {/* Delete Button - Only show if user can delete and post is not deleted */}

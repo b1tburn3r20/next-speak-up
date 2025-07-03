@@ -166,7 +166,7 @@ export function NavUser() {
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => signOut({ callbackUrl: window.location.href })}
             className="cursor-pointer"
           >
             <LogOut className="mr-2 h-4 w-4" />

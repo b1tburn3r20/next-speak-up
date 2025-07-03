@@ -15,12 +15,14 @@ import { useState } from "react";
 import ForumCommentVoteButtons from "./ForumCommentVoteButtons";
 import { toast } from "sonner";
 import { useForumPostDetailsStore } from "../../useForumPostDetailsStore";
+import Link from "next/link";
+import { useLoginStore } from "@/app/navbar/useLoginStore";
+import { useDialogStore } from "@/app/stores/useDialogStore";
 
 // Helper function to format time like Reddit
 const formatTimeAgo = (date: Date): string => {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
   const intervals = [
     { label: "y", seconds: 31536000 },
     { label: "mo", seconds: 2592000 },
@@ -28,14 +30,12 @@ const formatTimeAgo = (date: Date): string => {
     { label: "h", seconds: 3600 },
     { label: "m", seconds: 60 },
   ];
-
   for (const interval of intervals) {
     const count = Math.floor(diffInSeconds / interval.seconds);
     if (count >= 1) {
       return `${count}${interval.label}`;
     }
   }
-
   return "now";
 };
 
@@ -72,6 +72,15 @@ const PostComment = ({
   const setIsMakingAPICall = useForumPostDetailsStore(
     (f) => f.setIsMakingAPICall
   );
+  const setIsLoginDialogOpen = useLoginStore((f) => f.setIsLoginDialogOpen);
+  const setIsUsernameSelectDialogOpen = useDialogStore(
+    (state) => state.setIsUsernameSelectDialogOpen
+  );
+  const userName = useForumPostDetailsStore((f) => f.userName);
+  const setUserName = useForumPostDetailsStore((f) => f.setUserName);
+  // Get post state to check if interactions should be disabled
+  const isPostDeleted = useForumPostDetailsStore((f) => f.isPostDeleted);
+  const isPostLocked = useForumPostDetailsStore((f) => f.isPostLocked);
 
   // Find direct replies to this comment
   const replies = allComments.filter((c) => c.parentId === comment.id);
@@ -86,6 +95,10 @@ const PostComment = ({
   // Get vote counts from comment._count
   const upvoteCount = comment._count?.upvotes || 0;
   const downvoteCount = comment._count?.downvotes || 0;
+
+  // Check if interactions should be disabled
+  const isInteractionDisabled =
+    isPostDeleted || isPostLocked || isMakingAPICall;
 
   // Calculate total replies count (including nested)
   const getTotalRepliesCount = (commentId: number): number => {
@@ -103,17 +116,22 @@ const PostComment = ({
     : comment.author.username || comment.author.name;
   const displayName = isDeleted ? "[deleted]" : comment.author.name;
 
-  // Handle comment deletion - now respects global API state
+  // Handle comment deletion - now respects global API state and post status
   const handleDeleteComment = async () => {
-    // Check if already making an API call
-    if (isMakingAPICall) {
-      toast.warning("Another operation is in progress. Please try again.");
+    // Check if interactions are disabled
+    if (isInteractionDisabled) {
+      if (isPostDeleted) {
+        toast.warning("Cannot delete comments on a deleted post.");
+      } else if (isPostLocked) {
+        toast.warning("Cannot delete comments on a locked post.");
+      } else {
+        toast.warning("Another operation is in progress. Please try again.");
+      }
       return;
     }
 
     try {
       setIsMakingAPICall(true);
-
       const response = await fetch("/api/forum/comments/delete", {
         method: "POST",
         headers: {
@@ -139,6 +157,20 @@ const PostComment = ({
     } finally {
       setIsMakingAPICall(false);
     }
+  };
+  const handleReplyClick = () => {
+    if (!userId) {
+      setIsLoginDialogOpen(true);
+      return;
+    }
+
+    if (!userName) {
+      setIsUsernameSelectDialogOpen(true);
+      return;
+    }
+
+    // Only initiate reply state if user has both login and username
+    onReply?.(comment.id);
   };
 
   // Much smaller spacing - reduced from 20px to 8px per level
@@ -174,7 +206,7 @@ const PostComment = ({
           <div
             className={`py-1 px-2 rounded hover:bg-muted/30 transition-colors ${
               isDeleted ? "opacity-70" : ""
-            }`}
+            } ${isInteractionDisabled ? "opacity-60" : ""}`}
           >
             {/* Header with avatar, username, and metadata */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
@@ -196,26 +228,38 @@ const PostComment = ({
 
               {/* Avatar - only show if not deleted */}
               {!isDeleted && (
-                <Avatar className="w-6 h-6 shrink-0 rounded-lg">
-                  <AvatarImage
-                    src={comment.author.image}
-                    alt={comment.author.name}
-                    referrerPolicy="no-referrer"
-                  />
-                  <AvatarFallback className="text-xs">
-                    {comment.author.name?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
+                <Link
+                  href={`/community/users/${comment.author.id}`}
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  <Avatar className="w-6 h-6 shrink-0 rounded-lg">
+                    <AvatarImage
+                      src={comment.author.image}
+                      alt={comment.author.name}
+                      referrerPolicy="no-referrer"
+                    />
+                    <AvatarFallback className="text-xs">
+                      {comment.author.name?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
               )}
 
               <div></div>
-              <span
-                className={`font-medium ${
-                  isDeleted ? "text-muted-foreground" : "text-foreground"
-                }`}
-              >
-                {displayUsername}
-              </span>
+
+              {/* Username - make it a link if not deleted */}
+              {isDeleted ? (
+                <span className="font-medium text-muted-foreground">
+                  {displayUsername}
+                </span>
+              ) : (
+                <Link
+                  href={`/community/users/${comment.author.id}`}
+                  className="font-medium text-foreground hover:underline hover:opacity-80 transition-opacity"
+                >
+                  {displayUsername}
+                </Link>
+              )}
 
               <span>•</span>
               <span>{formatTimeAgo(new Date(comment.createdAt))}</span>
@@ -249,7 +293,7 @@ const PostComment = ({
                     marginLeft: hasReplies ? "24px" : "20px", // Align with body
                   }}
                 >
-                  {/* Vote Buttons - disable for deleted comments or during API calls */}
+                  {/* Vote Buttons - disable for deleted comments or when post is locked/deleted */}
                   <ForumCommentVoteButtons
                     commentId={comment.id}
                     upvotes={upvoteCount}
@@ -257,25 +301,29 @@ const PostComment = ({
                     userVoteStatus={comment.userVoteStatus}
                     userId={userId}
                     isUserAuthor={isUserAuthor}
-                    disabled={isDeleted || isMakingAPICall} // Disable during global API calls
+                    disabled={isDeleted || isInteractionDisabled}
                   />
 
-                  {/* Reply Button - disable for deleted comments or during API calls */}
+                  {/* Reply Button - disable for deleted comments or when post is locked/deleted */}
                   <Button
                     variant="ghost"
                     size="sm"
                     className={`h-6 px-2 text-xs ${
                       isReplying ? "bg-muted" : ""
                     }`}
-                    onClick={() => onReply?.(comment.id)}
-                    disabled={
-                      !userId || isReplying || isDeleted || isMakingAPICall
-                    } // Disable during global API calls
+                    onClick={handleReplyClick} // Changed from onReply?.(comment.id)
+                    disabled={isReplying || isDeleted || isInteractionDisabled}
+                    title={
+                      isPostDeleted
+                        ? "Cannot reply to comments on a deleted post"
+                        : isPostLocked
+                        ? "Cannot reply to comments on a locked post"
+                        : undefined
+                    }
                   >
                     <MessageSquare className="h-3 w-3 mr-1" />
                     <span>{isReplying ? "Replying..." : "Reply"}</span>
                   </Button>
-
                   {/* Delete Button - only show for comment author and not already deleted */}
                   {!isDeleted && isUserAuthor && (
                     <Button
@@ -283,7 +331,14 @@ const PostComment = ({
                       size="sm"
                       className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={handleDeleteComment}
-                      disabled={isMakingAPICall} // Disable during global API calls
+                      disabled={isInteractionDisabled}
+                      title={
+                        isPostDeleted
+                          ? "Cannot delete comments on a deleted post"
+                          : isPostLocked
+                          ? "Cannot delete comments on a locked post"
+                          : undefined
+                      }
                     >
                       {isMakingAPICall ? (
                         <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -315,8 +370,9 @@ const PostComment = ({
             </div>
           </div>
 
-          {/* Reply Form for this comment - don't show for deleted comments */}
+          {/* Reply Form for this comment - don't show for deleted comments or when post is locked/deleted */}
           {!isDeleted &&
+            !isInteractionDisabled &&
             replyingToId === comment.id &&
             replyForm &&
             !isCollapsed && (

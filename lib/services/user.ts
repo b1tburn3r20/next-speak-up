@@ -278,3 +278,168 @@ export async function updateUserUsername(
     throw error;
   }
 }
+export const getSoftUserById = async (userId: string) => {
+  return prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      username: true,
+      image: true,
+      createdAt: true,
+      role: {
+        select: {
+          name: true,
+          description: true,
+        },
+      },
+      // Forum activity counts
+      _count: {
+        select: {
+          forumPosts: true,
+          forumComments: true,
+          forumPostUpvotes: true,
+          forumCommentUpvotes: true,
+          forumPostBookmarks: true,
+        },
+      },
+    },
+  });
+};
+
+// Alternative version with more detailed metrics
+export const getSoftUserByIdWithMetrics = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      username: true,
+      image: true,
+      createdAt: true,
+      role: {
+        select: {
+          name: true,
+          description: true,
+        },
+      },
+      // Get actual forum posts to calculate additional metrics
+      forumPosts: {
+        select: {
+          id: true,
+          views: true,
+          createdAt: true,
+          _count: {
+            select: {
+              upvotes: true,
+              downvotes: true,
+              comments: true,
+            },
+          },
+        },
+        where: {
+          isDeleted: false,
+        },
+      },
+      forumComments: {
+        select: {
+          id: true,
+          createdAt: true,
+          _count: {
+            select: {
+              upvotes: true,
+              downvotes: true,
+            },
+          },
+        },
+        where: {
+          isDeleted: false,
+        },
+      },
+      _count: {
+        select: {
+          forumPostUpvotes: true,
+          forumCommentUpvotes: true,
+          forumPostBookmarks: true,
+          userVotes: true,
+          favoritedMembers: true,
+        },
+      },
+    },
+  });
+
+  if (!user) return null;
+
+  // Calculate derived metrics
+  const totalPostViews = user.forumPosts.reduce(
+    (sum, post) => sum + post.views,
+    0
+  );
+  const totalPostUpvotes = user.forumPosts.reduce(
+    (sum, post) => sum + post._count.upvotes,
+    0
+  );
+  const totalPostDownvotes = user.forumPosts.reduce(
+    (sum, post) => sum + post._count.downvotes,
+    0
+  );
+  const totalCommentsReceived = user.forumPosts.reduce(
+    (sum, post) => sum + post._count.comments,
+    0
+  );
+
+  const totalCommentUpvotes = user.forumComments.reduce(
+    (sum, comment) => sum + comment._count.upvotes,
+    0
+  );
+  const totalCommentDownvotes = user.forumComments.reduce(
+    (sum, comment) => sum + comment._count.downvotes,
+    0
+  );
+
+  // Calculate days since joining
+  const daysSinceJoining = Math.floor(
+    (new Date().getTime() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  return {
+    id: user.id,
+    username: user.username,
+    image: user.image,
+    createdAt: user.createdAt,
+    daysSinceJoining,
+    role: user.role,
+    metrics: {
+      // Content creation
+      totalPosts: user.forumPosts.length,
+      totalComments: user.forumComments.length,
+
+      // Engagement received
+      totalPostViews,
+      totalPostUpvotes,
+      totalPostDownvotes,
+      totalCommentsReceived,
+      totalCommentUpvotes,
+      totalCommentDownvotes,
+
+      // Engagement given
+      upvotesGiven:
+        user._count.forumPostUpvotes + user._count.forumCommentUpvotes,
+      bookmarksMade: user._count.forumPostBookmarks,
+
+      // Platform engagement
+      billVotes: user._count.userVotes,
+      favoritedMembers: user._count.favoritedMembers,
+
+      // Calculated ratios (avoid division by zero)
+      avgViewsPerPost:
+        user.forumPosts.length > 0
+          ? Math.round(totalPostViews / user.forumPosts.length)
+          : 0,
+      postUpvoteRatio:
+        totalPostUpvotes + totalPostDownvotes > 0
+          ? Math.round(
+              (totalPostUpvotes / (totalPostUpvotes + totalPostDownvotes)) * 100
+            )
+          : 0,
+    },
+  };
+};
