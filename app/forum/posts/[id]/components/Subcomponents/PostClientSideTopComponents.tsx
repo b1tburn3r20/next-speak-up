@@ -39,7 +39,7 @@ const PostClientSideTopComponents = ({
 
   const shareData = {
     title: `Together Forum - Commune Learn and Grow our Country Together`,
-    text: `View Community Forum Post About ${post.title} by community member ${post.author}`,
+    text: `View Community Forum Post About ${post.title} by community member ${post.author.username}`,
     url: `${post.id}`,
   };
 
