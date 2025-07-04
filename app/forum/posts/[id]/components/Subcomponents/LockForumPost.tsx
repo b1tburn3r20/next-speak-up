@@ -85,9 +85,9 @@ const LockForumPost = ({ userId, userRole, postId }: LockForumPostProps) => {
   const getIcon = () => {
     if (isLoading) return <Loader2 className="animate-spin" />;
     return isPostLocked ? (
-      <Lock className="text-amber-500" />
+      <Lock className="text-amber-500 h-8 w-8" />
     ) : (
-      <Lock className="text-muted-foreground" />
+      <Lock className="text-muted-foreground  h-8 w-8" />
     );
   };
   console.log(userRole);
@@ -99,7 +99,7 @@ const LockForumPost = ({ userId, userRole, postId }: LockForumPostProps) => {
           isPostLocked && "text-primary"
         }`}
       >
-        {isPostLocked ? <Lock /> : null}
+        {isPostLocked ? <Lock className=" h-8 w-8" /> : null}
       </div>
     );
   }
@@ -113,6 +113,7 @@ const LockForumPost = ({ userId, userRole, postId }: LockForumPostProps) => {
             size="icon"
             variant="ghost"
             onClick={updatePostLockStatus}
+            asChild
             disabled={isLoading}
             className={`h-10 w-10 shrink-0 p-1 text-muted-foreground ${
               isPostLocked && "text-primary"

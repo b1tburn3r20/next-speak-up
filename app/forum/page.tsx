@@ -25,7 +25,9 @@ const Page = async () => {
         >
           Together Forum
         </TextAnimate>
-        <CreateForumPostLink userId={userId} username={userName} />
+        <div className="m-2 lg:m-0">
+          <CreateForumPostLink userId={userId} username={userName} />
+        </div>
       </div>
       <div>
         <ForumPosts />
@@ -33,5 +35,6 @@ const Page = async () => {
     </div>
   );
 };
+export const dynamic = "force-dynamic";
 
 export default Page;

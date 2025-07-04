@@ -34,6 +34,7 @@ interface PostInfoVoteButtonsProps {
   userVoteStatus?: UserVoteStatus | null;
   isUserAuthor?: boolean;
   isDeleted?: boolean; // Add prop to check if post is deleted
+  userRole?: string;
 }
 
 const PostInfoVoteButtons = ({
@@ -44,6 +45,7 @@ const PostInfoVoteButtons = ({
   userVoteStatus,
   isUserAuthor = false,
   isDeleted = false, // Default to false
+  userRole,
 }: PostInfoVoteButtonsProps) => {
   // Local state to handle optimistic updates
   const [localVoteStatus, setLocalVoteStatus] = useState(userVoteStatus);
@@ -58,11 +60,16 @@ const PostInfoVoteButtons = ({
   const setIsPostDeleted = useForumPostDetailsStore((f) => f.setIsPostDeleted);
 
   // Check if current user can delete this post (and post is not already deleted)
+
+  const authorizedDeletionRoles = ["Super Admin", "Admin"];
   const canDelete =
-    userId &&
-    (userId === authorId || isUserAuthor) &&
-    !isDeleted &&
-    !isPostDeleted;
+    (userId &&
+      (userId === authorId || isUserAuthor) &&
+      !isDeleted &&
+      !isPostDeleted) ||
+    (authorizedDeletionRoles.includes(userRole) &&
+      !isDeleted &&
+      !isPostDeleted);
 
   // Check if voting should be disabled
   const isVotingDisabled =

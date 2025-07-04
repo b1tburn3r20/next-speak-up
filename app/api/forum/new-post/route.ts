@@ -1,3 +1,4 @@
+// Updated API route for creating posts
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { createPost } from "@/lib/services/forum-service";
 import { getServerSession } from "next-auth";
@@ -37,6 +38,12 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("creating post:", error);
+
+    // Handle rate limiting error specifically
+    if (error.message && error.message.includes("wait")) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
+
     return NextResponse.json(
       { error: "Something went wrong" },
       { status: 500 }

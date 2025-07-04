@@ -1,3 +1,4 @@
+// Updated NewFormSubmitButton component
 "use client";
 import { useNewForumPostStore } from "../useNewForumPostStore";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,9 @@ import {
 } from "@/components/ui/tooltip";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { toast } from "sonner";
+
 const NewFormSubmitButton = () => {
   const router = useRouter();
 
@@ -16,7 +20,9 @@ const NewFormSubmitButton = () => {
   const title = useNewForumPostStore((f) => f.title);
   const body = useNewForumPostStore((f) => f.body);
   const submitting = useNewForumPostStore((f) => f.submitting);
+  const resetStore = useNewForumPostStore((f) => f.resetStore);
   const setSubmitting = useNewForumPostStore((f) => f.setSubmitting);
+
   const getValidationErrors = () => {
     const errors = [];
 
@@ -36,21 +42,43 @@ const NewFormSubmitButton = () => {
     return errors;
   };
 
+  useEffect(() => {
+    resetStore();
+  }, []);
+
   const submitForumPost = async () => {
-    const response = await fetch("/api/forum/new-post", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: title,
-        body: body,
-        type: type,
-      }),
-    });
-    const responseBody = await response.json();
-    if (!response.ok) {
-      console.log("something went wrong");
-    } else {
-      router.push(`/forum/posts/${responseBody.created.id}`);
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/forum/new-post", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title,
+          body: body,
+          type: type,
+        }),
+      });
+
+      const responseBody = await response.json();
+
+      if (!response.ok) {
+        // Handle rate limit error specifically
+        if (response.status === 429 || responseBody.error?.includes("wait")) {
+          toast.error(
+            responseBody.error || "You can only post once every 3 hours"
+          );
+        } else {
+          toast.error(responseBody.error || "Something went wrong");
+        }
+        console.log("something went wrong");
+      } else {
+        router.push(`/forum/posts/${responseBody.created.id}`);
+      }
+    } catch (error) {
+      toast.error("Something went wrong submitting. Please try again.");
+      console.error("Something went wrong");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -72,7 +100,7 @@ const NewFormSubmitButton = () => {
 
   if (isReady) {
     return (
-      <Button onClick={submitForumPost}>
+      <Button disabled={submitting} onClick={submitForumPost}>
         {submitting ? (
           <div className="flex items-center">
             <span>Submitting </span>

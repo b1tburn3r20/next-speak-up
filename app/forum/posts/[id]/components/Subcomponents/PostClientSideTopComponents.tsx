@@ -32,7 +32,8 @@ const PostClientSideTopComponents = ({
     setPostComments(post.comments);
     setIsPostPinned(post.isPinned);
     setIsPostLocked(post.isLocked);
-  }, []);
+    setUserName(userName);
+  }, [userName, post.isLocked, post.isPinned]);
   const isDeleted = post.title === "[deleted]" && post.body === "[deleted]";
 
   return (
@@ -47,10 +48,11 @@ const PostClientSideTopComponents = ({
           netVotes={netVotes}
           isUserAuthor={isUserAuthor}
           isDeleted={isDeleted} // Pass the deleted status
+          userRole={userRole}
         />
 
         {/* Secondary actions with consistent spacing */}
-        <div className="flex items-center gap-4 sm:gap-6">
+        <div className="flex items-center flex-wrap gap-4 justify-between">
           <PostBookmark userId={userId} postId={post.id} />
           <ForumPostViews postViews={post.views} />
           <PinForumPost userId={userId} postId={post.id} userRole={userRole} />

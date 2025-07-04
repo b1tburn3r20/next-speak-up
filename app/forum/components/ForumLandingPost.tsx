@@ -41,7 +41,7 @@ const ForumLandingPost = ({ post, userId }: ForumLandingPostProps) => {
           </Link>
 
           {/* Post metadata */}
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <div className="flex items-center justify-between flex-wrap text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <div className="flex gap-1 items-center">
                 <Eye className="h-4 w-4" />
@@ -51,7 +51,7 @@ const ForumLandingPost = ({ post, userId }: ForumLandingPostProps) => {
               <span>•</span>
               <span className="font-medium">{post.author.username}</span>
               <span>•</span>
-              <span>{timeAgo}</span>
+              <span className="">{timeAgo}</span>
             </div>
 
             <div className="flex items-center gap-1">
@@ -73,19 +73,19 @@ const getTimeAgo = (date: Date) => {
   );
 
   if (diffInMinutes < 1) return "just now";
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+  if (diffInMinutes < 60) return `${diffInMinutes}m`;
 
   const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours}h ago`;
+  if (diffInHours < 24) return `${diffInHours}h`;
 
   const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 30) return `${diffInDays}d ago`;
+  if (diffInDays < 30) return `${diffInDays}d`;
 
   const diffInMonths = Math.floor(diffInDays / 30);
-  if (diffInMonths < 12) return `${diffInMonths}mo ago`;
+  if (diffInMonths < 12) return `${diffInMonths}mo`;
 
   const diffInYears = Math.floor(diffInMonths / 12);
-  return `${diffInYears}y ago`;
+  return `${diffInYears}y`;
 };
 
 export default ForumLandingPost;

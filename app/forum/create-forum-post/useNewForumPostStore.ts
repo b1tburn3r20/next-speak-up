@@ -9,6 +9,7 @@ export type NewForumPostStore = {
   setType: (data: string) => void;
   submitting: boolean;
   setSubmitting: (data: boolean) => void;
+  resetStore: () => void;
 };
 
 const initialFormState = {
@@ -20,6 +21,7 @@ const initialFormState = {
 
 export const useNewForumPostStore = create<NewForumPostStore>((set) => ({
   ...initialFormState,
+  resetStore: () => set({ ...initialFormState }),
   setSubmitting: (data: boolean) => set({ submitting: data }),
   setTitle: (data: string) => set({ title: data }),
   setBody: (data: string) => set({ body: data }),

@@ -128,6 +128,11 @@ export function NavUser() {
                   <span className="truncate text-xs text-muted-foreground">
                     {user.email}
                   </span>
+                  {user.username && (
+                    <span className="truncate text-xs italic text-primary">
+                      @{user.username || ""}
+                    </span>
+                  )}
                 </div>
                 <ChevronsUpDown className="ml-auto text-muted-foreground h-4 w-4" />
               </>

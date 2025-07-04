@@ -84,7 +84,11 @@ const PinForumPost = ({ userId, userRole, postId }: PinForumPostProps) => {
 
   const getIcon = () => {
     if (isLoading) return <Loader2 className="animate-spin" />;
-    return isPostPinned ? <PinOff /> : <Pin />;
+    return isPostPinned ? (
+      <PinOff className="h-8 w-8 text-muted-foreground" />
+    ) : (
+      <Pin className="h-8 w-8 text-muted-foreground" />
+    );
   };
   console.log(userRole);
   // Show as non-interactive icon for non-admin users
@@ -95,7 +99,9 @@ const PinForumPost = ({ userId, userRole, postId }: PinForumPostProps) => {
           isPostPinned && "text-primary"
         }`}
       >
-        {isPostPinned ? <Pin /> : null}
+        {isPostPinned ? (
+          <Pin className="h-8 w-8 text-muted-foreground" />
+        ) : null}
       </div>
     );
   }
@@ -109,6 +115,7 @@ const PinForumPost = ({ userId, userRole, postId }: PinForumPostProps) => {
             size="icon"
             variant="ghost"
             onClick={updatePostPinStatus}
+            asChild
             disabled={isLoading}
             className={`h-10 w-10 shrink-0 p-1 text-muted-foreground ${
               isPostPinned && "text-primary"

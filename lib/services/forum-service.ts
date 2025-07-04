@@ -78,6 +78,7 @@ export const incrementPostViews = async (
 };
 
 // Create a new post
+// Updated createPost function
 export const createPost = async (
   data: {
     title: string;
@@ -90,6 +91,30 @@ export const createPost = async (
   userRole: string
 ) => {
   const { tagIds, ...postData } = data;
+
+  // Check if user has posted within the last 3 hours
+  const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+  const recentPost = await prisma.forumPost.findFirst({
+    where: {
+      authorId: data.authorId,
+      createdAt: {
+        gte: threeHoursAgo,
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  if (recentPost) {
+    const timeSinceLastPost = Date.now() - recentPost.createdAt.getTime();
+    const hoursRemaining = Math.ceil(
+      (3 * 60 * 60 * 1000 - timeSinceLastPost) / (60 * 60 * 1000)
+    );
+    throw new Error(
+      `You can only post once every 3 hours. Please wait ${hoursRemaining} hour(s) before posting again.`
+    );
+  }
 
   const post = await prisma.forumPost.create({
     data: {
@@ -829,12 +854,12 @@ export const softDeletePost = async (
     where: { id: postId },
     select: { authorId: true, isDeleted: true },
   });
-
+  const adminRoles = ["Super Admin", "Admin"];
   if (!post) {
     throw new Error("Post not found");
   }
 
-  if (post.authorId !== userId) {
+  if (post.authorId !== userId && !adminRoles.includes(userRole)) {
     throw new Error("Unauthorized: You can only delete your own posts");
   }
 
