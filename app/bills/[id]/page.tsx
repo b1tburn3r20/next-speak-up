@@ -8,6 +8,8 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import RenderBill from "./components/RenderBill";
 import { getComprehensiveBillData } from "@/lib/services/bill-voting";
+import PageShareButton from "@/app/GeneralComponents/Onboarding/components/componentsA/PageShareButton";
+import ShareBillDataButton from "./components/ShareBillDataButton";
 
 interface PageProps {
   params: Promise<{
@@ -99,6 +101,7 @@ const Page = async ({ params }: PageProps) => {
 
     await markBillAsViewed(billId, session.user.id, session.user.role.name);
   }
+
   return (
     <div>
       <RenderBill
@@ -112,6 +115,12 @@ const Page = async ({ params }: PageProps) => {
         number={bill.legislation.number}
         user={session}
       />
+      <div className="absolute bottom-24 right-8 ">
+        <ShareBillDataButton
+          billTitle={bill.legislation.title}
+          billId={String(billId)}
+        />
+      </div>
     </div>
   );
 };

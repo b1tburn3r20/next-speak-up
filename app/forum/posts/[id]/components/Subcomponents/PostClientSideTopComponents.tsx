@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { useForumPostDetailsStore } from "../../useForumPostDetailsStore";
 import PinForumPost from "./PinForumPost";
 import LockForumPost from "./LockForumPost";
+import PageShareButton from "@/app/GeneralComponents/Onboarding/components/componentsA/PageShareButton";
 
 interface PostClientSideTopComponentsProps {
   post: FullForumPost;
@@ -36,6 +37,12 @@ const PostClientSideTopComponents = ({
   }, [userName, post.isLocked, post.isPinned]);
   const isDeleted = post.title === "[deleted]" && post.body === "[deleted]";
 
+  const shareData = {
+    title: `Together Forum - Commune Learn and Grow our Country Together`,
+    text: `View Community Forum Post About ${post.title} by community member ${post.author}`,
+    url: `${post.id}`,
+  };
+
   return (
     <div className="w-full">
       {/* Horizontal layout with proper spacing and alignment */}
@@ -57,6 +64,7 @@ const PostClientSideTopComponents = ({
           <ForumPostViews postViews={post.views} />
           <PinForumPost userId={userId} postId={post.id} userRole={userRole} />
           <LockForumPost userId={userId} postId={post.id} userRole={userRole} />
+          <PageShareButton shareData={shareData} />
         </div>
       </div>
     </div>
