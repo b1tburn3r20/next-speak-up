@@ -3,9 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { updateUserUsername } from "@/lib/services/user";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { AuthSession } from "@/lib/types/user-types";
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session: AuthSession = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
     // Update the username
     const updatedUser = await updateUserUsername(
       session.user.id,
-      session.user.role || "User",
+      session.user.role.name || "User",
       trimmedUsername
     );
 
