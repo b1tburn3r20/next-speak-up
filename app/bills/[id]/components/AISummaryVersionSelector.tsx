@@ -95,9 +95,7 @@ const AiSummaryVersionSelector = ({
                   Bill too long for TTS
                 </p>
               ) : (
-                currentAiSummaryText && (
-                  <ReadBillToMe billText={currentAiSummaryText} />
-                )
+                currentAiSummaryText && <ReadBillToMe />
               )}
             </div>
           </div>
@@ -219,9 +217,7 @@ const AiSummaryVersionSelector = ({
                   Bill too long for TTS
                 </p>
               ) : (
-                currentAiSummaryText && (
-                  <ReadBillToMe billText={currentAiSummaryText} />
-                )
+                currentAiSummaryText && <ReadBillToMe />
               )}
             </div>
           </div>

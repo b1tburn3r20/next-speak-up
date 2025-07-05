@@ -8,15 +8,15 @@ const redis = Redis.fromEnv();
 export const RATE_LIMITS = {
   chatbot: {
     unauthenticated: { requests: 5, window: "1 d" }, // 3 per day for guests
-    Member: { requests: 15, window: "1 d" }, // 10 per day
-    Supporter: { requests: 70, window: "1 d" }, // 30 per day
+    Member: { requests: 15, window: "1 d" },
+    Supporter: { requests: 70, window: "1 d" },
     Admin: null, // Unlimited
     "Super Admin": null, // Unlimited
   },
   tts: {
     unauthenticated: { requests: 2, window: "1 h" }, // 2 per hour for guests
-    Member: { requests: 5, window: "1 h" }, // 50 per hour
-    Supporter: { requests: 30, window: "1 h" }, // 200 per hour
+    Member: { requests: 5, window: "1 h" },
+    Supporter: { requests: 30, window: "1 h" },
     Admin: null, // Unlimited
     "Super Admin": null, // Unlimited
   },

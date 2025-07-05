@@ -14,18 +14,15 @@ interface WordTimestamp {
   end: number;
 }
 
-interface ReadBillToMeProps {
-  billText: string;
-  voice?: string;
-}
-
-const ReadBillToMe = ({ billText }: ReadBillToMeProps) => {
+const ReadBillToMe = () => {
   const ttsVoicePreferance = useBillPageStore((f) => f.ttsVoicePreferance);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Zustand store actions and state
   const ttsIsPlaying = useBillPageStore((state) => state.ttsIsPlaying);
   const setTtsIsPlaying = useBillPageStore((state) => state.setTtsIsPlaying);
+  const billText = useBillPageStore((f) => f.currentAiSummaryText);
+
   const setTtsWordTimestamps = useBillPageStore(
     (state) => state.setTtsWordTimestamps
   );
@@ -194,7 +191,7 @@ const ReadBillToMe = ({ billText }: ReadBillToMeProps) => {
     return () => {
       fullCleanupAudio();
     };
-  }, [ttsVoicePreferance]);
+  }, [ttsVoicePreferance, billText]);
 
   if (error) {
     return <div className="text-red-500 text-sm">{error}</div>;
