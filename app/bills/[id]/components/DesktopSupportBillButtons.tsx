@@ -1,6 +1,5 @@
 "use client";
 
-import { ShimmerButton } from "@/components/magicui/shimmer-button";
 import {
   Dialog,
   DialogContent,
@@ -12,17 +11,16 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useState } from "react";
 import { useBillPageStore } from "../useBillPageStore";
 import { SupportBillButton } from "./SupportBillButton";
+import { Button } from "@/components/ui/button";
 const DesktopSupportBillButtons = () => {
   const [open, setOpen] = useState(false);
   const billData = useBillPageStore((s) => s.billData);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <ShimmerButton className="shadow-2xl  w-full mt-4 ">
-          <span className="whitespace-pre-wrap text-center text-xl font-extrabold leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-            Vote
-          </span>
-        </ShimmerButton>
+        <Button className="shadow-2xl  w-full mt-4 h-14 text-xl">
+          Take Action
+        </Button>
       </DialogTrigger>
       <DialogContent
         hideCloseButton

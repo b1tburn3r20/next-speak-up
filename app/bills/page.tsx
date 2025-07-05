@@ -19,7 +19,7 @@ const Page = async () => {
   ]);
 
   return (
-    <div className="space-y-6 sm:space-y-8 lg:space-y-12 px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6 mt-6 sm:space-y-8 lg:space-y-12 px-4 sm:px-6 lg:px-8">
       <RecentBills bills={recentBills} />
 
       <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 lg:gap-12 w-full">
@@ -33,5 +33,6 @@ const Page = async () => {
     </div>
   );
 };
+export const dynamic = "force-dynamic";
 
 export default Page;

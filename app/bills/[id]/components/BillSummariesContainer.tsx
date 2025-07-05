@@ -39,7 +39,7 @@ const BillSummariesContainer = ({ userId }: BillSummariesContainerProps) => {
           value="Official"
           className="mt-4 sm:mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-lg"
         >
-          <div className="bg-card border-0 sm:border sm:rounded-lg sm:shadow-sm p-6 sm:p-8">
+          <div className="bg-card sm:rounded-lg sm:shadow-sm p-6 sm:p-8">
             <div className="text-center text-muted-foreground">
               <div className="mb-4">
                 <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full mb-3">

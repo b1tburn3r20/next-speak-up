@@ -25,14 +25,12 @@ const MobileSupportBillButtons = () => {
             size="lg"
           >
             <Vote className="mr-2 h-5 w-5" />
-            Cast Your Vote
+            Take Action
           </Button>
         </DrawerTrigger>
         <DrawerContent className="overflow-y-hidden">
           <DrawerHeader className="text-center pb-4">
-            <DrawerTitle className="text-xl font-bold">
-              Cast Your Vote
-            </DrawerTitle>
+            <DrawerTitle className="text-xl font-bold">Take Action</DrawerTitle>
             <DrawerDescription className="text-sm text-muted-foreground">
               Your voice matters. Make your position heard on this legislation.
             </DrawerDescription>
@@ -42,9 +40,6 @@ const MobileSupportBillButtons = () => {
             <div className="space-y-4">
               {/* Bill title in drawer for context */}
               <div className="bg-muted/50 rounded-lg p-4 overflow-y-hidden">
-                <h3 className="font-semibold text-sm text-muted-foreground mb-2">
-                  VOTING ON
-                </h3>
                 <p className="text-sm font-medium line-clamp-3 overflow-y-hidden">
                   {billData.legislation.title}
                 </p>

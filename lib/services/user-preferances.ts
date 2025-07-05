@@ -179,3 +179,40 @@ export async function getSpecificUserPreferences(
     }, {} as Record<string, string | null>);
   }
 }
+
+// Set specific preferences by key-value pairs
+export async function setSpecificUserPreferences(
+  userId: string,
+  preferences: Record<string, string>
+): Promise<{ success: boolean; error?: string; preferences?: any[] }> {
+  try {
+    const entries = Object.entries(preferences);
+
+    const results = await Promise.all(
+      entries.map(([key, value]) =>
+        prisma.userPreference.upsert({
+          where: {
+            userId_key: {
+              userId,
+              key,
+            },
+          },
+          update: {
+            value,
+            updatedAt: new Date(),
+          },
+          create: {
+            userId,
+            key,
+            value,
+          },
+        })
+      )
+    );
+
+    return { success: true, preferences: results };
+  } catch (error) {
+    console.error("Error setting specific preferences:", error);
+    return { success: false, error: "Failed to set preferences" };
+  }
+}

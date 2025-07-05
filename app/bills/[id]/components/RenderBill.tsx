@@ -3,32 +3,41 @@
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
 
 import { FullUserLegislationData } from "@/lib/types/bill-types";
-import { Vote, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useBillPageStore } from "../useBillPageStore";
 import BillSummariesContainer from "./BillSummariesContainer";
 import BillTitle from "./BillTitle";
-import HasVotedBillPage from "./has-voted-components/HasVotedBillPage";
-import { SupportBillButton } from "./SupportBillButton";
 import DesktopSupportBillButtons from "./DesktopSupportBillButtons";
+import HasVotedBillPage from "./has-voted-components/HasVotedBillPage";
 import MobileSupportBillButtons from "./MobileSupportBillButtons";
 
 interface RenderBillProps {
   bill: FullUserLegislationData;
   session: any;
   isDyslexicFriendly: boolean;
+  ttsVoicePreference?: string;
 }
 
-const RenderBill = ({ bill, session, isDyslexicFriendly }: RenderBillProps) => {
+const RenderBill = ({
+  bill,
+  session,
+  isDyslexicFriendly,
+  ttsVoicePreference,
+}: RenderBillProps) => {
   const billData = useBillPageStore((f) => f.billData);
   const setBillData = useBillPageStore((s) => s.setBillData);
   const setIsDyslexicFriendly = useBillPageStore(
     (e) => e.setIsDyslexicFriendly
   );
-
+  const setTTSVoicePreference = useBillPageStore(
+    (f) => f.setTTSVoicePreferance
+  );
+  const resetBillState = useBillPageStore((f) => f.resetBillState);
   useEffect(() => {
+    resetBillState();
     setBillData(bill);
     setIsDyslexicFriendly(isDyslexicFriendly);
+    setTTSVoicePreference(ttsVoicePreference);
   }, []);
 
   const hasUser = session?.user?.id;
@@ -56,7 +65,7 @@ const RenderBill = ({ bill, session, isDyslexicFriendly }: RenderBillProps) => {
               </div>
 
               {/* Divider */}
-              <div className="border-t border-border mx-4 sm:mx-0" />
+              <div className="hidden md:block border-t border-border mx-4 sm:mx-0" />
 
               {/* Bill Summaries Section */}
               <div className="px-1">

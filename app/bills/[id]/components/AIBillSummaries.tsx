@@ -28,6 +28,9 @@ const AIBillSummaries = ({ userId }: AIBillSummariesProps) => {
   const bill = useBillPageStore((s) => s.billData?.legislation);
   const currentAiSummary = useBillPageStore((s) => s.currentAiSummary);
   const isDyslexicFriendly = useBillPageStore((s) => s.isDyslexicFriendly);
+  const setCurrentAiSummaryText = useBillPageStore(
+    (f) => f.setCurrentAISummaryText
+  );
   const setIsDyslexicFriendly = useBillPageStore(
     (s) => s.setIsDyslexicFriendly
   );
@@ -44,6 +47,17 @@ const AIBillSummaries = ({ userId }: AIBillSummariesProps) => {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // Update current AI summary text when bill or currentAiSummary changes
+  useEffect(() => {
+    const aiSummary = bill?.aiSummaries?.find((s) => {
+      const summaryDate = new Date(s.actionDate || s.createdAt)
+        .toISOString()
+        .split("T")[0];
+      return summaryDate === currentAiSummary;
+    });
+    setCurrentAiSummaryText(aiSummary?.text);
+  }, [bill, currentAiSummary]);
 
   const toggleDyslexicPreference = async () => {
     setIsDyslexicFriendly(!isDyslexicFriendly);
@@ -75,6 +89,7 @@ const AIBillSummaries = ({ userId }: AIBillSummariesProps) => {
         .split("T")[0];
       return summaryDate === currentAiSummary;
     });
+
     return aiSummary?.text || "No AI summary available for this legislation.";
   };
 
@@ -109,7 +124,7 @@ const AIBillSummaries = ({ userId }: AIBillSummariesProps) => {
       <AiSummaryVersionSelector />
 
       {/* Mobile dropdown menu */}
-      {isMobile && (
+      {/* {isMobile && (
         <div className="absolute top-0 right-0 z-10">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -148,7 +163,7 @@ const AIBillSummaries = ({ userId }: AIBillSummariesProps) => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      )}
+      )} */}
 
       {/* Summary content */}
       {!isMobile ? (

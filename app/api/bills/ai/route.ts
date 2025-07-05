@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { constructSystemPrompt } from "@/lib/ai/prompts";
-import { ratelimit } from "@/lib/ratelimiter";
+import { checkRateLimit, getUserRole } from "@/lib/ratelimiter";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 
@@ -14,22 +14,51 @@ const DEFAULT_SETTINGS = {
 };
 
 export async function POST(req: Request) {
-  const ip =
-    req.headers.get("x-forwarded-for") ||
-    req.headers.get("x-real-ip") ||
-    "unknown";
-  const { success, limit } = await ratelimit.limit(ip);
-  if (!success) {
-    console.log("limit", limit);
-    return NextResponse.json({ error: "Rate Limit Error" }, { status: 429 });
-  }
   try {
+    // Get session first to determine user role
     const session = await getServerSession(authOptions);
     const userName = session?.user?.name || "User";
+    const userRole = getUserRole(session);
+
+    // Get IP address as identifier
+    const ip =
+      req.headers.get("x-forwarded-for") ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+
+    // Use user ID if authenticated, otherwise use IP
+    const identifier = session?.user?.id || ip;
+
+    // Check rate limit with proper endpoint and role
+    const rateLimitResult = await checkRateLimit(
+      "chatbot",
+      userRole,
+      identifier
+    );
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: rateLimitResult.error || "Rate limit exceeded",
+          isRateLimit: true,
+          role: "assistant",
+          content:
+            rateLimitResult.error ||
+            "You've exceeded the rate limit. Please try again later.",
+          ...(rateLimitResult.limit && { limit: rateLimitResult.limit }),
+          ...(rateLimitResult.remaining && {
+            remaining: rateLimitResult.remaining,
+          }),
+          ...(rateLimitResult.reset && { reset: rateLimitResult.reset }),
+        },
+        { status: 429 }
+      );
+    }
 
     const body = await req.json();
     const { messages, billText } = body;
     const settings = { ...DEFAULT_SETTINGS, ...(body.settings || {}) };
+
     // Validate messages
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -103,11 +132,12 @@ export async function POST(req: Request) {
       if (aiError?.status === 429) {
         return NextResponse.json(
           {
-            error: "Rate limit exceeded. Please try again in a moment.",
+            error:
+              "AI service rate limit exceeded. Please try again in a moment.",
             isRateLimit: true,
             role: "assistant",
             content:
-              "I'm receiving too many requests right now. Please try again in a moment.",
+              "The AI service is receiving too many requests right now. Please try again in a moment.",
           },
           { status: 429 }
         );
@@ -117,7 +147,6 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("AI Chat Error:", error);
 
-    // If we already handled the rate limit, it would have returned above
     return NextResponse.json(
       {
         error: "Failed to generate response",

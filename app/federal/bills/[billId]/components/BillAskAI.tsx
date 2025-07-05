@@ -11,6 +11,13 @@ import { ChatInput } from "./Chatbot/ChatInput";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { DotPattern } from "@/components/magicui/dot-pattern";
 import { cn } from "@/lib/utils";
+import { useBillPageStore } from "@/app/bills/[id]/useBillPageStore";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const BillAskAI = ({ congress, type, number, user }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +33,7 @@ const BillAskAI = ({ congress, type, number, user }) => {
   const isMinimized = useChatStore((state) => state.isMinimized);
   const setMinimized = useChatStore((state) => state.setMinimized);
   const clearChat = useChatStore((state) => state.clearChat);
-
+  const billSize = useBillPageStore((f) => f.billData?.legislation?.bill_size);
   // Clear state when component mounts or bill changes
   useEffect(() => {
     clearChat();
@@ -80,6 +87,28 @@ const BillAskAI = ({ congress, type, number, user }) => {
   const toggleBillText = () => {
     setShowBillText(!showBillText);
   };
+
+  if (billSize === "Very Long") {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
+              size="icon"
+              variant="outline"
+            >
+              <MessageCircle className="h-6 w-6" />
+              <span className="sr-only">Open AI Chat</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="text-lg font-bold p-2">
+            Unforunately this bill is far too long to use AI on.
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
 
   // Chat button (minimized state)
   if (!isOpen || isMinimized) {

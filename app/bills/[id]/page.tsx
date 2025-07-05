@@ -1,14 +1,16 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import BillAskAI from "@/app/federal/bills/[billId]/components/BillAskAI";
 import { getBillData, markBillAsViewed } from "@/lib/services/bills";
-import { getUserPreferenceAsBoolean } from "@/lib/services/user-preferances";
+import {
+  getSpecificUserPreferences,
+  getUserPreferenceAsBoolean,
+} from "@/lib/services/user-preferances";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import RenderBill from "./components/RenderBill";
 import { getComprehensiveBillData } from "@/lib/services/bill-voting";
-import PageShareButton from "@/app/GeneralComponents/Onboarding/components/componentsA/PageShareButton";
 import ShareBillDataButton from "./components/ShareBillDataButton";
 
 interface PageProps {
@@ -92,12 +94,24 @@ const Page = async ({ params }: PageProps) => {
 
   // Get user preferences for authenticated users
   let isDyslexicFriendly = false;
+  let ttsVoicePreference = "heart"; // Default value
 
   if (session?.user?.id) {
     isDyslexicFriendly = await getUserPreferenceAsBoolean(
       session.user.id,
       "dyslexic_friendly"
     );
+    // Get TTS voice preference
+
+    const cantHaveCustomTTS =
+      !session?.user?.id || session?.user?.role?.name === "Member";
+    if (!cantHaveCustomTTS) {
+      const preferences = await getSpecificUserPreferences(session.user.id, [
+        "ttsVoicePreference",
+      ]);
+
+      ttsVoicePreference = preferences.ttsVoicePreference || "heart";
+    }
 
     await markBillAsViewed(billId, session.user.id, session.user.role.name);
   }
@@ -108,6 +122,7 @@ const Page = async ({ params }: PageProps) => {
         bill={bill}
         session={session}
         isDyslexicFriendly={isDyslexicFriendly}
+        ttsVoicePreference={ttsVoicePreference}
       />
       <BillAskAI
         congress={bill.legislation.congress}
@@ -115,7 +130,7 @@ const Page = async ({ params }: PageProps) => {
         number={bill.legislation.number}
         user={session}
       />
-      <div className="absolute bottom-24 right-8 ">
+      <div className="absolute bottom-24 right-8 bg-background rounded-lg">
         <ShareBillDataButton
           billTitle={bill.legislation.title}
           billId={String(billId)}
