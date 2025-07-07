@@ -12,6 +12,7 @@ import { cache } from "react";
 import RenderBill from "./components/RenderBill";
 import { getComprehensiveBillData } from "@/lib/services/bill-voting";
 import ShareBillDataButton from "./components/ShareBillDataButton";
+import BugReportForm from "@/app/1Components/components/BugReporting/BugReportForm";
 
 interface PageProps {
   params: Promise<{
@@ -130,12 +131,6 @@ const Page = async ({ params }: PageProps) => {
         number={bill.legislation.number}
         user={session}
       />
-      <div className="absolute bottom-24 right-8 bg-background rounded-lg">
-        <ShareBillDataButton
-          billTitle={bill.legislation.title}
-          billId={String(billId)}
-        />
-      </div>
     </div>
   );
 };

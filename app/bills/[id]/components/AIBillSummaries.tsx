@@ -1,24 +1,17 @@
 "use client";
 
-import Summary from "./Summary";
-import AiSummaryVersionSelector from "./AISummaryVersionSelector";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { MoreVertical, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import AiSummaryVersionSelector from "./AISummaryVersionSelector";
+import Summary from "./Summary";
 
+import { useEffect, useState } from "react";
 import { useBillPageStore } from "../useBillPageStore";
-import { useState, useEffect } from "react";
 
 interface AIBillSummariesProps {
   userId: string | null;
@@ -123,54 +116,12 @@ const AIBillSummaries = ({ userId }: AIBillSummariesProps) => {
       {/* AI Summary Version Selector */}
       <AiSummaryVersionSelector />
 
-      {/* Mobile dropdown menu */}
-      {/* {isMobile && (
-        <div className="absolute top-0 right-0 z-10">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 bg-muted backdrop-blur-sm shadow-sm hover:bg-white/90"
-              >
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">Open options menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={toggleDyslexicPreference}
-                disabled={!userId || isLoading}
-                className={isDyslexicFriendly ? "font-dyslexic" : ""}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    Setting...
-                  </>
-                ) : isDyslexicFriendly ? (
-                  <>
-                    <EyeOff className="mr-2 h-4 w-4" />
-                    Disable Dyslexic Mode
-                  </>
-                ) : (
-                  <>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Enable Dyslexic Mode
-                  </>
-                )}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )} */}
-
       {/* Summary content */}
       {!isMobile ? (
         <ContextMenu>
           <ContextMenuTrigger>
             <div
-              className={`text-justify text-base sm:text-lg lg:text-xl leading-relaxed p-0 sm:p-6 ${
+              className={`text-justify text-base sm:text-lg lg:text-xl leading-relaxed ${
                 isDyslexicFriendly ? "font-dyslexic" : ""
               }`}
             >
@@ -183,7 +134,7 @@ const AIBillSummaries = ({ userId }: AIBillSummariesProps) => {
         </ContextMenu>
       ) : (
         <div
-          className={`text-base sm:text-lg lg:text-xl leading-relaxed p-0 sm:p-6 pr-0 sm:pr-6 ${
+          className={`text-base sm:text-lg lg:text-xl leading-relaxed p-4 sm:p-6 pr-0 sm:pr-6 ${
             isDyslexicFriendly ? "font-dyslexic" : ""
           }`}
         >

@@ -72,7 +72,7 @@ const AiSummaryVersionSelector = ({
     const type = summary.type || "Version 1";
 
     return (
-      <div className={`my-4 px-3 sm:px-6 ${className}`}>
+      <div className={`my-4 ${className}`}>
         <div className="space-y-3">
           {/* Header */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -116,7 +116,7 @@ const AiSummaryVersionSelector = ({
   };
 
   return (
-    <div className={`my-4 px-3 sm:px-6 ${className}`}>
+    <div className={`my-4 ${className}`}>
       <div className="space-y-3">
         {/* Header */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">

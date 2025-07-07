@@ -48,7 +48,12 @@ const RenderBill = ({
   const hasVoted = !!billData?.userVote;
 
   if (hasVoted) {
-    return <HasVotedBillPage session={session} />;
+    return (
+      <HasVotedBillPage
+        noOfficialSummary={!billData?.legislation?.summaries?.length}
+        session={session}
+      />
+    );
   }
 
   return (
@@ -69,7 +74,10 @@ const RenderBill = ({
 
               {/* Bill Summaries Section */}
               <div className="px-1">
-                <BillSummariesContainer userId={session?.user?.id} />
+                <BillSummariesContainer
+                  noOfficialSummary={!billData?.legislation?.summaries?.length}
+                  userId={session?.user?.id}
+                />
               </div>
             </div>
           </div>
@@ -77,7 +85,7 @@ const RenderBill = ({
           {hasUser && (
             <>
               {/* Mobile: Drawer trigger button */}
-              <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t border-border sm:hidden z-50">
+              <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t border-border sm:hidden z-20">
                 <MobileSupportBillButtons />
               </div>
 

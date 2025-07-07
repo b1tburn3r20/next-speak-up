@@ -5,6 +5,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import BugReportForm from "../1Components/components/BugReporting/BugReportForm";
+import FeatureReportForm from "../1Components/components/FeatureSuggestion/FeatureSuggestionForm";
 
 const PageFooter = () => {
   return (
@@ -130,6 +132,8 @@ const PageFooter = () => {
           </AccordionItem>
         </Accordion>
       </div>
+      <BugReportForm />
+      <FeatureReportForm />
     </footer>
   );
 };

@@ -64,9 +64,6 @@ const BillAskAI = ({ congress, type, number, user }) => {
       setBillText(data.text || "No text available for this bill");
       setBillLoaded(true);
       setIsOpen(true);
-      toast.success("Bill text loaded!", {
-        position: "bottom-center",
-      });
     } catch (err) {
       console.error("Error fetching bill text:", err);
       toast.error("Failed to load bill text. Please try again later.");
@@ -94,7 +91,7 @@ const BillAskAI = ({ congress, type, number, user }) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
+              className="fixed bottom-6 lg:right-6 right-0 h-14 w-14 rounded-full shadow-lg"
               size="icon"
               variant="outline"
             >
@@ -114,7 +111,7 @@ const BillAskAI = ({ congress, type, number, user }) => {
   if (!isOpen || isMinimized) {
     return (
       <Button
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
+        className="fixed bottom-6 lg:right-6 right-0 h-14 w-14 rounded-full shadow-lg"
         size="icon"
         variant="outline"
         onClick={handleChatClick}
@@ -127,7 +124,7 @@ const BillAskAI = ({ congress, type, number, user }) => {
 
   // Full chat window with optional bill text panel
   return (
-    <div className="fixed bottom-6 right-6 flex items-end space-x-4 z-20">
+    <div className="fixed bottom-6 lg:right-6 right-0 flex items-end space-x-4 z-20">
       {/* Bill Text Panel - Independent container */}
       {showBillText && isBillLoaded && (
         <div className="w-80 md:w-96 h-96 bg-background border rounded-lg shadow-lg overflow-hidden">

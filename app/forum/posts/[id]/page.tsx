@@ -75,7 +75,7 @@ const Page = async ({ params }: PageProps) => {
   const postData = await getPostById(userId, userRole, id);
 
   return (
-    <div className="w-full  mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="w-full mt-6  mx-auto px-4 sm:px-6 lg:px-8">
       {/* Mobile-first responsive layout */}
       <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Main content - takes full width on mobile, 2/3 on desktop */}

@@ -123,3 +123,51 @@ export const getCombinedDashboardMetrics = async (
     favoriteActions,
   };
 };
+
+export async function getBookmarkedPosts(userId: string | undefined) {
+  if (!userId) {
+    return [];
+  }
+
+  try {
+    const bookmarkedPosts = await prisma.forumPost.findMany({
+      where: {
+        isDeleted: false,
+        bookmarks: {
+          some: {
+            userId: userId,
+          },
+        },
+      },
+      include: {
+        author: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            upvotes: true,
+            downvotes: true,
+            bookmarks: true,
+          },
+        },
+      },
+      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+      take: 10, // Limit to 10 most recent bookmarked posts
+    });
+
+    // Add isBookmarked flag (will always be true for these results)
+    const postsWithBookmarkFlag = bookmarkedPosts.map((post) => ({
+      ...post,
+      isBookmarked: true,
+    }));
+
+    return postsWithBookmarkFlag;
+  } catch (error) {
+    console.error("Error fetching bookmarked posts:", error);
+    return [];
+  }
+}
