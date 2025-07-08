@@ -17,13 +17,13 @@ export const roleHasPermission = async (
 };
 
 export const getBillData = async (
-  billId: number,
+  billId: string, // This is the name_id we're searching by
   userId: string | null,
   userRole: string
 ) => {
   const response = await prisma.legislation.findUnique({
     where: {
-      id: billId,
+      name_id: billId,
     },
     include: {
       summaries: true, // Include all summaries
@@ -44,24 +44,23 @@ export const getBillData = async (
 
   // Separately fetch user vote if user exists
   let userVote = null;
-  if (userId) {
+  if (userId && response) {
     userVote = await prisma.userVote.findFirst({
       where: {
         userId,
-        legislationId: billId,
+        legislationId: response.id, // Use the numeric id from the legislation we just found
       },
       select: { votePosition: true, createdAt: true, updatedAt: true },
     });
   }
 
-  await logUserAction(userId, "getBillData", String(billId), userRole);
+  await logUserAction(userId, "getBillData", billId, userRole);
 
   return {
     ...response,
     userVotes: userVote ? [userVote] : [],
   };
 };
-
 export const getRecentBills = async (
   userId: string | null,
   userRole: string

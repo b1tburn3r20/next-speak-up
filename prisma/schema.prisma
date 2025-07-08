@@ -47,6 +47,26 @@ model User {
   @@map("user")
 }
 
+model BillAction {
+  id            Int      @id @default(autoincrement())
+  legislationId Int
+  actionDate    DateTime
+  text          String   @db.Text
+  type          String
+  actionCode    String? // Optional - in case you want to store the actionCode as well
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  legislation Legislation @relation(fields: [legislationId], references: [id], onDelete: Cascade)
+
+  @@index([legislationId])
+  @@index([actionDate])
+  @@index([type])
+  @@index([legislationId, actionDate])
+  @@map("billaction")
+}
+
 model ForumPost {
   id        Int      @id @default(autoincrement())
   type      String // "feature_request", "bill_discussion", "bug_report", "general"
@@ -498,31 +518,49 @@ model BillAiSummary {
   @@map("billaisummary")
 }
 
-model Legislation {
-  id              Int       @id @default(autoincrement())
-  congress        Int?
-  introducedDate  DateTime?
-  number          String?
-  title           String?   @db.Text
-  type            String?
-  url             String?   @db.VarChar(500)
-  amendmentNumber String?
-  policy_area_id  Int?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  name_id         String?   @unique(map: "Legislation_name_id_key")
-
-  // Keep these fields as they seem to be different
-  fine_print          String? @db.Text
-  hidden_implications String? @db.Text
-  key_terms           String? @db.Text
-  bill_size           String?
-  word_count          Int?
+model RelatedLegislation {
+  id               Int      @id @default(autoincrement())
+  legislationId    Int // The main legislation
+  relatedNameId    String // The name_id of the related legislation
+  relationshipType String // "Related bill", "Procedurally-related", etc.
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  title            String
 
   // Relations
-  userTracks  UserBillTrack[]
-  summaries   BillSummary[]
-  aiSummaries BillAiSummary[]
+  legislation Legislation @relation(fields: [legislationId], references: [id], onDelete: Cascade)
+
+  @@unique([legislationId, relatedNameId, relationshipType])
+  @@index([legislationId])
+  @@index([relatedNameId])
+  @@map("relatedlegislation")
+}
+
+model Legislation {
+  id                  Int                  @id @default(autoincrement())
+  congress            Int?
+  introducedDate      DateTime?
+  number              String?
+  title               String?              @db.Text
+  type                String?
+  url                 String?              @db.VarChar(500)
+  amendmentNumber     String?
+  policy_area_id      Int?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  name_id             String?              @unique(map: "Legislation_name_id_key")
+  relatedBills        RelatedLegislation[]
+  // Keep these fields as they seem to be different
+  fine_print          String?              @db.Text
+  hidden_implications String?              @db.Text
+  key_terms           String?              @db.Text
+  bill_size           String?
+  word_count          Int?
+  actions             BillAction[]
+  // Relations
+  userTracks          UserBillTrack[]
+  summaries           BillSummary[]
+  aiSummaries         BillAiSummary[]
 
   @@index([policy_area_id], map: "Legislation_policy_area_id_fkey")
   @@map("legislation")

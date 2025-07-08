@@ -111,13 +111,15 @@ const CreatePostComment = ({ postId, userId }: CreatePostCommentProps) => {
     }
   };
 
-  // Disable if no text, submitting, global API call is in progress, or post is deleted/locked
   const isDisabled =
     !value.trim() ||
     isSubmitting ||
     isMakingAPICall ||
     isPostDeleted ||
     isPostLocked;
+
+  const isInputDisabled =
+    isSubmitting || isMakingAPICall || isPostDeleted || isPostLocked;
 
   if (!userId) {
     return (
@@ -183,7 +185,7 @@ const CreatePostComment = ({ postId, userId }: CreatePostCommentProps) => {
         onChange={(e) => setValue(e.target.value)}
         onKeyPress={handleKeyPress}
         value={value}
-        disabled={isDisabled}
+        disabled={isInputDisabled}
       />
       <Button
         type="submit"

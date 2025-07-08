@@ -30,8 +30,19 @@ export type FullLegislation = {
   word_count: number;
   userTracks?: LegislationUserTracks[];
   userVotes?: LegislationUserVote[];
+  actions?: LegislationAction[];
+  relatedBills?: RelatedBill[];
 };
-
+export type LegislationAction = {
+  actionCode: string;
+  actionDate: Date;
+  createdAt: Date;
+  id: number;
+  legislationId: number;
+  text: string;
+  type: string;
+  updatedAt: Date;
+};
 export type LegislationUserVote = {
   votePosition: string;
   createdAt: Date;
@@ -44,6 +55,16 @@ export type LegislationUserTracking = {
   tracking: boolean;
   createdAt: Date;
   updatedAt: Date;
+};
+
+export type RelatedBill = {
+  createdAt: Date;
+  id: number;
+  legislationId: number;
+  relatedNameId: string;
+  relationshipType: string;
+  updatedAt: Date;
+  title: string;
 };
 
 export type FullUserLegislationData = {

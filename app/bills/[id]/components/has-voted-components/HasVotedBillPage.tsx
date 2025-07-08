@@ -4,6 +4,8 @@ import BillDetailsBillTitle from "./BillDetailsBillTitle";
 import HasVotedBillSummariesContainer from "./HasVotedBillSummariesContainer";
 import { TrackBillButton } from "./TrackBillButton";
 import { UserVotedButton } from "./UserVotedButton";
+import BillTimeline from "./BillTimeline";
+import RelatedBills from "./RelatedBills";
 
 interface HasVotedBillPageProps {
   session: any;
@@ -29,10 +31,8 @@ const HasVotedBillPage = ({
         {/* Sidebar */}
         <div className="lg:col-span-1">
           <div className="sticky top-6 space-y-4">
-            <EmptyBillCard
-              title="No House Vote"
-              message="This legislation has been voted on in the House of Representatives."
-            />
+            <BillTimeline />
+
             <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
               <div className="flex-1">
                 <TrackBillButton />
@@ -41,6 +41,7 @@ const HasVotedBillPage = ({
                 <UserVotedButton />
               </div>
             </div>
+            <RelatedBills />
           </div>
         </div>
       </div>

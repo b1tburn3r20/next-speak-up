@@ -75,15 +75,19 @@ export const updateBillTracking = async (
 };
 
 export const getComprehensiveBillData = async (
-  billId: number,
+  billId: string | number, // Now accepts both string name_id and numeric id
   userId: string | null,
   userRole: string
 ) => {
+  // Determine the query based on the type of billId
+  const whereClause =
+    typeof billId === "string" ? { name_id: billId } : { id: billId };
+
+  console.log(billId);
+
   // Get the main legislation data with all related information
   const billData = await prisma.legislation.findUnique({
-    where: {
-      id: billId,
-    },
+    where: whereClause,
     include: {
       // Include user's tracking data if authenticated
       userTracks: userId
@@ -102,6 +106,12 @@ export const getComprehensiveBillData = async (
           actionDate: "desc",
         },
       },
+      actions: {
+        orderBy: {
+          actionDate: "desc",
+        },
+      },
+      relatedBills: {},
     },
   });
 
@@ -122,7 +132,7 @@ export const getComprehensiveBillData = async (
       where: {
         userId,
         entityType: "legislation", // Assuming this is how you track legislation votes
-        entityId: billId,
+        entityId: billData.id, // Always use the numeric id from the fetched bill data
       },
     });
   }
@@ -130,14 +140,14 @@ export const getComprehensiveBillData = async (
   // Get sponsors of the legislation
   const sponsors = await prisma.legislationSponsor.findMany({
     where: {
-      legislationId: billId,
+      legislationId: billData.id, // Always use the numeric id from the fetched bill data
     },
   });
 
   // Get cosponsors of the legislation
   const cosponsors = await prisma.legislationCosponsor.findMany({
     where: {
-      legislationId: billId,
+      legislationId: billData.id, // Always use the numeric id from the fetched bill data
     },
   });
 
@@ -215,7 +225,7 @@ export const getComprehensiveBillData = async (
   // Get latest action for the bill
   const latestAction = await prisma.latestAction.findUnique({
     where: {
-      legislation_id: billId,
+      legislation_id: billData.id, // Always use the numeric id from the fetched bill data
     },
   });
 

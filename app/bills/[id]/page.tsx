@@ -1,5 +1,6 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import BillAskAI from "@/app/federal/bills/[billId]/components/BillAskAI";
+import { getComprehensiveBillData } from "@/lib/services/bill-voting";
 import { getBillData, markBillAsViewed } from "@/lib/services/bills";
 import {
   getSpecificUserPreferences,
@@ -10,9 +11,6 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import RenderBill from "./components/RenderBill";
-import { getComprehensiveBillData } from "@/lib/services/bill-voting";
-import ShareBillDataButton from "./components/ShareBillDataButton";
-import BugReportForm from "@/app/1Components/components/BugReporting/BugReportForm";
 
 interface PageProps {
   params: Promise<{
@@ -22,12 +20,12 @@ interface PageProps {
 
 // Cache the bill data fetch to avoid duplicate calls
 const getCachedBillData = cache(
-  async (billId: number, userId: string | null, userRole: string | null) => {
+  async (billId: string, userId: string | null, userRole: string | null) => {
     return await getComprehensiveBillData(billId, userId, userRole);
   }
 );
 
-const getBillForMetadata = cache(async (billId: number) => {
+const getBillForMetadata = cache(async (billId: string) => {
   return await getBillData(billId, null, null);
 });
 
@@ -35,13 +33,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const billId = parseInt(resolvedParams.id);
-
-  if (isNaN(billId)) {
-    return {
-      title: "Bill Not Found",
-    };
-  }
+  const billId = resolvedParams.id;
 
   try {
     // Fetch minimal bill data for metadata
@@ -73,16 +65,14 @@ const Page = async ({ params }: PageProps) => {
   const session = await getServerSession(authOptions);
 
   const resolvedParams = await params;
-  const billId = parseInt(resolvedParams.id);
+  const billId = resolvedParams.id;
 
-  // handle missing data or url manipulation
-  if (isNaN(billId)) {
+  // Don't redirect if it's not a number - it might be a valid name_id
+  if (!billId || billId.trim() === "") {
     redirect("/bills");
   }
 
-  // this might cause some issues with data like if for some reason
-  // the bill gets updated and the users session is still the same
-  // just something to think about
+  // Just pass the billId as-is to the hybrid function
   const bill = await getCachedBillData(
     billId,
     session?.user?.id || null,
@@ -114,9 +104,13 @@ const Page = async ({ params }: PageProps) => {
       ttsVoicePreference = preferences.ttsVoicePreference || "heart";
     }
 
-    await markBillAsViewed(billId, session.user.id, session.user.role.name);
+    // Use the bill's numeric ID for markBillAsViewed
+    await markBillAsViewed(
+      bill.legislation.id,
+      session.user.id,
+      session.user.role.name
+    );
   }
-
   return (
     <div>
       <RenderBill

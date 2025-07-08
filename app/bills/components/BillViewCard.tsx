@@ -78,7 +78,7 @@ const DesktopBillCard = ({ bill }: BillViewCardProps) => {
   };
 
   return (
-    <Link href={`/bills/${bill.id}`} className="block">
+    <Link href={`/bills/${bill.name_id}`} className="block">
       <Card className="h-[300px] aspect-square select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-border/50 rounded-3xl">
         {/* Aggressive gradient overlay - gets to 100% much faster */}
         <div className="absolute top-1/3 left-0 right-0 bottom-0 bg-gradient-to-b from-background/0 via-background/80 to-background z-10 pointer-events-none" />
