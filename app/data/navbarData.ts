@@ -1,6 +1,7 @@
 // data/navbarData.ts
 import {
   Book,
+  Briefcase,
   Group,
   Home,
   Key,
@@ -22,6 +23,11 @@ export const navItems: NavItem[] = [
     href: "/bills",
     icon: Book,
     label: "Bills",
+  },
+  {
+    href: "/legislators",
+    icon: Briefcase,
+    label: "Legislators",
   },
   {
     href: "/forum",

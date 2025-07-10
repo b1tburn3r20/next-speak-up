@@ -374,6 +374,7 @@ model CongressMember {
   birthYear                   String?
   cosponsoredLegislationCount Int?
   firstName                   String?
+  active                      Boolean
   honorificName               String?
   lastName                    String?
   sponsoredLegislationCount   Int?
@@ -669,6 +670,7 @@ model CongressTerm {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([memberId, chamber, startYear], map: "CongressTerm_memberId_chamber_startYear_key")
   @@index([memberId], map: "CongressTerm_memberId_idx")
   @@map("congressterm")
 }

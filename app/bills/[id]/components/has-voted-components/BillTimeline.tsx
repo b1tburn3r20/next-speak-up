@@ -81,10 +81,8 @@ const BillTimeline = () => {
   };
 
   return (
-    <div className=" rounded-lg p-3 bg-card text-card-foreground shadow-sm">
-      <h2 className="text-xl font-semibold text-foreground mb-3">
-        Bill Timeline
-      </h2>
+    <div className=" rounded-lg p-3  shadow-sm">
+      <h2 className="text-xl font-semibold mb-3">Bill Timeline</h2>
 
       <div className="flex items-center justify-between relative">
         {/* Progress line */}

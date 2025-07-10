@@ -66,6 +66,11 @@ export const getRecentBills = async (
   userRole: string
 ) => {
   const bills = await prisma.legislation.findMany({
+    where: {
+      aiSummaries: {
+        some: {},
+      },
+    },
     orderBy: {
       updatedAt: "desc",
     },

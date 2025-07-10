@@ -11,6 +11,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import RenderBill from "./components/RenderBill";
+import NoBillData from "./components/NoBillData";
 
 interface PageProps {
   params: Promise<{
@@ -80,7 +81,7 @@ const Page = async ({ params }: PageProps) => {
   );
 
   if (!bill) {
-    return <div>Bill not found</div>;
+    return <NoBillData />;
   }
 
   // Get user preferences for authenticated users

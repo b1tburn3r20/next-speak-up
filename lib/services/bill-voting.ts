@@ -81,8 +81,21 @@ export const getComprehensiveBillData = async (
 ) => {
   // Determine the query based on the type of billId
   const whereClause =
-    typeof billId === "string" ? { name_id: billId } : { id: billId };
-
+    typeof billId === "string"
+      ? {
+          name_id: billId,
+          // Ensure the legislation has at least one AI summary
+          aiSummaries: {
+            some: {},
+          },
+        }
+      : {
+          id: billId,
+          // Ensure the legislation has at least one AI summary
+          aiSummaries: {
+            some: {},
+          },
+        };
   console.log(billId);
 
   // Get the main legislation data with all related information
