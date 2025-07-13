@@ -91,15 +91,13 @@ export default function UserActivityChart({
       </CardHeader>
 
       <Tabs defaultValue="pie" className="w-full">
-        <div className="flex justify-center pb-4">
-          <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+        <div className="flex justify-center pb-4 px-2">
+          <TabsList className="grid w-full  grid-cols-2">
             <TabsTrigger value="pie" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Pie Chart
+              Chart
             </TabsTrigger>
             <TabsTrigger value="list" className="flex items-center gap-2">
-              <List className="h-4 w-4" />
-              List View
+              List
             </TabsTrigger>
           </TabsList>
         </div>
@@ -175,7 +173,9 @@ export default function UserActivityChart({
                         style={{ backgroundColor: item.fill }}
                       />
                       <div>
-                        <div className="font-medium">{item.action}</div>
+                        <div className="text-sm max-w-xs truncate lg:font-medium ">
+                          {item.action}
+                        </div>
                         <div className="text-sm text-muted-foreground">
                           {percentage}% of total
                         </div>

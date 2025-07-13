@@ -30,8 +30,12 @@ export default async function Home() {
       {/* Activity Chart */}
       <div className="grid gap-8 md:grid-cols-2">
         <UserActivityChart favoriteActions={metrics.favoriteActions} />
-        <UserTrackedBills />
-        <UserBookmarkedForumPosts userId={session?.user?.id} />
+        <div className="max-w-full overflow-hidden">
+          <UserTrackedBills />
+        </div>
+        <div className="max-w-full overflow-hidden">
+          <UserBookmarkedForumPosts userId={session?.user?.id} />
+        </div>
       </div>
     </div>
   );

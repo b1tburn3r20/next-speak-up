@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth";
 import CurrentlyTracking from "./components/CurrentlyTracking";
 import LastViewedBill from "./components/LastViewedBill";
 import RecentBills from "./components/RecentBills";
+import SearchBills from "./components/SearchBills";
 
 const Page = async () => {
   const session = await getServerSession(authOptions);
@@ -20,13 +21,16 @@ const Page = async () => {
 
   return (
     <div className="space-y-6 mt-6 sm:space-y-8 lg:space-y-12 px-4 sm:px-6 lg:px-8">
-      <RecentBills bills={recentBills} />
+      <SearchBills />
+      <div className="w-full overflow-hidden">
+        <RecentBills bills={recentBills} />
+      </div>
 
       <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 lg:gap-12 w-full">
-        <div className="w-full lg:w-auto lg:flex-shrink-0">
+        <div className="w-full lg:w-auto overflow-hidden lg:flex-shrink-0">
           <LastViewedBill bill={lastViewedBill} />
         </div>
-        <div className="w-full lg:flex-1 lg:min-w-0">
+        <div className="w-full overflow-hidden lg:flex-1 lg:min-w-0">
           <CurrentlyTracking bills={trackedBills} />
         </div>
       </div>

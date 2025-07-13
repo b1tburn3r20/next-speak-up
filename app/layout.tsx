@@ -20,6 +20,7 @@ export const metadata: Metadata = {
     default: "Together",
     template: "%s | Together",
   },
+
   description:
     "Browse and search through comprehensive data about the U.S. Congress",
   keywords: [
