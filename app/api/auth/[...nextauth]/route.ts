@@ -13,6 +13,7 @@ declare module "next-auth" {
       image: string | null;
       username: string | null;
       state: string | null;
+      district: string | null;
       ageRange: AgeRange | null;
       householdIncome: IncomeRange | null;
       needsOnboarding: boolean;
@@ -45,6 +46,7 @@ export const authOptions = {
             ageRange: true,
             householdIncome: true,
             needsOnboarding: true,
+            district: true,
             role: true,
           },
         });

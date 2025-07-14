@@ -6,7 +6,7 @@ import CreateForumPostLink from "./components/CreateForumPostLink";
 import ForumPosts from "./components/ForumPosts";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 export const metadata: Metadata = {
-  title: "Together Forum",
+  title: "Coolbills Forum",
   description:
     "Forum for users to come together and discuss legislation or other parts of the application",
 };
@@ -23,7 +23,7 @@ const Page = async () => {
           by="word"
           className="text-4xl m-4 font-bold [&>span:last-child]:text-primary"
         >
-          Together Forum
+          Coolbills Forum
         </TextAnimate>
         <div className="m-2 lg:m-0">
           <CreateForumPostLink userId={userId} username={userName} />

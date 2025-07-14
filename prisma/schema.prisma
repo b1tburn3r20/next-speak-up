@@ -19,6 +19,7 @@ model User {
   ageRange           AgeRange?
   householdIncome    IncomeRange?
   state              String?
+  district           Int?
   needsOnboarding    Boolean?            @default(true)
   roleId             Int?                @default(2)
   billTracks         UserBillTrack[]

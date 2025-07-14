@@ -17,8 +17,8 @@ const openSans = Open_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Together",
-    template: "%s | Together",
+    default: "Coolbills",
+    template: "%s | Coolbills",
   },
 
   description:
@@ -34,18 +34,18 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "Together",
+    siteName: "Coolbills",
     title: {
-      default: "Together | Make a change in the US 1 person at a time.",
-      template: "%s | Together",
+      default: "Coolbills | Make a change in the US 1 person at a time.",
+      template: "%s | Coolbills",
     },
     description: "Comprehensive directory and data about the U.S. Congress",
   },
   twitter: {
     card: "summary_large_image",
     title: {
-      default: "Together | Make a change in the US 1 person at a time.",
-      template: "%s | Together",
+      default: "Coolbills | Make a change in the US 1 person at a time.",
+      template: "%s | Coolbills",
     },
     description: "Comprehensive directory and data about the U.S. Congress",
   },

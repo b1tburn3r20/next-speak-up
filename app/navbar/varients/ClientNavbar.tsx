@@ -3,16 +3,12 @@
 import { useState, useEffect } from "react";
 import NavUser from "@/components/nav-user";
 import NavToggle from "../nav-toggle";
-import NavbarTop from "../navbar-top";
 import NavItem from "../NavItem";
 import MobileNavbar from "./MobileNavbar";
-import { UserSession } from "@/lib/types/user-types";
 import { Session } from "next-auth";
 import { navItems } from "../../data/navbarData"; // Import to reconstruct data
 import { useNavbarStore } from "../useNavbarStore";
 import { useUserStore } from "@/app/admin/stores/useUserStore";
-import BugReportForm from "@/app/1Components/components/BugReporting/BugReportForm";
-import FeatureReportForm from "@/app/1Components/components/FeatureSuggestion/FeatureSuggestionForm";
 
 interface ClientNavbarProps {
   visibleNavHrefs: string[];

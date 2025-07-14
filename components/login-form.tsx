@@ -17,8 +17,8 @@ const LoginForm = () => {
     <Tabs defaultValue="providers">
       <TabsList className="w-full grid grid-cols-2">
         <TabsTrigger value="providers">Providers</TabsTrigger>
-        <TabsTrigger disabled value="Together">
-          Together Login
+        <TabsTrigger disabled value="Coolbills">
+          Coolbills Login
         </TabsTrigger>
       </TabsList>
 
@@ -63,7 +63,7 @@ const LoginForm = () => {
           </span>
         </button>
       </TabsContent>
-      <TabsContent value="Together">how u get here</TabsContent>
+      <TabsContent value="Coolbills">how u get here</TabsContent>
     </Tabs>
   );
 };

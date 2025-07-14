@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import { useRouter } from "next/navigation";
 import { H } from "@upstash/redis/zmscore-DzNHSWxc";
+import { TextAnimate } from "@/components/magicui/text-animate";
 type BillSearchResult = {
   name_id: string;
   id: number;
@@ -184,38 +185,48 @@ const SearchBills = () => {
   };
 
   return (
-    <div className="relative">
-      <Search className="absolute top-4 left-4 text-muted-foreground" />
-      <Input
-        onFocus={() => handleFocus()}
-        onBlur={() => handleBlur()}
-        className="border-2 border-primary rounded-full h-14 text-lg pl-14"
-        placeholder="Search bills..."
-        onKeyDown={(e) => handleKeyDown(e)}
-        onChange={(e) => handleSearchChange(e.target.value)}
-        value={searchInput}
-      />
-      {shouldShowResultsContainer && (
-        <div
-          onMouseDown={(e) => e.preventDefault()}
-          className="absolute h-80 w-full top-[60px] z-[20] rounded-[30px] border-2 border-secondary bg-background overflow-hidden"
-        >
-          {getResultsState() === "searching" && (
-            <div className="w-full h-full flex justify-center items-center">
-              <Loader2 className="animate-spin" />
-            </div>
-          )}
-          {getResultsState() === "no results" && "no results"}
-          {getResultsState() === "results" && (
-            <div className="w-full gap-2 flex flex-col p-2 overflow-auto h-full">
-              {results.map((item, index) => (
-                <SearchResultItem result={item} index={index} key={item.id} />
-              ))}
-            </div>
-          )}
-          {getResultsState() === "dev case" && "Hey alejandro"}
-        </div>
-      )}
+    <div>
+      <TextAnimate
+        animation="blurInUp"
+        by="word"
+        className="text-2xl sm:text-3xl lg:text-4xl mb-4 sm:mb-6 font-bold [&>span:last-child]:text-primary px-2 sm:px-0"
+      >
+        Search Bills
+      </TextAnimate>
+      <div className="relative">
+        <Search className="absolute top-4 left-4 text-muted-foreground" />
+        <Input
+          autoFocus
+          onFocus={() => handleFocus()}
+          onBlur={() => handleBlur()}
+          className="border-2 border-primary rounded-full h-14 text-lg pl-14"
+          placeholder="Search bills..."
+          onKeyDown={(e) => handleKeyDown(e)}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          value={searchInput}
+        />
+        {shouldShowResultsContainer && (
+          <div
+            onMouseDown={(e) => e.preventDefault()}
+            className="absolute h-80 w-full top-[60px] z-[20] rounded-[30px] border-2 border-secondary bg-background overflow-hidden"
+          >
+            {getResultsState() === "searching" && (
+              <div className="w-full h-full flex justify-center items-center">
+                <Loader2 className="animate-spin" />
+              </div>
+            )}
+            {getResultsState() === "no results" && "no results"}
+            {getResultsState() === "results" && (
+              <div className="w-full gap-2 flex flex-col p-2 overflow-auto h-full">
+                {results.map((item, index) => (
+                  <SearchResultItem result={item} index={index} key={item.id} />
+                ))}
+              </div>
+            )}
+            {getResultsState() === "dev case" && "Hey alejandro"}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

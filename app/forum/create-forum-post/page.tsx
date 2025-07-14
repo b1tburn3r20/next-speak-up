@@ -5,7 +5,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Create New Forum Post",
-  description: "Create a forum post on the Together App",
+  description: "Create a forum post on the Coolbills App",
 };
 
 const Page = () => {

@@ -38,7 +38,7 @@ const PostClientSideTopComponents = ({
   const isDeleted = post.title === "[deleted]" && post.body === "[deleted]";
 
   const shareData = {
-    title: `Together Forum - Commune Learn and Grow our Country Together`,
+    title: `Coolbills Forum - Commune Learn and Grow our Country Together`,
     text: `View Community Forum Post About ${post.title} by community member ${post.author.username}`,
     url: `${post.id}`,
   };

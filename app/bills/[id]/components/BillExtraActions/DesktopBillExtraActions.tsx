@@ -55,7 +55,7 @@ const DesktopBillExtraActions = ({ userId }: BillDeskTopExtraActionsProps) => {
 
   const handleShareButtonClick = async () => {
     const shareData = {
-      title: "Together - Learn and Make Change",
+      title: "Coolbills - Learn and Make Change",
       text: `Read about bill ${billData?.legislation?.title}`,
       url: `${billData?.legislation?.id}`,
     };

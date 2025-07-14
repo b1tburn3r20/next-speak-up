@@ -12,7 +12,7 @@ const ShareBillDataButton = ({
   billTitle,
 }: ShareBillDataButtonProps) => {
   const shareData = {
-    title: "Together - Learn and Make Change",
+    title: "Coolbills - Learn and Make Change",
     text: `Read about bill ${billTitle}`,
     url: `${billId}`,
   };

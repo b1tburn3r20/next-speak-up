@@ -70,6 +70,10 @@ export async function checkRateLimit(
   error?: string;
 }> {
   const limits = RATE_LIMITS[endpoint];
+  // assigning unauthenticated users a value so we can rate limit them
+  if (!userRole) {
+    userRole = "unauthenticated";
+  }
   const roleLimit = limits[userRole];
 
   // If no limit defined (null), allow unlimited access

@@ -44,7 +44,7 @@ const NavToggle = () => {
 
   return (
     <div className="flex group items-center justify-between p-4 flex-shrink-0">
-      <div className="nav-logo font-bold text-xl">Together</div>
+      <div className="nav-logo font-bold text-xl">Coolbills</div>
       <div
         className={`${
           !navCollapsed && "opacity-0 group-hover:opacity-100 transition-all"

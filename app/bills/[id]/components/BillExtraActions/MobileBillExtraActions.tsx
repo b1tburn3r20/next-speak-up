@@ -57,7 +57,7 @@ const MobileBillExtraActions = ({ userId }: MobileBillExtraActionsProps) => {
   const handleShareButtonClick = async () => {
     setIsDialogOpen(false);
     const shareData = {
-      title: "Together - Learn and Make Change",
+      title: "Coolbills - Learn and Make Change",
       text: `Read about bill ${billData?.legislation?.title}`,
       url: `${billData?.legislation?.id}`,
     };

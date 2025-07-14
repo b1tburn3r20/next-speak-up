@@ -54,7 +54,7 @@ const MobileNavbar = ({
 
       {/* Top bar for mobile - without hamburger button */}
       <div className="bg-background border-b border-primary p-4 flex justify-between items-center">
-        <div className="font-semibold">CG</div>
+        <div className="font-semibold">CoolBills</div>
         {/* Empty space to maintain layout balance */}
         <div className="w-10"></div>
       </div>
