@@ -126,7 +126,7 @@ const PageFooter = () => {
                 </div>
               </div>
               <div className="text-center text-sm mt-6">
-                © {new Date().getFullYear()} Your Company. All rights reserved.
+                © {new Date().getFullYear()} Coolbills. All rights reserved.
               </div>
             </AccordionContent>
           </AccordionItem>

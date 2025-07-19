@@ -386,8 +386,25 @@ model CongressMember {
   district                    String?
   sessions                    CongressSession[]
   favoritedBy                 FavoritedCongressMember[]
+  depiction                   Depiction?
+  terms                       CongressTerm[] // Add this relationship
 
   @@map("congressmember")
+}
+
+model CongressTerm {
+  id        Int            @id @default(autoincrement())
+  chamber   String?
+  startYear Int?
+  endYear   Int?
+  memberId  Int
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  member    CongressMember @relation(fields: [memberId], references: [id], onDelete: Cascade) // Add this relationship
+
+  @@unique([memberId, chamber, startYear], map: "CongressTerm_memberId_chamber_startYear_key")
+  @@index([memberId], map: "CongressTerm_memberId_idx")
+  @@map("congressterm")
 }
 
 model FavoritedCongressMember {
@@ -662,20 +679,6 @@ model LatestAction {
   @@map("latestaction")
 }
 
-model CongressTerm {
-  id        Int      @id @default(autoincrement())
-  chamber   String?
-  startYear Int?
-  endYear   Int?
-  memberId  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([memberId, chamber, startYear], map: "CongressTerm_memberId_chamber_startYear_key")
-  @@index([memberId], map: "CongressTerm_memberId_idx")
-  @@map("congressterm")
-}
-
 model PartyHistory {
   id                Int      @id @default(autoincrement())
   partyName         String?
@@ -702,12 +705,13 @@ model LeadershipPosition {
 }
 
 model Depiction {
-  id          Int      @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   imageUrl    String?
   attribution String?
-  memberId    Int      @unique(map: "Depiction_memberId_key")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  memberId    Int            @unique(map: "Depiction_memberId_key")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  member      CongressMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@index([memberId], map: "Depiction_memberId_idx")
   @@map("depiction")

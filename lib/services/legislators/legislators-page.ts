@@ -10,6 +10,8 @@ export const getCongressLegislators = async (userId, userRole) => {
       bioguideId: true,
       name: true,
       state: true,
+      district: true,
+      role: true,
     },
   });
 

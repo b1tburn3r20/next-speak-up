@@ -51,12 +51,7 @@ function createRateLimiter(requests: number, window: string): Ratelimit {
 }
 
 export type RateLimitEndpoint = keyof typeof RATE_LIMITS;
-export type UserRole =
-  | "unauthenticated"
-  | "Member"
-  | "Supporter"
-  | "Admin"
-  | "Super Admin";
+export type UserRole = string;
 
 export async function checkRateLimit(
   endpoint: RateLimitEndpoint,

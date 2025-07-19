@@ -7,13 +7,13 @@ import AllActiveLegislators from "./components/AllActiveLegislators";
 import UsersStateLegislators from "./components/UsersStateLegislators";
 import UsersLegislators from "./components/UsersLegislators";
 import StateAndDistrictSelectDialog from "../1Components/components/General/StateAndDistrictSelectDialog";
+import SearchLegislators from "./components/SearchLegislators";
 
 export const metadata: Metadata = {
   title: {
     default: "Congress Members And Legislators",
     template: "%s | Coolbills",
   },
-
   description:
     "Browse and search through comprehensive data about the U.S. Congress",
   keywords: [
@@ -37,19 +37,26 @@ const Page = async () => {
   const results = await getCongressLegislators(userId, role);
   const usersStateLegislators = results.filter((f) => f.state === usersState);
   return (
-    <div className="flex flex-col">
-      <UsersLegislators
-        legislators={usersStateLegislators}
-        userId={userId}
-        usersState={usersState}
-        usersDistrict={usersDistrict}
-      />
-      <UsersStateLegislators
-        legislators={usersStateLegislators}
-        usersState={usersState}
-        userId={userId}
-      />
-      <AllActiveLegislators legislators={results} userId={userId} />
+    <div className="flex flex-col pt-4 space-y-12">
+      <SearchLegislators legislators={results} />
+      <div className="space-y-[100px]">
+        <div className="bg-accent/40 p-4 rounded-lg flex items-center justify-center flex-col">
+          <UsersLegislators
+            legislators={usersStateLegislators}
+            userId={userId}
+            usersState={usersState}
+            usersDistrict={usersDistrict}
+          />
+        </div>
+
+        <UsersStateLegislators
+          legislators={usersStateLegislators}
+          usersState={usersState}
+          userId={userId}
+        />
+        <AllActiveLegislators legislators={results} userId={userId} />
+      </div>
+
       <StateAndDistrictSelectDialog />
     </div>
   );

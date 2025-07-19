@@ -79,6 +79,7 @@ export const authOptions = {
           state: true,
           ageRange: true,
           householdIncome: true,
+          district: true,
           needsOnboarding: true,
           role: true,
         },

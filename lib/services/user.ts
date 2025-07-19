@@ -443,3 +443,23 @@ export const getSoftUserByIdWithMetrics = async (userId: string) => {
     },
   };
 };
+
+export const saveUserStateAndDistrict = async (
+  state,
+  district,
+  userId,
+  userRole
+) => {
+  await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      state: state,
+      district: district,
+    },
+  });
+
+  await logUserAction(userId, "Update User State And District", null, userRole);
+  return Response.json({ success: true }, { status: 200 });
+};

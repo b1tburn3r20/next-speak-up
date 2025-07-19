@@ -5,10 +5,12 @@ import LegislatorCard from "./LegislatorCard";
 import NoUserLoginButton from "@/app/1Components/components/General/NoUserLoginButton";
 import NoUserStateButton from "@/app/1Components/components/General/NoUserStateButton";
 import { TextAnimate } from "@/components/magicui/text-animate";
+
 const DynamicNoUserLoginButton = dynamic(
   () => import("@/app/1Components/components/General/NoUserLoginButton"),
   { ssr: false }
 );
+
 interface UsersStateLegislatorsProps {
   legislators: SimpleLandingPageLegislatorData[];
   userId: string;
@@ -22,21 +24,28 @@ const UsersStateLegislators = ({
 }: UsersStateLegislatorsProps) => {
   if (!userId) {
     return (
-      <DynamicNoUserLoginButton message="Login to see your congress members here!" />
+      <div className="">
+        <DynamicNoUserLoginButton message="Login to see your congress members here!" />
+      </div>
     );
   }
-  console.log(legislators);
 
   return (
-    <div>
+    <div className="">
       {usersState ? (
         <div>
-          <TextAnimate className="text-4xl m-4 font-bold [&>span:first-child]:text-primary">
+          <TextAnimate className="text-2xl sm:text-3xl lg:text-4xl mb-4 sm:mb-6 font-bold [&>span:first-child]:text-primary">
             Your State Legislators
           </TextAnimate>
-          {legislators.map((f) => (
-            <LegislatorCard key={f.bioguideId} legislator={f} userId={userId} />
-          ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            {legislators.map((f) => (
+              <LegislatorCard
+                key={f.bioguideId}
+                legislator={f}
+                userId={userId}
+              />
+            ))}
+          </div>
         </div>
       ) : (
         <DynamicNoUserLoginButton

@@ -22,11 +22,11 @@ import { useUserStore } from "@/app/admin/stores/useUserStore";
 
 const DistrictSelect = () => {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
   const [districts, setDistricts] = useState([]);
 
   const selectedState = useUserStore((s) => s.userState);
-
+  const value = useUserStore((f) => f.userDistrict);
+  const setValue = useUserStore((f) => f.setUserDistrict);
   const numberOfDistrictsInState = usStateToDistrictMap[selectedState];
 
   useEffect(() => {
@@ -67,7 +67,7 @@ const DistrictSelect = () => {
         <Command>
           <CommandInput
             autoFocus
-            placeholder="Search States..."
+            placeholder="Select District..."
             className="h-9"
           ></CommandInput>
           <CommandList>
