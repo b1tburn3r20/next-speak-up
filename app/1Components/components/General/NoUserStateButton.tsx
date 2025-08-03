@@ -1,5 +1,5 @@
 "use client";
-import { useLoginStore } from "@/app/navbar/useLoginStore";
+import { useLoginStore } from "@/app/app/navbar/useLoginStore";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, User } from "lucide-react";
 

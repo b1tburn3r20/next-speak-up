@@ -1,7 +1,7 @@
 "use client";
 
-import { useUserStore } from "@/app/admin/stores/useUserStore";
-import { useLoginStore } from "@/app/navbar/useLoginStore";
+import { useUserStore } from "@/app/app/admin/stores/useUserStore";
+import { useLoginStore } from "@/app/app/navbar/useLoginStore";
 import {
   Dialog,
   DialogContent,

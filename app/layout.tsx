@@ -6,7 +6,6 @@ import AuthProvider from "./auth/Provider";
 import PageFooter from "./PageComponents/PageFooter";
 import { Toaster } from "sonner";
 import { OnboardingModal } from "./GeneralComponents/Onboarding/OnboardingModal";
-import Navbar from "./navbar/navbar";
 import { Open_Sans } from "next/font/google";
 
 const openSans = Open_Sans({
@@ -73,12 +72,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Navbar>
-              <main className="container mx-auto space-x-4 ">
-                {children}
-                <PageFooter />
-              </main>
-            </Navbar>
+            <main>{children}</main>
             <Toaster />
             {/* <OnboardingModal /> */}
           </ThemeProvider>

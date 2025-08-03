@@ -132,8 +132,6 @@ const PageFooter = () => {
           </AccordionItem>
         </Accordion>
       </div>
-      <BugReportForm />
-      <FeatureReportForm />
     </footer>
   );
 };

@@ -22,7 +22,7 @@ import {
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useLoginStore } from "@/app/navbar/useLoginStore";
+import { useLoginStore } from "@/app/app/navbar/useLoginStore";
 import { ModeToggle } from "./ui/mode-toggle";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
 import ShinyButton from "./ui/shiny-button";
@@ -34,7 +34,7 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import LoginForm from "./login-form";
-import { useNavbarStore } from "@/app/navbar/useNavbarStore";
+import { useNavbarStore } from "@/app/app/navbar/useNavbarStore";
 
 export function NavUser() {
   const { data: session, status } = useSession();

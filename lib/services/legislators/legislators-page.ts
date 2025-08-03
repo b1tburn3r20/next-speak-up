@@ -6,12 +6,8 @@ export const getCongressLegislators = async (userId, userRole) => {
     where: {
       active: true,
     },
-    select: {
-      bioguideId: true,
-      name: true,
-      state: true,
-      district: true,
-      role: true,
+    include: {
+      depiction: true,
     },
   });
 

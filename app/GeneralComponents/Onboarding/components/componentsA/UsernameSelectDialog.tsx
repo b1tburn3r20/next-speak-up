@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useDialogStore } from "@/app/stores/useDialogStore";
+import { useDialogStore } from "@/app/app/stores/useDialogStore";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useState, useCallback, useRef, useEffect } from "react";

@@ -4,9 +4,7 @@ import { STATE_CODES } from "@/lib/constants/state-codes";
 import { STATE_NAMES } from "@/lib/constants/state-names";
 import { useState } from "react";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
-import { toast } from "sonner";
-import { _ } from "@upstash/redis/zmscore-DzNHSWxc";
-import { useUserStore } from "@/app/admin/stores/useUserStore";
+import { useUserStore } from "@/app/app/admin/stores/useUserStore";
 
 const FindMyStateAndDistrictButton = () => {
   const [loading, setLoading] = useState(false);

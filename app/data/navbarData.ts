@@ -18,31 +18,31 @@ export type NavItem = {
 };
 
 export const navItems: NavItem[] = [
-  { href: "/", icon: Home, label: "Home" },
+  { href: "/app", icon: Home, label: "Home" },
   {
-    href: "/bills",
+    href: "/app/bills",
     icon: Book,
     label: "Bills",
   },
   {
-    href: "/legislators",
+    href: "/app/legislators",
     icon: Briefcase,
     label: "Legislators",
   },
   {
-    href: "/forum",
+    href: "/app/forum",
     icon: Users,
     label: "Forum",
   },
   {
-    href: "/admin/permissions",
+    href: "/app/admin/permissions",
     icon: Key,
     label: "Permissions",
     requiredRoles: ["Super Admin", "Admin"],
   },
 
   {
-    href: "/settings",
+    href: "/app/settings",
     icon: Settings,
     label: "Settings",
     requiredRoles: ["Member", "Supporter", "Super Admin"],

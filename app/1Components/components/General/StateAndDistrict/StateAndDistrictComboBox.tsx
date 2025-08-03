@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/popover-dialog";
 import { states } from "@/app/data/states";
 import { useState } from "react";
-import { useUserStore } from "@/app/admin/stores/useUserStore";
+import { useUserStore } from "@/app/app/admin/stores/useUserStore";
 const StateAndDistrictComboBox = () => {
   const [open, setOpen] = useState(false);
 
