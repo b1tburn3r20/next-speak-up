@@ -56,28 +56,11 @@ const PageFooter = () => {
                     <li>
                       <span className="font-medium">Email:</span>
                       <a
-                        href="mailto:info@example.com"
+                        href="mailto:alejandro@coolbills.com"
                         className="hover:underline ml-1"
                       >
-                        info@example.com
+                        alejandro@coolbills.com
                       </a>
-                    </li>
-                    <li>
-                      <span className="font-medium">Phone:</span>
-                      <a
-                        href="tel:+1234567890"
-                        className="hover:underline ml-1"
-                      >
-                        (123) 456-7890
-                      </a>
-                    </li>
-                    <li>
-                      <span className="font-medium">Address:</span>
-                      <p className="mt-1">
-                        123 Business Street
-                        <br />
-                        City, State 12345
-                      </p>
                     </li>
                   </ul>
                 </div>

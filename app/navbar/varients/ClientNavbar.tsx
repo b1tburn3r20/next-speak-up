@@ -6,9 +6,10 @@ import NavToggle from "../nav-toggle";
 import NavItem from "../NavItem";
 import MobileNavbar from "./MobileNavbar";
 import { Session } from "next-auth";
-import { navItems } from "../../data/navbarData"; // Import to reconstruct data
+import { navItems } from "../../data/navbarData";
 import { useNavbarStore } from "../useNavbarStore";
 import { useUserStore } from "@/app/admin/stores/useUserStore";
+import { usePathname } from "next/navigation";
 
 interface ClientNavbarProps {
   visibleNavHrefs: string[];
@@ -26,6 +27,7 @@ const ClientNavbar = ({
   const [isMobile, setIsMobile] = useState(false);
   const setNavState = useNavbarStore((f) => f.setNavCollapsed);
   const setActiveUserRole = useUserStore((f) => f.setActiveUserRole);
+  const pathname = usePathname();
   // Reconstruct nav items from hrefs
   const visibleNavItems = visibleNavHrefs
     .map((href) => navItems.find((item) => item.href === href))
@@ -50,6 +52,10 @@ const ClientNavbar = ({
       setActiveUserRole(userRole);
     }
   }, [userRole]);
+
+  if (pathname === "/" || pathname === "/mission") {
+    return <>{children}</>;
+  }
 
   if (isMobile) {
     return (
