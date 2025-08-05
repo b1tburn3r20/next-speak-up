@@ -11,12 +11,14 @@ const Page = () => {
   return (
     <div>
       <LandingNavbar>
-        <Hero />
-        <Features />
-        <SocialProof />
-        <Product />
-        <FAQ />
-        <Contact />
+        <div className="space-y-4 my-14">
+          <Hero />
+          <Features />
+          {/* <SocialProof /> */}
+          <Product />
+          <FAQ />
+          <Contact />
+        </div>
       </LandingNavbar>
     </div>
   );
