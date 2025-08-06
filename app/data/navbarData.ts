@@ -5,6 +5,7 @@ import {
   Group,
   Home,
   Key,
+  LayoutDashboard,
   LucideIcon,
   Settings,
   Users,
@@ -18,7 +19,8 @@ export type NavItem = {
 };
 
 export const navItems: NavItem[] = [
-  { href: "/dashboard", icon: Home, label: "Home" },
+  { href: "/", icon: Home, label: "Home" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   {
     href: "/bills",
     icon: Book,

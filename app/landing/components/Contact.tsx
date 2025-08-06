@@ -113,7 +113,7 @@ const Contact = () => {
 
           {/* Contact Info */}
           <div className="order-1 lg:order-2">
-            <div className="bg-muted/30 rounded-xl p-6 sm:p-8 text-center h-full flex flex-col justify-center space-y-6">
+            <div className="p-6 sm:p-8 text-center h-full flex flex-col justify-center space-y-6">
               <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
                 <Mail className="h-8 w-8 text-primary" />
               </div>

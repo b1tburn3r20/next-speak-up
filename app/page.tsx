@@ -3,9 +3,9 @@ import LandingNavbar from "./landing/navbar/navbar";
 import Hero from "./landing/components/Hero";
 import Contact from "./landing/components/Contact";
 import Features from "./landing/components/Features";
-import SocialProof from "./landing/components/SocialProof";
 import Product from "./landing/components/Product";
 import FAQ from "./landing/components/FAQ";
+import Compare from "./landing/components/Compare";
 
 const Page = () => {
   return (
@@ -14,6 +14,7 @@ const Page = () => {
         <div className="space-y-4 my-14">
           <Hero />
           <Features />
+          <Compare />
           {/* <SocialProof /> */}
           <Product />
           <FAQ />

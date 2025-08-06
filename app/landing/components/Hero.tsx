@@ -1,6 +1,7 @@
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const Hero = () => {
   return (
@@ -18,10 +19,14 @@ const Hero = () => {
           We make it easy to stay connected with what's happening in government.
           Track the bills that matter to you, see how your representatives vote,
           and let them know where you stand on the issues.
-        </p>
-        <Button size="lg" className="w-full sm:w-auto">
-          Take me there <ArrowRight className="ml-2" />
-        </Button>
+        </p>{" "}
+        <div>
+          <Link href={"/dashboard"}>
+            <Button size="lg" className="w-full sm:w-auto">
+              Take me there <ArrowRight className="ml-2" />
+            </Button>
+          </Link>
+        </div>
       </div>
       <div className="w-full flex justify-center lg:justify-end">
         <div className="relative w-full max-w-md lg:max-w-none aspect-video">
