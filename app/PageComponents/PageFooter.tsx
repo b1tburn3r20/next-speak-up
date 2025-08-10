@@ -28,8 +28,8 @@ const PageFooter = () => {
                       </a>
                     </li>
                     <li>
-                      <a href="#" className="hover:underline">
-                        About Us
+                      <a href="/mission" className="hover:underline">
+                        Mission
                       </a>
                     </li>
                     <li>
@@ -37,11 +37,7 @@ const PageFooter = () => {
                         Services
                       </a>
                     </li>
-                    <li>
-                      <a href="#" className="hover:underline">
-                        Blog
-                      </a>
-                    </li>
+
                     <li>
                       <a href="#" className="hover:underline">
                         FAQ
@@ -92,7 +88,7 @@ const PageFooter = () => {
                 </div>
               </div>
 
-              <div className="mt-6 pt-6">
+              {/* <div className="mt-6 pt-6">
                 <div className="flex justify-center space-x-6">
                   <a href="#" className="hover:text-gray-600">
                     Twitter
@@ -107,7 +103,7 @@ const PageFooter = () => {
                     Instagram
                   </a>
                 </div>
-              </div>
+              </div> */}
               <div className="text-center text-sm mt-6">
                 © {new Date().getFullYear()} Coolbills. All rights reserved.
               </div>

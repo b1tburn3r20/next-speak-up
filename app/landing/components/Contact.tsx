@@ -1,26 +1,116 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Send } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 const Contact = () => {
   const ContactForm = () => {
+    const [formData, setFormData] = useState({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      message: "",
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState<{
+      type: "success" | "error" | null;
+      message: string;
+    }>({ type: null, message: "" });
+
+    const handleInputChange = (
+      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+      const { id, value } = e.target;
+      setFormData((prev) => ({
+        ...prev,
+        [id]: value,
+      }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsSubmitting(true);
+      setSubmitStatus({ type: null, message: "" });
+
+      try {
+        const response = await fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+            message: formData.message,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setSubmitStatus({
+            type: "success",
+            message:
+              "Thank you! Your message has been sent successfully. We'll get back to you soon.",
+          });
+          // Reset form
+          setFormData({
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: "",
+            message: "",
+          });
+        } else {
+          setSubmitStatus({
+            type: "error",
+            message: data.message || "Something went wrong. Please try again.",
+          });
+        }
+      } catch (error) {
+        setSubmitStatus({
+          type: "error",
+          message: "Network error. Please check your connection and try again.",
+        });
+      }
+
+      setIsSubmitting(false);
+    };
+
     return (
-      <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           <div className="space-y-2">
             <Label htmlFor="firstName" className="text-sm font-medium">
               First Name
             </Label>
-            <Input id="firstName" placeholder="Sarah" className="h-11" />
+            <Input
+              id="firstName"
+              placeholder="Sarah"
+              className="h-11"
+              value={formData.firstName}
+              onChange={handleInputChange}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="lastName" className="text-sm font-medium">
               Last Name
             </Label>
-            <Input id="lastName" placeholder="Smith" className="h-11" />
+            <Input
+              id="lastName"
+              placeholder="Smith"
+              className="h-11"
+              value={formData.lastName}
+              onChange={handleInputChange}
+            />
           </div>
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="email" className="text-sm font-medium">
@@ -32,6 +122,8 @@ const Contact = () => {
               placeholder="name@gmail.com"
               className="h-11"
               required
+              value={formData.email}
+              onChange={handleInputChange}
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
@@ -46,6 +138,8 @@ const Contact = () => {
               type="tel"
               placeholder="+1 (123) 456-7891"
               className="h-11"
+              value={formData.phone}
+              onChange={handleInputChange}
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
@@ -57,12 +151,32 @@ const Contact = () => {
               className="min-h-[120px] resize-none"
               placeholder="Tell us how we can help you..."
               required
+              value={formData.message}
+              onChange={handleInputChange}
             />
           </div>
         </div>
 
-        <Button size="lg" className="w-full sm:w-auto">
-          Send Message
+        {/* Status Message */}
+        {submitStatus.type && (
+          <div
+            className={`p-4 rounded-lg text-sm ${
+              submitStatus.type === "success"
+                ? "bg-green-50 text-green-700 border border-green-200"
+                : "bg-red-50 text-red-700 border border-red-200"
+            }`}
+          >
+            {submitStatus.message}
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full sm:w-auto"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Sending..." : "Send Message"}
           <Send className="ml-2 h-4 w-4" />
         </Button>
 
@@ -84,7 +198,7 @@ const Contact = () => {
             .
           </p>
         </div>
-      </div>
+      </form>
     );
   };
 

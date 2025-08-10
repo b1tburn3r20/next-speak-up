@@ -48,21 +48,19 @@ const Compare = () => {
         className="group block relative"
       >
         <div
-          className={`p-4 md:p-6 border-l-8 ${competitor.borderColor} bg-accent/30 dark:bg-accent hover:bg-accent/40 transition-all duration-300 rounded-lg shadow-sm cursor-pointer`}
+          className={`p-4 md:p-6 border-l-8 border-primary bg-accent/30 dark:bg-accent hover:bg-accent/40 transition-all duration-300 rounded-lg shadow-sm cursor-pointer`}
         >
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-xs md:text-sm text-muted-foreground/80 uppercase tracking-wide font-semibold">
                 {competitor.tag}
               </p>
-              <p
-                className={`text-lg md:text-xl font-bold ${competitor.textColor}`}
-              >
+              <p className={`text-lg md:text-xl font-bold text-primary`}>
                 {competitor.name}
               </p>
             </div>
             <ArrowRight
-              className={`w-5 h-5 ${competitor.textColor} group-hover:translate-x-1 transition-all duration-300`}
+              className={`w-5 h-5 text-primary group-hover:translate-x-1 transition-all duration-300`}
             />
           </div>
         </div>

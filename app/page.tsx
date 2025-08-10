@@ -17,7 +17,7 @@ const Page = () => {
           <Compare />
           {/* <SocialProof /> */}
           <Product />
-          <FAQ />
+          {/* <FAQ /> */}
           <Contact />
         </div>
       </LandingNavbar>
