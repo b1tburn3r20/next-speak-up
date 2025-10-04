@@ -18,7 +18,6 @@ interface FinePrintItem {
 }
 
 const parseFinePrint = (finePrint: string): FinePrintItem[] => {
-
   const items: FinePrintItem[] = [];
 
   // Match all sections that start with ** and end with :**
@@ -56,7 +55,7 @@ const AiBillFinePrint = ({ bill }: AiBillFinePrintProps) => {
         <Button
           variant="ghost"
           size="icon"
-          className="bg-accent hover:bg-accent/70"
+          className="bg-primary hover:bg-primary/70"
         >
           <TextSearch className="h-5 w-5" />
         </Button>

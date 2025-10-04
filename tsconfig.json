@@ -30,6 +30,6 @@
     "allowUnusedLabels": true,
     "noImplicitReturns": false
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/hooks/useAuth.tsx", "app/new/production/troubleshoot-devices/UnlockingTroubleshoot", "app/new/pdfs/components/MyDocument.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/hooks/useAuth.tsx", "app/new/production/troubleshoot-devices/UnlockingTroubleshoot", "app/new/pdfs/components/MyDocument.js", "app/bills/[id]/components/BillSummaries.mdx"],
   "exclude": ["node_modules"]
 }

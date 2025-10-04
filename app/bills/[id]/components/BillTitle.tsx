@@ -1,0 +1,20 @@
+"use client";
+
+import { useBillPageStore } from "../useBillPageStore";
+
+const BillTitle = () => {
+  const billTitle = useBillPageStore((s) => s.billData.legislation.title);
+  const isDyslexicFriendly = useBillPageStore((s) => s.isDyslexicFriendly);
+
+  return (
+    <h1
+      className={`text-center text-lg   ${
+        isDyslexicFriendly && "font-dyslexic"
+      }`}
+    >
+      {billTitle}
+    </h1>
+  );
+};
+
+export default BillTitle;

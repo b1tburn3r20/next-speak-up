@@ -253,9 +253,16 @@ export function toTimeSinceCase(isoString: string): string {
   }
   return `${diffYears} ${diffYears === 1 ? "year" : "years"} ago`;
 }
-export function formatIsoDate(isoString, showTime = true) {
+
+export function formatIsoDate(
+  isoString,
+  showTime = true,
+  includeYear = true,
+  length = "short",
+  hideDate = false
+) {
   const date = new Date(isoString);
-  const month = date.toLocaleString("en", { month: "short" });
+  const month = date.toLocaleString("en", { month: length });
   const day = date.getDate();
 
   // Function to get proper ordinal suffix
@@ -275,7 +282,20 @@ export function formatIsoDate(isoString, showTime = true) {
 
   const hours = date.getHours() % 12 || 12;
   const minutes = date.getMinutes().toString().padStart(2, "0");
+  const period = date.getHours() >= 12 ? "PM" : "AM";
 
-  const dateString = `${month}, ${day}${getOrdinalSuffix(day)}`;
-  return showTime ? `${dateString}, ${hours}:${minutes}` : dateString;
+  // Time string
+  const timeString = `${hours}:${minutes} ${period}`;
+
+  // If hideDate is true, return only the time
+  if (hideDate) {
+    return timeString;
+  }
+
+  const year = date.getFullYear();
+  const dateString = includeYear
+    ? `${month} ${day}${getOrdinalSuffix(day)}, ${year}`
+    : `${month} ${day}${getOrdinalSuffix(day)}`;
+
+  return showTime ? `${dateString}, ${timeString}` : dateString;
 }

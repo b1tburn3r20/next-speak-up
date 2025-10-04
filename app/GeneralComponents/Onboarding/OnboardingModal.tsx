@@ -1,5 +1,5 @@
 "use client";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   Dialog,
@@ -71,7 +71,7 @@ export function OnboardingModal() {
 
   useEffect(() => {
     if (session?.user?.needsOnboarding) {
-      setOnboarding(true);
+      // setOnboarding(true);
     }
   }, [session, setOnboarding]);
 

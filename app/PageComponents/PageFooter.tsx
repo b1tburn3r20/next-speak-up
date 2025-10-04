@@ -5,10 +5,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import BugReportForm from "../1Components/components/BugReporting/BugReportForm";
+import FeatureReportForm from "../1Components/components/FeatureSuggestion/FeatureSuggestionForm";
 
 const PageFooter = () => {
   return (
-    <footer className="mt-auto border-t">
+    <footer className="mt-8 border-t">
       <div className="container mx-auto px-4">
         <Accordion type="single" collapsible>
           <AccordionItem value="show-footer">
@@ -26,8 +28,8 @@ const PageFooter = () => {
                       </a>
                     </li>
                     <li>
-                      <a href="#" className="hover:underline">
-                        About Us
+                      <a href="/mission" className="hover:underline">
+                        Mission
                       </a>
                     </li>
                     <li>
@@ -35,11 +37,7 @@ const PageFooter = () => {
                         Services
                       </a>
                     </li>
-                    <li>
-                      <a href="#" className="hover:underline">
-                        Blog
-                      </a>
-                    </li>
+
                     <li>
                       <a href="#" className="hover:underline">
                         FAQ
@@ -54,28 +52,11 @@ const PageFooter = () => {
                     <li>
                       <span className="font-medium">Email:</span>
                       <a
-                        href="mailto:info@example.com"
+                        href="mailto:alejandro@coolbills.com"
                         className="hover:underline ml-1"
                       >
-                        info@example.com
+                        alejandro@coolbills.com
                       </a>
-                    </li>
-                    <li>
-                      <span className="font-medium">Phone:</span>
-                      <a
-                        href="tel:+1234567890"
-                        className="hover:underline ml-1"
-                      >
-                        (123) 456-7890
-                      </a>
-                    </li>
-                    <li>
-                      <span className="font-medium">Address:</span>
-                      <p className="mt-1">
-                        123 Business Street
-                        <br />
-                        City, State 12345
-                      </p>
                     </li>
                   </ul>
                 </div>
@@ -107,7 +88,7 @@ const PageFooter = () => {
                 </div>
               </div>
 
-              <div className="mt-6 pt-6">
+              {/* <div className="mt-6 pt-6">
                 <div className="flex justify-center space-x-6">
                   <a href="#" className="hover:text-gray-600">
                     Twitter
@@ -122,14 +103,16 @@ const PageFooter = () => {
                     Instagram
                   </a>
                 </div>
-              </div>
+              </div> */}
               <div className="text-center text-sm mt-6">
-                © {new Date().getFullYear()} Your Company. All rights reserved.
+                © {new Date().getFullYear()} Coolbills. All rights reserved.
               </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
       </div>
+      <BugReportForm />
+      <FeatureReportForm />
     </footer>
   );
 };

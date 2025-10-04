@@ -11,11 +11,9 @@ interface AnimationConfig {
 export const initializeCards = (noCard: CardElement, yesCard: CardElement) => {
   if (!noCard || !yesCard) return;
 
-  // Initial positions
+  // Initial positions - cards start visible
   gsap.set([noCard, yesCard], {
     y: 0,
-    scale: 0.8,
-    opacity: 0,
   });
 
   gsap.set(noCard, {
@@ -27,6 +25,10 @@ export const initializeCards = (noCard: CardElement, yesCard: CardElement) => {
     x: "-25%",
     rotation: 15,
   });
+
+  // Start floating animations immediately
+  createFloatingAnimation(noCard, -15);
+  createFloatingAnimation(yesCard, 15);
 };
 
 export const createFloatingAnimation = (
@@ -64,7 +66,7 @@ export const createEntryAnimations = (
       opacity: 1,
       rotation: 8,
       duration: 1,
-      delay: 1,
+      delay: 0.5, // Reduced delay for faster entry
       onComplete: () => {
         createFloatingAnimation(yesCard, 8);
       },
@@ -164,38 +166,56 @@ export const playVoteAnimation = (
   gsap.killTweensOf([selectedCard, otherCard]);
 
   // Timeline for the voting animation
-  const voteTl = gsap.timeline({
-    defaults: { ease: "power3.out" },
-  });
+  const voteTl = gsap.timeline();
 
-  // Selected card flies up
+  // First, smoothly center both cards and prepare for the vote
   voteTl
-    .to(selectedCard, {
-      y: -100,
-      scale: 1.2,
-      rotation: isYesVote ? 15 : -15,
-      duration: 0.5,
+    .to([selectedCard, otherCard], {
+      x: "0%",
+      scale: 1,
+      duration: 0.3,
+      ease: "power2.out",
     })
-    // Other card flies down and fades
+    // Make selected card prominent
+    .to(selectedCard, {
+      scale: 1.2,
+      y: -20,
+      rotation: isYesVote ? 10 : -10,
+      duration: 0.2,
+      ease: "back.out(1.7)",
+    })
+    // Fade other card
     .to(
       otherCard,
       {
-        y: 100,
         scale: 0.8,
-        opacity: 0,
-        rotation: isYesVote ? -15 : 15,
-        duration: 0.5,
+        opacity: 0.3,
+        y: 10,
+        duration: 0.2,
       },
       "<"
     )
-    // Selected card flies off screen
+    // Dramatic exit - selected card flies off smoothly
     .to(selectedCard, {
       x: isYesVote ? "100vw" : "-100vw",
       y: "-50vh",
       rotation: isYesVote ? 45 : -45,
+      scale: 0.8,
       duration: 0.8,
       ease: "power2.in",
-    });
+    })
+    // Other card falls away
+    .to(
+      otherCard,
+      {
+        y: "50vh",
+        opacity: 0,
+        scale: 0.5,
+        duration: 0.6,
+        ease: "power2.in",
+      },
+      "<0.2"
+    );
 
   return voteTl;
 };

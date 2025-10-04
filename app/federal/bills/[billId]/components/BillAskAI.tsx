@@ -1,6 +1,6 @@
 "use client";
-import React, { useEffect } from "react";
-import { MessageCircle, Minimize2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MessageCircle, Minimize2, Eye, EyeOff, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useBillState } from "../useBillState";
@@ -11,21 +11,36 @@ import { ChatInput } from "./Chatbot/ChatInput";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { DotPattern } from "@/components/magicui/dot-pattern";
 import { cn } from "@/lib/utils";
+import { useBillPageStore } from "@/app/bills/[id]/useBillPageStore";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const BillAskAI = ({ congress, type, number, user }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [showBillText, setShowBillText] = useState(false);
+
   const isBillLoaded = useBillState((state) => state.isBillLoaded);
   const isBillLoading = useBillState((state) => state.isBillLoading);
+  const billText = useBillState((state) => state.billText);
   const setBillText = useBillState((state) => state.setBillText);
   const setBillLoading = useBillState((state) => state.setBillLoading);
   const setBillLoaded = useBillState((state) => state.setBillLoaded);
+  const resetBillState = useBillState((state) => state.clearBill);
   const isMinimized = useChatStore((state) => state.isMinimized);
   const setMinimized = useChatStore((state) => state.setMinimized);
   const clearChat = useChatStore((state) => state.clearChat);
-
+  const billSize = useBillPageStore((f) => f.billData?.legislation?.bill_size);
+  // Clear state when component mounts or bill changes
   useEffect(() => {
     clearChat();
-  }, [clearChat]);
+    resetBillState();
+    setShowBillText(false);
+  }, [clearChat, resetBillState, congress, type, number]);
+
   const fetchBillText = async () => {
     if (isBillLoading) return; // Prevent multiple simultaneous loads
 
@@ -49,9 +64,6 @@ const BillAskAI = ({ congress, type, number, user }) => {
       setBillText(data.text || "No text available for this bill");
       setBillLoaded(true);
       setIsOpen(true);
-      toast.success("Bill text loaded!", {
-        position: "bottom-center",
-      });
     } catch (err) {
       console.error("Error fetching bill text:", err);
       toast.error("Failed to load bill text. Please try again later.");
@@ -69,12 +81,39 @@ const BillAskAI = ({ congress, type, number, user }) => {
     }
   };
 
+  const toggleBillText = () => {
+    setShowBillText(!showBillText);
+  };
+
+  if (billSize === "Very Long") {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              className="fixed bottom-6 lg:right-6 right-0 h-14 w-14 rounded-full shadow-lg"
+              size="icon"
+              variant="outline"
+            >
+              <MessageCircle className="h-6 w-6" />
+              <span className="sr-only">Open AI Chat</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="text-lg font-bold p-2">
+            Unforunately this bill is far too long to use AI on.
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
   // Chat button (minimized state)
   if (!isOpen || isMinimized) {
     return (
       <Button
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
+        className="fixed bottom-6 lg:right-6 right-0 h-14 w-14 rounded-full shadow-lg"
         size="icon"
+        variant="outline"
         onClick={handleChatClick}
       >
         <MessageCircle className="h-6 w-6" />
@@ -83,38 +122,88 @@ const BillAskAI = ({ congress, type, number, user }) => {
     );
   }
 
-  // Full chat window
+  // Full chat window with optional bill text panel
   return (
-    <div className="fixed bottom-6 right-6 w-96 bg-background border rounded-lg shadow-lg flex flex-col">
-      <DotPattern
-        className={cn(
-          "[mask-image:radial-gradient(180px_circle_at_center,white,transparent)]"
-        )}
-      />
-      <div className="flex items-center justify-between p-4 border-b">
-        <TextAnimate
-          animation="blurInUp"
-          by="character"
-          className="text-semibold text-lg"
-          once
-        >
-          Get better understanding
-        </TextAnimate>
-
-        <div className="flex items-center space-x-2">
-          <ChatSettings />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMinimized(true)}
-          >
-            <Minimize2 className="h-4 w-4" />
-          </Button>
+    <div className="fixed bottom-6 lg:right-6 right-0 flex items-end space-x-4 z-20">
+      {/* Bill Text Panel - Independent container */}
+      {showBillText && isBillLoaded && (
+        <div className="w-80 md:w-96 h-96 bg-background border rounded-lg shadow-lg overflow-hidden">
+          <div className="flex items-center justify-between p-3 border-b bg-muted/50">
+            <h3 className="font-semibold text-sm">Bill Text</h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={toggleBillText}
+            >
+              <EyeOff className="h-3 w-3" />
+            </Button>
+          </div>
+          <div className="p-4 h-full overflow-y-auto text-xs leading-relaxed bg-background">
+            <pre className="whitespace-pre-wrap font-mono">
+              {billText || "No bill text available"}
+            </pre>
+          </div>
         </div>
-      </div>
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <ChatMessages user={user} />
-        <ChatInput />
+      )}
+
+      {/* Chat Window - Independent container with its own dots */}
+      <div className="w-96 bg-background border rounded-lg shadow-lg flex flex-col relative overflow-hidden">
+        {/* Dots pattern only for this container */}
+        <DotPattern
+          className={cn(
+            "absolute inset-0",
+            "[mask-image:radial-gradient(180px_circle_at_center,white,transparent)]"
+          )}
+        />
+
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b relative z-10">
+          <TextAnimate
+            animation="blurInUp"
+            by="character"
+            className="text-semibold text-lg"
+            once
+          >
+            Google Gemini + Bill
+          </TextAnimate>
+
+          <div className="flex items-center space-x-2">
+            {/* Bill Text Toggle */}
+            {isBillLoaded && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleBillText}
+                title={showBillText ? "Hide bill text" : "Show bill text"}
+              >
+                {showBillText ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+
+            {/* Chat Settings */}
+            <ChatSettings />
+
+            {/* Minimize Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMinimized(true)}
+            >
+              <Minimize2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Chat Content */}
+        <div className="flex-1 overflow-hidden flex flex-col h-96 relative z-10">
+          <ChatMessages user={user} />
+          <ChatInput />
+        </div>
       </div>
     </div>
   );

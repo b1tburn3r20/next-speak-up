@@ -14,10 +14,10 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto p-2 lg:p-0 lg:py-8 ">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">Account Settings</h1>
-        <div className=" rounded-lg shadow p-6">
+        <div>
           <SettingsForm
             id={user.id}
             name={user.name}

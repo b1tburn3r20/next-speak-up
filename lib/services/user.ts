@@ -6,6 +6,7 @@ import {
   Prisma,
 } from "@prisma/client";
 import prisma from "@/prisma/client";
+import { headers } from "next/headers";
 
 // Use Prisma's generated type and extend it if needed
 export type User = PrismaUser;
@@ -183,18 +184,54 @@ export const getUserById = async (userId: number) => {
   });
 };
 
-export async function logUserAction(
-  userId: string,
+async function logGuestAction(
   action: string,
-  entityId?: string,
-  role?: string
+  entityId?: string | null,
+  sessionId?: string | null
 ) {
+  try {
+    const headersList = await headers();
+    const userAgent = headersList.get("user-agent");
+    const forwarded = headersList.get("x-forwarded-for");
+    const realIp = headersList.get("x-real-ip");
+    const ipAddress = forwarded?.split(",")[0] || realIp || "unknown";
+
+    await prisma.guestAction.create({
+      data: {
+        sessionId: sessionId || null,
+        ipAddress,
+        userAgent,
+        action,
+        entityId: entityId || null,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to log guest action:", error);
+  }
+}
+
+export async function logUserAction(
+  userId?: string | null,
+  action?: string,
+  entityId?: string | null,
+  role?: string | null,
+  sessionId?: string | null
+) {
+  const actionName = action || "unknown";
+
+  if (!userId) {
+    // Log guest action
+    await logGuestAction(actionName, entityId, sessionId);
+    return;
+  }
+
+  // Log authenticated user action
   try {
     await prisma.userAction.create({
       data: {
         userId,
-        userRole: role || null,
-        action,
+        userRole: role || "User",
+        action: actionName,
         entityId: entityId || null,
       },
     });
@@ -202,3 +239,227 @@ export async function logUserAction(
     console.error("Failed to log user action:", error);
   }
 }
+
+export async function checkIfUsernameIsAvailable(username: string) {
+  return prisma.user.findUnique({
+    where: {
+      username: username,
+    },
+  });
+}
+export async function updateUserUsername(
+  userId: string,
+  userRole: string,
+  newUsername: string
+) {
+  try {
+    // First check if username is available
+    const existingUser = await checkIfUsernameIsAvailable(newUsername);
+    if (existingUser && existingUser.id !== userId) {
+      throw new Error("Username is already taken");
+    }
+
+    // Update the user's username
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        username: newUsername,
+      },
+    });
+
+    // Log the action
+    await logUserAction(userId, "updateUsername", null, userRole);
+
+    return updatedUser;
+  } catch (error) {
+    console.error("Error updating username:", error);
+    throw error;
+  }
+}
+export const getSoftUserById = async (userId: string) => {
+  return prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      username: true,
+      image: true,
+      createdAt: true,
+      role: {
+        select: {
+          name: true,
+          description: true,
+        },
+      },
+      // Forum activity counts
+      _count: {
+        select: {
+          forumPosts: true,
+          forumComments: true,
+          forumPostUpvotes: true,
+          forumCommentUpvotes: true,
+          forumPostBookmarks: true,
+        },
+      },
+    },
+  });
+};
+
+// Alternative version with more detailed metrics
+export const getSoftUserByIdWithMetrics = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      username: true,
+      image: true,
+      createdAt: true,
+      role: {
+        select: {
+          name: true,
+          description: true,
+        },
+      },
+      // Get actual forum posts to calculate additional metrics
+      forumPosts: {
+        select: {
+          id: true,
+          views: true,
+          createdAt: true,
+          _count: {
+            select: {
+              upvotes: true,
+              downvotes: true,
+              comments: true,
+            },
+          },
+        },
+        where: {
+          isDeleted: false,
+        },
+      },
+      forumComments: {
+        select: {
+          id: true,
+          createdAt: true,
+          _count: {
+            select: {
+              upvotes: true,
+              downvotes: true,
+            },
+          },
+        },
+        where: {
+          isDeleted: false,
+        },
+      },
+      _count: {
+        select: {
+          forumPostUpvotes: true,
+          forumCommentUpvotes: true,
+          forumPostBookmarks: true,
+          userVotes: true,
+          favoritedMembers: true,
+        },
+      },
+    },
+  });
+
+  if (!user) return null;
+
+  // Calculate derived metrics
+  const totalPostViews = user.forumPosts.reduce(
+    (sum, post) => sum + post.views,
+    0
+  );
+  const totalPostUpvotes = user.forumPosts.reduce(
+    (sum, post) => sum + post._count.upvotes,
+    0
+  );
+  const totalPostDownvotes = user.forumPosts.reduce(
+    (sum, post) => sum + post._count.downvotes,
+    0
+  );
+  const totalCommentsReceived = user.forumPosts.reduce(
+    (sum, post) => sum + post._count.comments,
+    0
+  );
+
+  const totalCommentUpvotes = user.forumComments.reduce(
+    (sum, comment) => sum + comment._count.upvotes,
+    0
+  );
+  const totalCommentDownvotes = user.forumComments.reduce(
+    (sum, comment) => sum + comment._count.downvotes,
+    0
+  );
+
+  // Calculate days since joining
+  const daysSinceJoining = Math.floor(
+    (new Date().getTime() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  return {
+    id: user.id,
+    username: user.username,
+    image: user.image,
+    createdAt: user.createdAt,
+    daysSinceJoining,
+    role: user.role,
+    metrics: {
+      // Content creation
+      totalPosts: user.forumPosts.length,
+      totalComments: user.forumComments.length,
+
+      // Engagement received
+      totalPostViews,
+      totalPostUpvotes,
+      totalPostDownvotes,
+      totalCommentsReceived,
+      totalCommentUpvotes,
+      totalCommentDownvotes,
+
+      // Engagement given
+      upvotesGiven:
+        user._count.forumPostUpvotes + user._count.forumCommentUpvotes,
+      bookmarksMade: user._count.forumPostBookmarks,
+
+      // Platform engagement
+      billVotes: user._count.userVotes,
+      favoritedMembers: user._count.favoritedMembers,
+
+      // Calculated ratios (avoid division by zero)
+      avgViewsPerPost:
+        user.forumPosts.length > 0
+          ? Math.round(totalPostViews / user.forumPosts.length)
+          : 0,
+      postUpvoteRatio:
+        totalPostUpvotes + totalPostDownvotes > 0
+          ? Math.round(
+              (totalPostUpvotes / (totalPostUpvotes + totalPostDownvotes)) * 100
+            )
+          : 0,
+    },
+  };
+};
+
+export const saveUserStateAndDistrict = async (
+  state,
+  district,
+  userId,
+  userRole
+) => {
+  await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      state: state,
+      district: district,
+    },
+  });
+
+  await logUserAction(userId, "Update User State And District", null, userRole);
+  return Response.json({ success: true }, { status: 200 });
+};

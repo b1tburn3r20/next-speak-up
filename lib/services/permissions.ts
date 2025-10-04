@@ -187,8 +187,7 @@ export const changeUserRole = async (
     },
   });
 
-  // Log the admin's action with the target user as entityId
-  await logUserAction(adminUserId, "change_user_role", userId, role);
+  await logUserAction(adminUserId, "changeUserRole", userId, role);
 
   return result;
 };

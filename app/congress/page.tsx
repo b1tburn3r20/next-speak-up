@@ -5,7 +5,7 @@ import { PageBreadcrumb } from "../PageComponents/PageBreadcrumb";
 import { CongressMemberCard } from "./components/CongressMemberCard";
 
 export const metadata: Metadata = {
-  title: "Congress Members | Speakup",
+  title: "Congress Members | Coolbills",
   description: "Browse and search through all current members of Congress",
   openGraph: {
     title: "Congress Members",

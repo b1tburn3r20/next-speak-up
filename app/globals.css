@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,62 +13,64 @@ body {
   }
 }
 @layer base {
-    :root {
+   :root {
       --background: 0 0% 100%;
-      --foreground: 222.2 84% 4.9%;
-      --muted: 210 40% 96.1%;
-      --muted-foreground: 215.4 16.3% 46.9%;
+      --foreground: 0 0% 13.33%;
+      --muted: 0 0% 93.33%;
+      --muted-foreground: 0 0% 45.1%;
       --popover: 0 0% 100%;
-      --popover-foreground: 222.2 84% 4.9%;
+      --popover-foreground: 0 0% 13.33%;
       --card: 0 0% 100%;
-      --card-foreground: 222.2 84% 4.9%;
-      --border: 214.3 31.8% 91.4%;
-      --input: 214.3 31.8% 91.4%;
-      --primary: 220.47 98.26% 36.08%;
-      --primary-foreground: 210 40% 98%;
-      --secondary: 210 40% 96.1%;
-      --secondary-foreground: 222.2 47.4% 11.2%;
-      --accent: 15 100% 73%; /* Matches #ff9875 */
-      --accent-foreground:  222.2 84% 4.9%;
-      --destructive: 0 92.99% 56.11%;
-      --destructive-foreground: 210 40% 98%;
-      --ring: 220.67 97.83% 36.08%;
-      --chart-1: 220.47 98.26% 36.08%;
-      --chart-2: 210 40% 96.1%;
-      --chart-3: 210 40% 96.1%;
-      --chart-4: 210 40% 99.1%;
-      --chart-5: 220.47 101.26% 36.08%;
+      --card-foreground: 0 0% 13.33%;
+      --border: 0 0% 93.33%;
+      --input: 0 0% 93.33%;
+      --primary: 150 50% 45%;
+      --primary-foreground: 0 0% 100%;
+      --secondary: 0 0% 93.33%;
+      --secondary-foreground: 0 0% 13.33%;
+      --accent: 0 0% 93.33%;
+      --accent-foreground: 0 0% 13.33%;
+      --destructive: 0 50% 50%;
+      --destructive-foreground: 0 0% 100%;
+      --ring: 150.26 50.22% 44.9%;
+      --chart-1: 150 50% 45%;
+      --chart-2: 0 0% 93.33%;
+      --chart-3: 0 0% 93.33%;
+      --chart-4: 0 0% 96.33%;
+      --chart-5: 150 53% 45%;
       --radius: 0.5rem;
     }
   
     .dark {
-      --background: 240 13.73% 10%;
-      --foreground: 229.76 31.78% 74.71%;
-      --muted: 232.5 15.44% 18.32%;
-      --muted-foreground: 233.79 11.37% 50%;
-      --popover: 234.55 17.46% 12.35%;
-      --popover-foreground: 234 12.4% 52.55%;
-      --card: 234.55 17.46% 12.35%;
-      --card-foreground: 229.76 31.78% 74.71%;
-      --border: 232.5 15.38% 30.59%;
-      --input: 232 20% 14.71%;
-      --primary: 225.45 71.22% 72.75%;
-      --primary-foreground: 234.55 17.46% 12.35%;
-      --secondary: 0 0% 82.75%;
-      --secondary-foreground: 0 0% 20%;
-      --accent:15 100% 73%; /* Matches #ff9875 */
-      --accent-foreground:  222.2 84% 4.9%;
-      --destructive: 1.58 47.5% 52.94%;
-      --destructive-foreground: 210 40% 98.04%;
-      --ring: 225.45 71.22% 72.75%;
-      --chart-1: 225.45 71.22% 72.75%;
-      --chart-2: 0 0% 82.75%;
-      --chart-3: 227.73 48.05% 48.58%;
-      --chart-4: 0 0% 85.75%;
-      --chart-5: 225.45 74.22% 72.75%;
+      --background: 0 0% 6.67%;
+      --foreground: 0 0% 93.33%;
+      --muted: 0 0% 14.9%;
+      --muted-foreground: 0 0% 73.33%;
+      --popover: 0 0% 6.67%;
+      --popover-foreground: 0 0% 93.33%;
+      --card: 0 0% 6.67%;
+      --card-foreground: 0 0% 93.33%;
+      --border: 0 0% 14.9%;
+      --input: 0 0% 14.9%;
+      --primary: 150.24 50% 40%;
+      --primary-foreground: 0 0% 93.33%;
+      --secondary: 0 0% 14.9%;
+      --secondary-foreground: 0 0% 93.33%;
+      --accent: 0 0% 14.9%;
+      --accent-foreground: 0 0% 93.33%;
+      --destructive: 0 50% 50%;
+      --destructive-foreground: 0 0% 93.33%;
+      --ring: 150 50% 40%;
+      --chart-1: 150.24 50% 40%;
+      --chart-2: 0 0% 14.9%;
+      --chart-3: 0 0% 14.9%;
+      --chart-4: 0 0% 17.9%;
+      --chart-5: 150.24 53% 40%;
     }
+  .theme {
+    --animate-aurora: aurora 8s ease-in-out infinite alternate;
   }
-  
+  }
 
 /* Regular */
 @font-face {
@@ -119,5 +122,30 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@theme inline {
+  @keyframes aurora {
+  0% {
+    background-position: 0% 50%;
+    transform: rotate(-5deg) scale(0.9);
+    }
+  25% {
+    background-position: 50% 100%;
+    transform: rotate(5deg) scale(1.1);
+    }
+  50% {
+    background-position: 100% 50%;
+    transform: rotate(-3deg) scale(0.95);
+    }
+  75% {
+    background-position: 50% 0%;
+    transform: rotate(3deg) scale(1.05);
+    }
+  100% {
+    background-position: 0% 50%;
+    transform: rotate(-5deg) scale(0.9);
+    }
   }
 }

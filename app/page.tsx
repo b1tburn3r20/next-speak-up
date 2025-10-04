@@ -1,27 +1,28 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import TestApiButton from "@/components/dev/TestApiButton";
-import { getServerSession } from "next-auth";
+import React from "react";
+import LandingNavbar from "./landing/navbar/navbar";
+import Hero from "./landing/components/Hero";
+import Contact from "./landing/components/Contact";
+import Features from "./landing/components/Features";
+import Product from "./landing/components/Product";
+import FAQ from "./landing/components/FAQ";
+import Compare from "./landing/components/Compare";
 
-// Dashboard Home Component (Server Component)
-export default async function Home() {
-  // Get the authenticated user session
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user) {
-    return (
-      <div className="p-4">
-        <p>Please sign in to view your dashboard.</p>
-      </div>
-    );
-  }
-
+const Page = () => {
   return (
     <div>
-      <img
-        src="https://www.cise.ufl.edu/~kcen/cis4930/assign5/assign5_files/spinning.gif"
-        alt="minecwaf"
-      />
-      <TestApiButton />
+      <LandingNavbar>
+        <div className="space-y-4 my-14">
+          <Hero />
+          <Features />
+          <Compare />
+          {/* <SocialProof /> */}
+          <Product />
+          {/* <FAQ /> */}
+          <Contact />
+        </div>
+      </LandingNavbar>
     </div>
   );
-}
+};
+
+export default Page;

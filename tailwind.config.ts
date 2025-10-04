@@ -83,7 +83,6 @@ const config: Config = {
         "color-4": "hsl(var(--color-4))",
         "color-5": "hsl(var(--color-5))",
       },
-
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -213,6 +212,25 @@ const config: Config = {
             right: "25%",
           },
         },
+        "shimmer-slide": {
+          to: {
+            transform: "translate(calc(100cqw - 100%), 0)",
+          },
+        },
+        "spin-around": {
+          "0%": {
+            transform: "translateZ(0) rotate(0)",
+          },
+          "15%, 35%": {
+            transform: "translateZ(0) rotate(90deg)",
+          },
+          "65%, 85%": {
+            transform: "translateZ(0) rotate(270deg)",
+          },
+          "100%": {
+            transform: "translateZ(0) rotate(360deg)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -222,9 +240,12 @@ const config: Config = {
         gradient: "gradient 8s linear infinite",
         rainbow: "rainbow var(--speed, 2s) infinite linear",
         "border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
+        "shimmer-slide":
+          "shimmer-slide var(--speed) ease-in-out infinite alternate",
+        "spin-around": "spin-around calc(var(--speed) * 2) infinite linear",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 };
 export default config;

@@ -7,24 +7,20 @@ import PageFooter from "./PageComponents/PageFooter";
 import { Toaster } from "sonner";
 import { OnboardingModal } from "./GeneralComponents/Onboarding/OnboardingModal";
 import Navbar from "./navbar/navbar";
+import { Open_Sans } from "next/font/google";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+const openSans = Open_Sans({
+  subsets: ["latin"],
+  variable: "--font-open-sans",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Congress Directory | Speakup",
-    template: "%s | Speakup",
+    default: "Coolbills",
+    template: "%s | Coolbills",
   },
+
   description:
     "Browse and search through comprehensive data about the U.S. Congress",
   keywords: [
@@ -38,18 +34,18 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "Speakup",
+    siteName: "Coolbills",
     title: {
-      default: "Congress Directory",
-      template: "%s | Speakup",
+      default: "Coolbills | Make a change in the US 1 person at a time.",
+      template: "%s | Coolbills",
     },
     description: "Comprehensive directory and data about the U.S. Congress",
   },
   twitter: {
     card: "summary_large_image",
     title: {
-      default: "Congress Directory",
-      template: "%s | Speakup",
+      default: "Coolbills | Make a change in the US 1 person at a time.",
+      template: "%s | Coolbills",
     },
     description: "Comprehensive directory and data about the U.S. Congress",
   },
@@ -67,7 +63,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
+        className={`${openSans.variable} antialiased`}
       >
         <AuthProvider>
           <ThemeProvider
@@ -83,7 +80,7 @@ export default function RootLayout({
               </main>
             </Navbar>
             <Toaster />
-            <OnboardingModal />
+            {/* <OnboardingModal /> */}
           </ThemeProvider>
         </AuthProvider>
       </body>

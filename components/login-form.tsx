@@ -1,19 +1,24 @@
 "use client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { useSearchParams } from "next/navigation";
 
-import React from "react";
 import { signIn } from "next-auth/react";
-import { Button } from "./ui/button";
 const LoginForm = () => {
+  const searchParams = useSearchParams();
+
   const handleGoogleSignin = async () => {
-    await signIn("google", { callbackUrl: "/" });
+    const callbackUrl =
+      searchParams.get("callbackUrl") ||
+      window.location.origin + window.location.pathname;
+
+    await signIn("google", { callbackUrl });
   };
   return (
     <Tabs defaultValue="providers">
       <TabsList className="w-full grid grid-cols-2">
         <TabsTrigger value="providers">Providers</TabsTrigger>
-        <TabsTrigger disabled value="speakup">
-          Speakup Login
+        <TabsTrigger disabled value="Coolbills">
+          Coolbills Login
         </TabsTrigger>
       </TabsList>
 
@@ -58,7 +63,7 @@ const LoginForm = () => {
           </span>
         </button>
       </TabsContent>
-      <TabsContent value="speakup">how u get here</TabsContent>
+      <TabsContent value="Coolbills">how u get here</TabsContent>
     </Tabs>
   );
 };

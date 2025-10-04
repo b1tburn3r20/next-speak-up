@@ -1,0 +1,21 @@
+import NewFormSubmitButton from "./components/NewFormSubmitButton";
+import NewForumPostForm from "./components/NewForumPostForm";
+import NewForumPostMessage from "./components/NewForumPostMessage";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Create New Forum Post",
+  description: "Create a forum post on the Coolbills App",
+};
+
+const Page = () => {
+  return (
+    <div className="space-y-2 p-2 lg:p-0 ">
+      <NewForumPostMessage />
+      <NewForumPostForm />
+      <NewFormSubmitButton />
+    </div>
+  );
+};
+
+export default Page;
