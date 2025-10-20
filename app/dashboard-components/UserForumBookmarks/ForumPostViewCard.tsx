@@ -100,7 +100,7 @@ const DesktopForumPostCard = ({ post }: ForumPostViewCardProps) => {
     <Link href={`/forum/posts/${post.id}`} className="block">
       <Card className="h-[300px] aspect-square select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-border/50 rounded-3xl">
         {/* Gradient overlay */}
-        <div className="absolute top-1/3 left-0 right-0 bottom-0 bg-gradient-to-b from-background/0 via-background/80 to-background z-10 pointer-events-none" />
+        <div className="absolute top-1/3 left-0 right-0 bottom-0 bg-linear-to-b from-background/0 via-background/80 to-background z-10 pointer-events-none" />
         {getIcon()}
 
         <div className="p-8 h-full flex flex-col relative">
@@ -148,7 +148,7 @@ const DesktopForumPostCard = ({ post }: ForumPostViewCardProps) => {
 
           {/* Bottom action area */}
           <div className="absolute bottom-0 left-0 right-0 z-20 p-6">
-            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-3xl p-4 transition-all duration-500 ease-out">
+            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-xs rounded-3xl p-4 transition-all duration-500 ease-out">
               <span className="text-lg font-bold text-muted-foreground/60 group-hover:text-primary transition-all duration-500 ease-out">
                 <span className="block group-hover:hidden">View</span>
                 <span className="hidden group-hover:block">
@@ -191,7 +191,7 @@ const MobileForumPostCard = ({ post }: ForumPostViewCardProps) => {
     <Link href={`/forum/posts/${post.id}`} className="block">
       <Card className="h-[200px] w-[280px] select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-border/50 rounded-2xl">
         {/* Mobile gradient overlay */}
-        <div className="absolute top-2/3 left-0 right-0 bottom-0 bg-gradient-to-b from-background/0 via-background/50 to-background z-10 pointer-events-none" />
+        <div className="absolute top-2/3 left-0 right-0 bottom-0 bg-linear-to-b from-background/0 via-background/50 to-background z-10 pointer-events-none" />
         {getIcon()}
 
         <div className="p-4 h-full flex flex-col relative">
@@ -235,7 +235,7 @@ const MobileForumPostCard = ({ post }: ForumPostViewCardProps) => {
 
           {/* Bottom action area */}
           <div className="absolute bottom-0 left-0 right-0 z-20 p-3">
-            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-xl p-3 transition-all duration-500 ease-out">
+            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-xs rounded-xl p-3 transition-all duration-500 ease-out">
               <span className="text-sm font-bold text-muted-foreground/60 group-hover:text-primary transition-all duration-500 ease-out">
                 <span className="block group-hover:hidden">View</span>
                 <span className="hidden group-hover:block text-xs">

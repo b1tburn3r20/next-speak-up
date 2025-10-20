@@ -77,7 +77,7 @@ export function CongressMemberCard({
         className || ""
       }`}
     >
-      <div className="flex-shrink-0 w-12 h-12">
+      <div className="shrink-0 w-12 h-12">
         <Avatar className="w-full h-full">
           <AvatarImage
             src={member.depiction?.imageUrl}
@@ -104,7 +104,7 @@ export function CongressMemberCard({
         size="icon"
         onClick={toggleFavorite}
         disabled={isLoading}
-        className="flex-shrink-0"
+        className="shrink-0"
       >
         <Heart
           className={`h-4 w-4 transition-colors ${

@@ -111,7 +111,7 @@ export function SupportBillButton({
       <div
         ref={noCardRef}
         onClick={() => handleVote(false)}
-        className={`z-20 rounded-lg shadow-2xl cursor-pointer flex-shrink-0 dark:bg-card bg-red-500 transition-opacity duration-500 ${
+        className={`z-20 rounded-lg shadow-2xl cursor-pointer shrink-0 dark:bg-card bg-red-500 transition-opacity duration-500 ${
           isLoading ? "opacity-50 pointer-events-none" : ""
         }`}
         style={{ ...cardSize, transformOrigin: "center center" }}
@@ -128,7 +128,7 @@ export function SupportBillButton({
       <div
         ref={yesCardRef}
         onClick={() => handleVote(true)}
-        className={`z-20 rounded-lg shadow-2xl cursor-pointer flex-shrink-0 dark:bg-card bg-green-500 transition-opacity duration-500 ${
+        className={`z-20 rounded-lg shadow-2xl cursor-pointer shrink-0 dark:bg-card bg-green-500 transition-opacity duration-500 ${
           isLoading ? "opacity-50 pointer-events-none" : ""
         }`}
         style={{ ...cardSize, transformOrigin: "center center" }}

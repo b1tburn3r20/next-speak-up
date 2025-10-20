@@ -79,7 +79,7 @@ export function VoteCards({ bill, votes, onVote }: VoteCardsProps) {
       <div
         ref={noCardRef}
         onClick={() => handleVote(false)}
-        className="w-[250px] h-[400px] z-20 rounded-lg shadow-2xl cursor-pointer flex-shrink-0 dark:bg-card bg-red-500"
+        className="w-[250px] h-[400px] z-20 rounded-lg shadow-2xl cursor-pointer shrink-0 dark:bg-card bg-red-500"
         style={{
           transformOrigin: "center center",
           pointerEvents: cardsReady ? "auto" : "none",
@@ -95,7 +95,7 @@ export function VoteCards({ bill, votes, onVote }: VoteCardsProps) {
       <div
         ref={yesCardRef}
         onClick={() => handleVote(true)}
-        className="w-[250px] h-[400px] z-20 rounded-lg shadow-2xl cursor-pointer flex-shrink-0 dark:bg-card bg-green-500"
+        className="w-[250px] h-[400px] z-20 rounded-lg shadow-2xl cursor-pointer shrink-0 dark:bg-card bg-green-500"
         style={{
           transformOrigin: "center center",
           pointerEvents: cardsReady ? "auto" : "none",

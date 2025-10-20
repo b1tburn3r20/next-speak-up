@@ -70,7 +70,7 @@ const Product = () => {
               <ul className="space-y-2">
                 {pricingTier.perks.map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex items-start">
-                    <span className="text-primary mr-3 mt-1 flex-shrink-0">
+                    <span className="text-primary mr-3 mt-1 shrink-0">
                       •
                     </span>
                     <span className="text-sm sm:text-base leading-relaxed">

@@ -220,7 +220,7 @@ const Contact = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 max-w-6xl mx-auto">
           {/* Contact Form */}
           <div className="lg:col-span-2 order-2 lg:order-1">
-            <div className="bg-card border rounded-xl p-6 sm:p-8 shadow-sm">
+            <div className="bg-card border rounded-xl p-6 sm:p-8 shadow-xs">
               <ContactForm />
             </div>
           </div>

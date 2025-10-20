@@ -43,7 +43,7 @@ const NavToggle = () => {
   };
 
   return (
-    <div className="flex group items-center justify-between p-4 flex-shrink-0">
+    <div className="flex group items-center justify-between p-4 shrink-0">
       <div className="nav-logo font-bold text-xl">Coolbills</div>
       <div
         className={`${

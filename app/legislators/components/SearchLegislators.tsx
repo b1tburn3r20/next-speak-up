@@ -202,7 +202,7 @@ const SearchLegislators = ({ legislators }: SearchLegislatorsProps) => {
         {shouldShowResultsContainer && (
           <div
             onMouseDown={(e) => e.preventDefault()}
-            className="absolute h-80 w-full top-[60px] z-[20] rounded-[30px] border-2 border-secondary bg-background overflow-hidden"
+            className="absolute h-80 w-full top-[60px] z-20 rounded-[30px] border-2 border-secondary bg-background overflow-hidden"
           >
             {getResultsState() === "searching" && (
               <div className="w-full h-full flex justify-center items-center">

@@ -185,7 +185,7 @@ const ManageRoleList = ({ roles, allPermissions }: ManageRoleProps) => {
                 </div>
               </div>
               <Separator
-                className="h-full mx-6 w-[1px]"
+                className="h-full mx-6 w-px"
                 orientation="vertical"
               />
               <div className="space-y-2  border p-2 rounded-lg w-1/2">

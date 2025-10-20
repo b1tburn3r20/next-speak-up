@@ -27,7 +27,7 @@ const Page = async () => {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 lg:gap-12 w-full">
-        <div className="w-full lg:w-auto overflow-hidden lg:flex-shrink-0">
+        <div className="w-full lg:w-auto overflow-hidden lg:shrink-0">
           <LastViewedBill bill={lastViewedBill} />
         </div>
         <div className="w-full overflow-hidden lg:flex-1 lg:min-w-0">

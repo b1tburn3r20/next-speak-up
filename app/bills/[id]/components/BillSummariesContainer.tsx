@@ -17,13 +17,13 @@ const BillSummariesContainer = ({
         <div>
           <TabsList className="grid grid-cols-3 w-full h-auto p-1 bg-muted/50">
             <TabsTrigger
-              className="font-bold text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+              className="font-bold text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-xs transition-all duration-200"
               value="Simplified"
             >
               <span className="truncate">Simplified</span>
             </TabsTrigger>
             <TabsTrigger
-              className="font-bold  text-center text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 opacity-60 cursor-not-allowed"
+              className="font-bold  text-center text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-xs transition-all duration-200 opacity-60 cursor-not-allowed"
               disabled={noOfficialSummary}
               value="Official"
             >
@@ -32,7 +32,7 @@ const BillSummariesContainer = ({
               </span>
             </TabsTrigger>
             <TabsTrigger
-              className="font-bold text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+              className="font-bold text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-xs transition-all duration-200"
               value="bill-text"
             >
               <span className="truncate">Bill Text</span>
@@ -42,7 +42,7 @@ const BillSummariesContainer = ({
 
         <TabsContent
           value="Simplified"
-          className="mt-4 sm:mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-lg"
+          className="mt-4 sm:mt-6 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-lg"
         >
           <div>
             <AIBillSummaries userId={userId} />
@@ -51,13 +51,13 @@ const BillSummariesContainer = ({
 
         <TabsContent
           value="Official"
-          className="mt-4 sm:mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-lg"
+          className="mt-4 sm:mt-6 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-lg"
         >
           <p>coming soon</p>
         </TabsContent>
         <TabsContent
           value="bill-text"
-          className="mt-4 sm:mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-lg"
+          className="mt-4 sm:mt-6 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-lg"
         >
           <BillTextTab />
         </TabsContent>

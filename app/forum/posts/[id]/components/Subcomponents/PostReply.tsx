@@ -60,7 +60,7 @@ const PostReply = ({
   return (
     <div className="relative">
       {/* Mobile-first container */}
-      <div className="bg-card border rounded-lg overflow-hidden shadow-sm">
+      <div className="bg-card border rounded-lg overflow-hidden shadow-xs">
         {/* Header with replying to indicator */}
         <div className="flex items-center justify-between p-2 sm:p-3 border-b bg-muted/20">
           <div className="flex items-center gap-2">

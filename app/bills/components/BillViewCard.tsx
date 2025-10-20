@@ -81,7 +81,7 @@ const DesktopBillCard = ({ bill }: BillViewCardProps) => {
     <Link href={`/bills/${bill.name_id}`} className="block">
       <Card className="h-[300px] aspect-square select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-border/50 rounded-3xl">
         {/* Aggressive gradient overlay - gets to 100% much faster */}
-        <div className="absolute top-1/3 left-0 right-0 bottom-0 bg-gradient-to-b from-background/0 via-background/80 to-background z-10 pointer-events-none" />
+        <div className="absolute top-1/3 left-0 right-0 bottom-0 bg-linear-to-b from-background/0 via-background/80 to-background z-10 pointer-events-none" />
         {getIcon()}
 
         <div className="p-8 h-full flex flex-col relative">
@@ -129,7 +129,7 @@ const DesktopBillCard = ({ bill }: BillViewCardProps) => {
 
           {/* Bottom action area with primary border on hover */}
           <div className="absolute bottom-0 left-0 right-0 z-20 p-6">
-            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-3xl p-4 transition-all duration-500 ease-out">
+            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-xs rounded-3xl p-4 transition-all duration-500 ease-out">
               {/* Consistent size and weight, only color changes */}
               <span className="text-lg font-bold text-muted-foreground/60 group-hover:text-primary transition-all duration-500 ease-out">
                 <span className="block group-hover:hidden">View</span>
@@ -198,7 +198,7 @@ const MobileBillCard = ({ bill }: BillViewCardProps) => {
     <Link href={`/bills/${bill.name_id}`} className="block">
       <Card className="h-[200px] w-[280px] select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-border/50 rounded-2xl">
         {/* Mobile-optimized gradient overlay */}
-        <div className="absolute top-2/3 left-0 right-0 bottom-0 bg-gradient-to-b from-background/0 via-background/50 to-background z-10 pointer-events-none" />
+        <div className="absolute top-2/3 left-0 right-0 bottom-0 bg-linear-to-b from-background/0 via-background/50 to-background z-10 pointer-events-none" />
         {getIcon()}
 
         <div className="p-4 h-full flex flex-col relative">
@@ -239,7 +239,7 @@ const MobileBillCard = ({ bill }: BillViewCardProps) => {
 
           {/* Bottom action area */}
           <div className="absolute bottom-0 left-0 right-0 z-20 p-3">
-            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-xl p-3 transition-all duration-500 ease-out">
+            <div className="flex items-center justify-between border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-xs rounded-xl p-3 transition-all duration-500 ease-out">
               <span className="text-sm font-bold text-muted-foreground/60 group-hover:text-primary transition-all duration-500 ease-out">
                 <span className="block group-hover:hidden">View</span>
                 <span className="hidden group-hover:block text-xs">

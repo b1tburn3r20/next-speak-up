@@ -71,7 +71,7 @@ const Page = async ({ params }: PageProps) => {
       <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Main content - takes full width on mobile, 2/3 on desktop */}
         <div className="lg:col-span-2">
-          <div className=" rounded-lg shadow p-6">
+          <div className=" rounded-lg shadow-sm p-6">
             <h1 className="text-2xl font-bold mb-4">User Profile</h1>
             <div className="flex items-center gap-4 mb-6">
               {userMetrics.image && (

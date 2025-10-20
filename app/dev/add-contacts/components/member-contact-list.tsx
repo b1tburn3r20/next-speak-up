@@ -123,7 +123,7 @@ export function MemberContactList({ initialMembers, pagination }: Props) {
         {members.map((member) => (
           <Card key={member.bioguideId}>
             <CardContent className="p-4">
-              <div className="grid grid-cols-[1fr,2fr,2fr,auto,auto] gap-4 items-center">
+              <div className="grid grid-cols-[1fr_2fr_2fr_auto_auto] gap-4 items-center">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -176,7 +176,7 @@ export function MemberContactList({ initialMembers, pagination }: Props) {
               <Button
                 key={pageNum}
                 variant={
-                  pageNum === pagination.currentPage ? "default" : "outline"
+                  pageNum === pagination.currentPage ? "default" : "outline-solid"
                 }
                 onClick={() => router.push(`/dev/add-contacts?page=${pageNum}`)}
               >
