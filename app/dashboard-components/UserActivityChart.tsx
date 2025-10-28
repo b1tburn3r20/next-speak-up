@@ -1,13 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { TrendingUp, BarChart3, List } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { Label, Pie, PieChart } from "recharts";
 
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -38,14 +37,18 @@ export default function UserActivityChart({
     { action: "Meeting", count: 209 },
   ],
 }: UserActivityChartProps) {
-  const chartColors = ["#26734d", "#339966", "#66bb88", "#b3e0cc", "#e6f5ee"];
 
   const chartData = React.useMemo(() => {
-    return favoriteActions.map((item, index) => ({
-      action: item.action,
-      count: item.count,
-      fill: chartColors[index % chartColors.length],
-    }));
+    return favoriteActions.map((item, index) => {
+      const key = item.action.toLowerCase().replace(/\s+/g, "-");
+      const colorIndex = (index % 5) + 1;
+
+      return {
+        action: item.action,
+        count: item.count,
+        fill: `var(--color-${key})`,
+      };
+    });
   }, [favoriteActions]);
 
   const chartConfig = React.useMemo(() => {
@@ -57,14 +60,19 @@ export default function UserActivityChart({
 
     favoriteActions.forEach((action, index) => {
       const key = action.action.toLowerCase().replace(/\s+/g, "-");
+      const colorIndex = (index % 5) + 1;
+
       config[key] = {
         label: action.action,
-        color: chartColors[index % chartColors.length],
+        color: `var(--chart-${colorIndex})`,
       };
     });
 
+    console.log('Chart config:', config);
+    console.log('Chart data:', chartData);
+
     return config;
-  }, [favoriteActions]);
+  }, [favoriteActions, chartData]);
 
   // Calculate total actions
   const totalActions = React.useMemo(() => {
@@ -92,7 +100,7 @@ export default function UserActivityChart({
 
       <Tabs defaultValue="pie" className="w-full">
         <div className="flex justify-center pb-4 px-2">
-          <TabsList className="grid w-full  grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="pie" className="flex items-center gap-2">
               Chart
             </TabsTrigger>
@@ -173,7 +181,7 @@ export default function UserActivityChart({
                         style={{ backgroundColor: item.fill }}
                       />
                       <div>
-                        <div className="text-sm max-w-xs truncate lg:font-medium ">
+                        <div className="text-sm max-w-xs truncate lg:font-medium">
                           {item.action}
                         </div>
                         <div className="text-sm text-muted-foreground">

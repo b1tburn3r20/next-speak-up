@@ -6,7 +6,7 @@ const LandingNavbar = ({ children }) => {
   return (
     <>
       {/* Desktop Navbar - hidden on mobile */}
-      <div className="hidden md:block">
+      <div className="hidden mb-12 md:block">
         <LandingDesktopNavbar />
       </div>
 

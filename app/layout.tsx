@@ -64,7 +64,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${openSans.variable} antialiased`}
+        className={`${openSans.variable} font-semibold text-lg antialiased`}
       >
         <AuthProvider>
           <ThemeProvider

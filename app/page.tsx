@@ -13,10 +13,10 @@ const Page = () => {
       <LandingNavbar>
         <div className="space-y-4 my-14">
           <Hero />
-          <Features />
-          <Compare />
+          {/* <Features /> */}
+          {/* <Compare /> */}
           {/* <SocialProof /> */}
-          <Product />
+          {/* <Product /> */}
           {/* <FAQ /> */}
           <Contact />
         </div>

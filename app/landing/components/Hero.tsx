@@ -13,17 +13,15 @@ const Hero = () => {
           className="font-bold text-4xl sm:text-5xl lg:text-6xl leading-tight [&>span:last-child]:text-primary"
           as="h1"
         >
-          Bringing you closer to real change.
+          Government has never been this easy.
         </TextAnimate>
         <p className="text-muted-foreground text-base sm:text-lg max-w-prose mx-auto lg:mx-0">
-          We make it easy to stay connected with what's happening in government.
-          Track the bills that matter to you, see how your representatives vote,
-          and let them know where you stand on the issues.
+          Coolbills takes out the complexity of government so you can see whats happening in Washington and see how you align with your congress members.
         </p>{" "}
         <div>
           <Link href={"/dashboard"}>
             <Button size="lg" className="w-full sm:w-auto">
-              Take me there <ArrowRight className="ml-2" />
+              Lets Go! <ArrowRight className="ml-2" />
             </Button>
           </Link>
         </div>

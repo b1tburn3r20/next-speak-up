@@ -10,6 +10,7 @@ import { navItems } from "../../data/navbarData";
 import { useNavbarStore } from "../useNavbarStore";
 import { useUserStore } from "@/app/admin/stores/useUserStore";
 import { usePathname } from "next/navigation";
+import NavbarTop from "../navbar-top";
 
 interface ClientNavbarProps {
   visibleNavHrefs: string[];
@@ -88,7 +89,7 @@ const ClientNavbar = ({
       </div>
 
       <div className="flex-1 flex flex-col">
-        {/* <NavbarTop /> */}
+        <NavbarTop />
         {/* rest of app */}
         <div className="flex-1 overflow-auto">
           <div

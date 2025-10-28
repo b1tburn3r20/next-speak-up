@@ -12,9 +12,10 @@ import EmptyBillCard from "./EmptyBillCard";
 
 interface RecentBillsCarouselProps {
   bills: Legislation[];
+  size?: string
 }
 
-const RecentBillsCarousel = ({ bills }: RecentBillsCarouselProps) => {
+const RecentBillsCarousel = ({ bills, size = "lg" }: RecentBillsCarouselProps) => {
   if (bills.length === 0) {
     return (
       <div className="w-full max-w-md mx-auto">
@@ -41,7 +42,7 @@ const RecentBillsCarousel = ({ bills }: RecentBillsCarouselProps) => {
               key={bill.id}
               className="basis-[280px] sm:basis-[320px] lg:basis-auto min-w-0 pl-2 sm:pl-4"
             >
-              <BillViewCard bill={bill} />
+              <BillViewCard bill={bill} size={size} />
             </CarouselItem>
           ))}
         </CarouselContent>
