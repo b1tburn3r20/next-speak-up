@@ -28,13 +28,13 @@ const Hero = () => {
       </div>
       <div className="w-full flex justify-center lg:justify-end">
         <div className="relative w-full max-w-md lg:max-w-none aspect-video">
-          <iframe
-            className="w-full h-full rounded-lg"
-            src="https://www.youtube.com/embed/lhe286ky-9A?si=P4zvnHUc0bS9698I"
-            title="YouTube video player"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
+          {/* <iframe */}
+          {/*   className="w-full h-full rounded-lg" */}
+          {/*   src="https://www.youtube.com/embed/lhe286ky-9A?si=P4zvnHUc0bS9698I" */}
+          {/*   title="YouTube video player" */}
+          {/*   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" */}
+          {/*   allowFullScreen */}
+          {/* /> */}
         </div>
       </div>
     </div>
