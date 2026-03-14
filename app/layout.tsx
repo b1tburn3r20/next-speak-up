@@ -10,7 +10,7 @@ import Navbar from "./navbar/navbar";
 import { Open_Sans, Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -79,7 +79,6 @@ export default function RootLayout({
             <Navbar>
               <main className="container mx-auto space-x-4 ">
                 {children}
-                <PageFooter />
               </main>
             </Navbar>
             <Toaster />
