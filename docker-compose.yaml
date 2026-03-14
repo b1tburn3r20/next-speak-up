@@ -1,5 +1,4 @@
 version: "3.8"
-
 services:
   app:
     build:
@@ -24,10 +23,13 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - CONGRESS_API_KEY=${CONGRESS_API_KEY}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL}
+      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - db
     command: sh -c "npx prisma migrate deploy && node server.js"
-
   db:
     image: mysql:8.0
     restart: always
@@ -40,6 +42,5 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-
 volumes:
   mysql_data:

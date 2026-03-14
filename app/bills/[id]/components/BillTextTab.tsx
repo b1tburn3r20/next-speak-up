@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useBillState } from "@/app/federal/bills/[billId]/useBillState";
 import { toast } from "sonner";
 import { useBillPageStore } from "../useBillPageStore";
-
+import DOMPurify from "dompurify";
 const BillTextTab = () => {
   const billData = useBillPageStore((f) => f.billData);
   const congress = billData?.legislation?.congress;
@@ -21,36 +21,26 @@ const BillTextTab = () => {
   const currentBillId = useBillState((f) => f.currentBillId);
   const setCurrentBillId = useBillState((f) => f.setCurrentBillId);
 
-  // Create a unique bill identifier
   const billId =
     congress && type && number ? `${congress}-${type}-${number}` : null;
 
-  // Clear state and fetch bill data when bill changes (not when component mounts)
   useEffect(() => {
     const fetchBillText = async () => {
       if (!billId || isBillLoading) return;
-
-      // If this is the same bill and it's already loaded, don't fetch again
       if (currentBillId === billId && isBillLoaded) {
         return;
       }
-
-      // If this is a different bill, clear state first
       if (currentBillId !== billId) {
         resetBillState();
         setCurrentBillId(billId);
       }
-
-      // If already loaded for this bill, don't fetch again
       if (isBillLoaded && currentBillId === billId) {
         return;
       }
-
       setBillLoading(true);
       toast.success("Loading bill text...", {
         position: "bottom-center",
       });
-
       try {
         const formattedType = type
           .toLowerCase()
@@ -58,11 +48,9 @@ const BillTextTab = () => {
           .replace(" ", "");
         const url = `/api/bills/text?congress=${congress}&type=${formattedType}&number=${number}`;
         const response = await fetch(url);
-
         if (!response.ok) {
           throw new Error("Failed to fetch bill text");
         }
-
         const data = await response.json();
         setBillText(data.text || "No text available for this bill");
         setBillLoaded(true);
@@ -75,7 +63,9 @@ const BillTextTab = () => {
     };
 
     fetchBillText();
-  }, [billId, isBillLoaded, currentBillId]); // Include isBillLoaded and currentBillId in dependencies
+  }, [billId, isBillLoaded, currentBillId]);
+  const cleaned = DOMPurify.sanitize(billText, { USE_PROFILES: { html: true } })
+
 
   if (isBillLoading) {
     return (
@@ -99,16 +89,14 @@ const BillTextTab = () => {
   }
 
   return (
-    <div className="p-4 h-full overflow-y-auto">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-background border rounded-lg p-6">
-          <pre className="whitespace-pre-wrap font-sans font-semibold text-lg leading-relaxed">
-            {billText}
-          </pre>
-        </div>
-      </div>
-    </div>
-  );
+
+    <div className="h-full border border-red-500 overflow-x-hidden">
+      <div
+        className="font-sans font-semibold text-lg leading-relaxed whitespace-pre-wrap break-words text-left overflow-wrap-anywhere max-w-full"
+        dangerouslySetInnerHTML={{ __html: cleaned }}
+      />
+    </div>)
+    ;
 };
 
 export default BillTextTab;

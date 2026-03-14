@@ -1,5 +1,4 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import RecentBills from "@/app/bills/components/RecentBills";
 import RecentBillsCarousel from "@/app/bills/components/RecentBillsCarousel";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { getRecentBills } from "@/lib/services/bills";

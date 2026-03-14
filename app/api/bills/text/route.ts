@@ -37,13 +37,12 @@ export async function GET(request: Request) {
     // Fetch the HTML content
     const htmlResponse = await fetch(htmlFormat.url);
     const htmlText = await htmlResponse.text();
-
+    console.log(htmlText)
     // Could add some basic HTML-to-text conversion here if needed
     // For now, just return the raw HTML
-    const formattedText = formatBillText(htmlText);
 
     return NextResponse.json({
-      text: formattedText,
+      text: htmlText,
       version: {
         type: latestVersion.type,
         date: latestVersion.date,

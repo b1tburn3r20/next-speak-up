@@ -7,7 +7,10 @@ import PageFooter from "./PageComponents/PageFooter";
 import { Toaster } from "sonner";
 import { OnboardingModal } from "./GeneralComponents/Onboarding/OnboardingModal";
 import Navbar from "./navbar/navbar";
-import { Open_Sans } from "next/font/google";
+import { Open_Sans, Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -61,7 +64,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <body
         suppressHydrationWarning
         className={`${openSans.variable} font-semibold text-lg antialiased`}

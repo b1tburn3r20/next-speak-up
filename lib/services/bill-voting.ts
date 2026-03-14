@@ -75,40 +75,27 @@ export const updateBillTracking = async (
 };
 
 export const getComprehensiveBillData = async (
-  billId: string | number, // Now accepts both string name_id and numeric id
+  billId: string | number,
   userId: string | null,
   userRole: string
 ) => {
-  // Determine the query based on the type of billId
   const whereClause =
     typeof billId === "string"
       ? {
-          name_id: billId,
-          // Ensure the legislation has at least one AI summary
-          aiSummaries: {
-            some: {},
-          },
-        }
+        name_id: billId,
+      }
       : {
-          id: billId,
-          // Ensure the legislation has at least one AI summary
-          aiSummaries: {
-            some: {},
-          },
-        };
-  console.log(billId);
+        id: billId,
+      };
 
-  // Get the main legislation data with all related information
   const billData = await prisma.legislation.findUnique({
     where: whereClause,
     include: {
-      // Include user's tracking data if authenticated
       userTracks: userId
         ? {
-            where: { userId },
-          }
+          where: { userId },
+        }
         : false,
-      // Add the missing summaries
       summaries: {
         orderBy: {
           actionDate: "desc",
@@ -168,24 +155,24 @@ export const getComprehensiveBillData = async (
   const sponsorMembers =
     sponsors.length > 0
       ? await prisma.congressMember.findMany({
-          where: {
-            bioguideId: {
-              in: sponsors.map((s) => s.sponsorBioguideId),
-            },
+        where: {
+          bioguideId: {
+            in: sponsors.map((s) => s.sponsorBioguideId),
           },
-        })
+        },
+      })
       : [];
 
   // Get cosponsor member details
   const cosponsorMembers =
     cosponsors.length > 0
       ? await prisma.congressMember.findMany({
-          where: {
-            bioguideId: {
-              in: cosponsors.map((c) => c.cosponsorBioguideId),
-            },
+        where: {
+          bioguideId: {
+            in: cosponsors.map((c) => c.cosponsorBioguideId),
           },
-        })
+        },
+      })
       : [];
 
   // Get related votes (if the legislation has associated congressional votes)
@@ -214,12 +201,12 @@ export const getComprehensiveBillData = async (
       const members =
         memberIds.length > 0
           ? await prisma.congressMember.findMany({
-              where: {
-                id: {
-                  in: memberIds,
-                },
+            where: {
+              id: {
+                in: memberIds,
               },
-            })
+            },
+          })
           : [];
 
       // Combine member votes with member details
@@ -320,26 +307,8 @@ export const getComprehensiveBillData = async (
           ?.favoritedAt || null,
     })),
 
-    // Congressional votes and member votes
     congressionalVotes,
-
-    // Additional related data
     latestAction,
     policyArea,
-
-    // Now includes summaries and AI summaries
-    summaries: billData.summaries || [],
-    aiSummaries: billData.aiSummaries || [],
-
-    // Summary counts
-    summary: {
-      totalSponsors: sponsorMembers.length,
-      totalCosponsors: cosponsorMembers.length,
-      totalCongressionalVotes: congressionalVotes.length,
-      totalSummaries: billData.summaries?.length || 0,
-      totalAiSummaries: billData.aiSummaries?.length || 0,
-      hasUserVoted: userVote !== null,
-      isUserTracking: billData.userTracks?.[0]?.hasViewed || false,
-    },
   };
 };

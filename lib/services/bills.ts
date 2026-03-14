@@ -30,14 +30,14 @@ export const getBillData = async (
       aiSummaries: true, // Include all AI summaries
       userTracks: userId
         ? {
-            where: { userId },
-            select: {
-              hasViewed: true,
-              viewedAt: true,
-              createdAt: true,
-              updatedAt: true,
-            },
-          }
+          where: { userId },
+          select: {
+            hasViewed: true,
+            viewedAt: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        }
         : false,
     },
   });
@@ -65,37 +65,43 @@ export const getRecentBills = async (
   userId: string | null,
   userRole: string
 ) => {
-  const bills = await prisma.legislation.findMany({
-    where: {
-      aiSummaries: {
-        some: {},
-      },
-    },
+  // Get legislation IDs sorted by most recent action date
+  const latestActions = await prisma.billAction.groupBy({
+    by: ["legislationId"],
+    _max: { actionDate: true },
     orderBy: {
-      updatedAt: "desc",
+      _max: { actionDate: "desc" },
     },
     take: 10,
+  });
+
+  const billIds = latestActions.map((a) => a.legislationId);
+
+  const bills = await prisma.legislation.findMany({
+    where: { id: { in: billIds } },
     include: {
-      summaries: true, // Include all summaries
-      aiSummaries: true, // Include all AI summaries
+      summaries: true,
+      aiSummaries: true,
       userTracks: userId
         ? {
-            where: { userId },
-            select: {
-              hasViewed: true,
-              viewedAt: true,
-              createdAt: true,
-              updatedAt: true,
-            },
-          }
-        : false, // Don't include userTracks for guests
+          where: { userId },
+          select: {
+            hasViewed: true,
+            viewedAt: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        }
+        : false,
     },
   });
 
-  // If user exists, fetch their votes for all these bills
+  // Re-sort to match groupBy order
+  const sortedBills = billIds.map((id) => bills.find((b) => b.id === id)!);
+
+  // Fetch user votes if logged in
   let userVotes: { [key: number]: any } = {};
   if (userId) {
-    const billIds = bills.map((bill) => bill.id);
     const votes = await prisma.userVote.findMany({
       where: {
         userId,
@@ -109,7 +115,6 @@ export const getRecentBills = async (
       },
     });
 
-    // Create a lookup object for votes by legislation ID
     userVotes = votes.reduce((acc, vote) => {
       if (vote.legislationId) {
         acc[vote.legislationId] = {
@@ -122,8 +127,7 @@ export const getRecentBills = async (
     }, {} as { [key: number]: any });
   }
 
-  // Add user votes to each bill
-  const billsWithVotes = bills.map((bill) => ({
+  const billsWithVotes = sortedBills.map((bill) => ({
     ...bill,
     userVotes: userVotes[bill.id] ? [userVotes[bill.id]] : [],
   }));

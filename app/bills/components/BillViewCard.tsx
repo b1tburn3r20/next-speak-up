@@ -1,3 +1,4 @@
+import { sanitizeText } from "@/app/utils/text";
 import { Card } from "@/components/ui/card";
 import { FullLegislation } from "@/lib/types/bill-types";
 import { ArrowRight, Bell, BookOpen, CircleCheck } from "lucide-react";
@@ -20,15 +21,6 @@ const getLatestSummary = (summaries: any[]) => {
 };
 
 // Helper function to get the most recent AI summary
-const getLatestAiSummary = (aiSummaries: any[]) => {
-  if (!aiSummaries || aiSummaries.length === 0) return null;
-  const sorted = aiSummaries.sort((a, b) => {
-    const dateA = new Date(a.actionDate || a.createdAt);
-    const dateB = new Date(b.actionDate || b.createdAt);
-    return dateB.getTime() - dateA.getTime();
-  });
-  return sorted[0];
-};
 
 // Size configuration object
 const sizeConfig = {
@@ -112,7 +104,6 @@ const DesktopBillCard = ({ bill, size = "lg" }: BillViewCardProps) => {
   const hasVoted = bill.userVotes && bill.userVotes.length > 0;
 
   const latestSummary = getLatestSummary(bill.summaries);
-  const latestAiSummary = getLatestAiSummary(bill.aiSummaries);
 
   const getIcon = () => {
     if (hasTracked) {
@@ -138,7 +129,7 @@ const DesktopBillCard = ({ bill, size = "lg" }: BillViewCardProps) => {
       );
     }
   };
-
+  const cleaned = sanitizeText(latestSummary?.text)
   return (
     <Link href={`/bills/${bill.name_id}`} className="block">
       <Card className={`${config.card} select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-border/50`}>
@@ -167,19 +158,12 @@ const DesktopBillCard = ({ bill, size = "lg" }: BillViewCardProps) => {
           <div className={`mt-6 relative ${config.summarySpace}`}>
             {latestSummary && (
               <div>
-                <p className={`${config.summary} text-muted-foreground/70 line-clamp-3`}>
-                  {latestSummary.text}
-                </p>
+                <div className={`${config.summary} text-muted-foreground/70 line-clamp-3`}>
+                  <div dangerouslySetInnerHTML={{ __html: cleaned }} />
+                </div>
               </div>
             )}
 
-            {latestAiSummary && (
-              <div>
-                <p className={`${config.summary} text-muted-foreground/60 italic`}>
-                  {latestAiSummary.text}
-                </p>
-              </div>
-            )}
           </div>
 
           <div className={`absolute bottom-0 left-0 right-0 z-20 ${config.bottomPadding}`}>
@@ -218,7 +202,7 @@ const MobileBillCard = ({ bill, size = "sm" }: BillViewCardProps) => {
   const hasVoted = bill.userVotes && bill.userVotes.length > 0;
 
   const latestSummary = getLatestSummary(bill.summaries);
-  const latestAiSummary = getLatestAiSummary(bill.aiSummaries);
+  const cleaned = sanitizeText(latestSummary?.text)
 
   const getIcon = () => {
     if (hasTracked) {
@@ -267,19 +251,12 @@ const MobileBillCard = ({ bill, size = "sm" }: BillViewCardProps) => {
           <div className={`flex-1 relative ${config.summarySpace} z-5`}>
             {latestSummary && (
               <div>
-                <p className={`${config.summary} text-muted-foreground line-clamp-3 font-medium`}>
-                  {latestSummary.text}
-                </p>
+                <div className={`${config.summary} text-muted-foreground line-clamp-3 font-medium`}>
+                  <div dangerouslySetInnerHTML={{ __html: cleaned }} />
+                </div>
               </div>
             )}
 
-            {latestAiSummary && (
-              <div>
-                <p className={`${config.summary} text-muted-foreground/80 italic line-clamp-2`}>
-                  {latestAiSummary.text}
-                </p>
-              </div>
-            )}
           </div>
 
           <div className={`absolute bottom-0 left-0 right-0 z-20 ${config.bottomPadding}`}>
