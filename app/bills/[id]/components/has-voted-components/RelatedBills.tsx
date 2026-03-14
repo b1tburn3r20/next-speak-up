@@ -20,7 +20,7 @@ const RelatedBills = () => {
         <h2 className="text-xl font-semibold text-foreground">Related Bills</h2>
         <Card className="h-[120px] w-full select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-dashed border-border/30 rounded-xl">
           {/* Subtle gradient overlay for consistency */}
-          <div className="absolute top-1/2 left-0 right-0 bottom-0 bg-gradient-to-b from-background/0 via-background/60 to-background z-10 pointer-events-none" />
+          <div className="absolute top-1/2 left-0 right-0 bottom-0 bg-linear-to-b from-background/0 via-background/60 to-background z-10 pointer-events-none" />
 
           <div className="p-4 h-full flex flex-col relative items-center justify-center text-center">
             {/* Icon at the top */}
@@ -71,11 +71,11 @@ const RelatedBills = () => {
             >
               <Card className="h-[80px] w-full select-none group cursor-pointer hover:shadow-md transition-all duration-300 relative overflow-hidden border border-border/30 rounded-lg">
                 {/* Subtle gradient overlay for consistency */}
-                <div className="absolute top-1/2 left-0 right-0 bottom-0 bg-gradient-to-b from-background/0 via-background/60 to-background z-10 pointer-events-none" />
+                <div className="absolute top-1/2 left-0 right-0 bottom-0 bg-linear-to-b from-background/0 via-background/60 to-background z-10 pointer-events-none" />
 
                 <div className="p-3 h-full flex items-center relative">
                   {/* Icon on the left */}
-                  <div className="mr-3 relative z-20 flex-shrink-0">
+                  <div className="mr-3 relative z-20 shrink-0">
                     <div className="w-8 h-8 rounded-full bg-muted/30 flex items-center justify-center group-hover:bg-muted/50 transition-all duration-300">
                       <FileText className="w-4 h-4 text-muted-foreground/50 group-hover:text-muted-foreground/70 transition-colors duration-300" />
                     </div>
@@ -106,8 +106,8 @@ const RelatedBills = () => {
                   </div>
 
                   {/* Action area on the right */}
-                  <div className="ml-3 relative z-20 flex-shrink-0">
-                    <div className="flex items-center justify-center border border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-lg p-2 transition-all duration-300 ease-out">
+                  <div className="ml-3 relative z-20 shrink-0">
+                    <div className="flex items-center justify-center border border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-xs rounded-lg p-2 transition-all duration-300 ease-out">
                       {/* Action text */}
                       <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out mr-1 whitespace-nowrap">
                         View

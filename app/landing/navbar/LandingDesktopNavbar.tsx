@@ -45,15 +45,15 @@ const LandingDesktopNavbar = () => {
         navState === "visible"
           ? isAtTop
             ? "bg-transparent border-transparent"
-            : "bg-background/95 backdrop-blur border-b supports-[backdrop-filter]:bg-background/60"
+            : "bg-background/95 backdrop-blur-sm border-b supports-backdrop-filter:bg-background/60"
           : "-translate-y-full"
       }`}
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0 group">
-            <div className="font-bold text-2xl bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary/80 group-hover:to-primary transition-all duration-300">
+          <Link href="/" className="shrink-0 group">
+            <div className="font-bold text-2xl bg-linear-to-r from-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary/80 group-hover:to-primary transition-all duration-300">
               CoolBills
             </div>
           </Link>

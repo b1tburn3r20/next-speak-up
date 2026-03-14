@@ -21,7 +21,7 @@ const BillDetails = ({ bill }: BillDetailsProps) => {
           <div>
             <div className="flex flex-col space-y-4">
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <CalendarIcon className="h-4 w-4 flex-shrink-0" />
+                <CalendarIcon className="h-4 w-4 shrink-0" />
                 <span>
                   Introduced{" "}
                   {bill.introducedDate

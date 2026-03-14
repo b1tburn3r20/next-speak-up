@@ -54,7 +54,7 @@ model BillAction {
   actionDate    DateTime
   text          String   @db.Text
   type          String
-  actionCode    String? // Optional - in case you want to store the actionCode as well
+  actionCode    String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -74,7 +74,7 @@ model ForumPost {
   title     String
   isDeleted Boolean  @default(false) // Add this
   body      String   @db.Text
-  authorId  String // Required - all posts must have an author
+  authorId  String
   isLocked  Boolean  @default(false)
   isPinned  Boolean  @default(false)
   isEdited  Boolean  @default(false)
@@ -127,11 +127,11 @@ model FeatureSuggestion {
 model ForumComment {
   id        Int      @id @default(autoincrement())
   body      String   @db.Text
-  authorId  String // Required - all comments must have an author
+  authorId  String
   postId    Int
   parentId  Int? // For nested comments - null means top-level comment
   depth     Int      @default(0) // Track nesting depth for display
-  isDeleted Boolean  @default(false) // Soft delete to preserve thread structure
+  isDeleted Boolean  @default(false)
   isEdited  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -156,8 +156,8 @@ model ForumTag {
   id          Int      @id @default(autoincrement())
   name        String   @unique
   description String?
-  color       String? // Hex color for display
-  isOfficial  Boolean  @default(false) // Admin-created vs user-created tags
+  color       String?
+  isOfficial  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -280,7 +280,7 @@ model UserAction {
   action    String
   entityId  String?
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Add this relation
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], map: "UserAction_userId_idx")
   @@index([userRole], map: "UserAction_userRole_idx")
@@ -387,7 +387,7 @@ model CongressMember {
   sessions                    CongressSession[]
   favoritedBy                 FavoritedCongressMember[]
   depiction                   Depiction?
-  terms                       CongressTerm[] // Add this relationship
+  terms                       CongressTerm[]
 
   @@map("congressmember")
 }
@@ -400,7 +400,7 @@ model CongressTerm {
   memberId  Int
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
-  member    CongressMember @relation(fields: [memberId], references: [id], onDelete: Cascade) // Add this relationship
+  member    CongressMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@unique([memberId, chamber, startYear], map: "CongressTerm_memberId_chamber_startYear_key")
   @@index([memberId], map: "CongressTerm_memberId_idx")
@@ -456,7 +456,7 @@ model UserVote {
   legislationId Int?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade) // Add this relation
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, entityType, entityId], map: "UserVote_userId_entityType_entityId_key")
   @@index([entityType, entityId], map: "UserVote_entityType_entityId_idx")
@@ -505,7 +505,7 @@ model BillSummary {
   id            Int       @id @default(autoincrement())
   legislationId Int
   actionDate    DateTime?
-  actionDesc    String? // "Passed Senate", "Public Law", etc.
+  actionDesc    String?
   text          String?   @db.Text
   updateDate    DateTime?
   versionCode   String?
@@ -541,7 +541,7 @@ model RelatedLegislation {
   id               Int      @id @default(autoincrement())
   legislationId    Int // The main legislation
   relatedNameId    String // The name_id of the related legislation
-  relationshipType String // "Related bill", "Procedurally-related", etc.
+  relationshipType String
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   title            String

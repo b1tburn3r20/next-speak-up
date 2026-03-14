@@ -38,7 +38,7 @@ const UserAccountInformation = ({ user }: UserAccountInformationProps) => {
     <div>
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Avatar Section */}
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <div className="text-start space-y-4">
             <Avatar className="w-[300px] h-[300px] rounded-2xl shadow-lg border-4 border-background mx-auto">
               <AvatarImage

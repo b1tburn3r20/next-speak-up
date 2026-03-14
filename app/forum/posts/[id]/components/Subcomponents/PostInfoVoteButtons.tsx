@@ -231,7 +231,7 @@ const PostInfoVoteButtons = ({
               disabled={isVotingDisabled}
               className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${
                 showUpvoted
-                  ? "text-green-600 bg-green-50 dark:bg-green-950/50 shadow-sm"
+                  ? "text-green-600 bg-green-50 dark:bg-green-950/50 shadow-xs"
                   : "text-muted-foreground hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950/50"
               }`}
             >
@@ -248,7 +248,7 @@ const PostInfoVoteButtons = ({
         </Tooltip>
 
         {/* Vote Count */}
-        <div className="flex items-center justify-center min-w-[3rem] px-2">
+        <div className="flex items-center justify-center min-w-12 px-2">
           <span
             className={`text-sm sm:text-base font-bold text-center ${
               localNetVotes > 0
@@ -270,7 +270,7 @@ const PostInfoVoteButtons = ({
               disabled={isVotingDisabled}
               className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${
                 hasDownvoted && !isUserAuthor
-                  ? "text-red-600 bg-red-50 dark:bg-red-950/50 shadow-sm"
+                  ? "text-red-600 bg-red-50 dark:bg-red-950/50 shadow-xs"
                   : "text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
               }`}
             >

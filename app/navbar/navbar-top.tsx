@@ -8,7 +8,7 @@ const NavbarTop = () => {
     <div className="p-1 m-1 flex justify-end gap-2 items-center">
       <ModeToggle />
       <div className="relative">
-        <Search className="absolute top-2 left-3" />
+        <Search className="absolute top-[9px] text-muted-foreground left-3" />
         <Input className="pl-12 h-10" placeholder="Search anything..." />
       </div>
     </div>

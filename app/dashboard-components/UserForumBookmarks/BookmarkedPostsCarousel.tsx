@@ -35,7 +35,7 @@ const BookmarkedPostsCarousel = ({ posts }: BookmarkedPostsCarouselProps) => {
   return (
     <div className="relative w-full">
       {/* Fade overlays for desktop - hidden on mobile */}
-      <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-24 lg:w-72 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none hidden sm:block" />
+      <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-24 lg:w-72 bg-linear-to-l from-background to-transparent z-10 pointer-events-none hidden sm:block" />
 
       <Carousel
         opts={{

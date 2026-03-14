@@ -48,7 +48,7 @@ const Compare = () => {
         className="group block relative"
       >
         <div
-          className={`p-4 md:p-6 border-l-8 border-primary bg-accent/30 dark:bg-accent hover:bg-accent/40 transition-all duration-300 rounded-lg shadow-sm cursor-pointer`}
+          className={`p-4 md:p-6 border-l-8 border-primary bg-accent/30 dark:bg-accent hover:bg-accent/40 transition-all duration-300 rounded-lg shadow-xs cursor-pointer`}
         >
           <div className="flex items-center justify-between">
             <div className="space-y-1">

@@ -12,9 +12,10 @@ import EmptyBillCard from "./EmptyBillCard";
 
 interface RecentBillsCarouselProps {
   bills: Legislation[];
+  size?: string
 }
 
-const RecentBillsCarousel = ({ bills }: RecentBillsCarouselProps) => {
+const RecentBillsCarousel = ({ bills, size = "lg" }: RecentBillsCarouselProps) => {
   if (bills.length === 0) {
     return (
       <div className="w-full max-w-md mx-auto">
@@ -26,7 +27,7 @@ const RecentBillsCarousel = ({ bills }: RecentBillsCarouselProps) => {
   return (
     <div className="relative w-full">
       {/* Fade overlays for desktop - hidden on mobile */}
-      <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-24 lg:w-72 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none hidden sm:block" />
+      <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-24 lg:w-72 bg-linear-to-l from-background to-transparent z-10 pointer-events-none hidden sm:block" />
 
       <Carousel
         opts={{
@@ -41,7 +42,7 @@ const RecentBillsCarousel = ({ bills }: RecentBillsCarouselProps) => {
               key={bill.id}
               className="basis-[280px] sm:basis-[320px] lg:basis-auto min-w-0 pl-2 sm:pl-4"
             >
-              <BillViewCard bill={bill} />
+              <BillViewCard bill={bill} size={size} />
             </CarouselItem>
           ))}
         </CarouselContent>

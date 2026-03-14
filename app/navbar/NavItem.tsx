@@ -34,7 +34,7 @@ const NavItem = ({ href }: NavItemProps) => {
     >
       <IconComponent
         size={20}
-        className={`flex-shrink-0 transition-colors ${
+        className={`shrink-0 transition-colors ${
           isActive ? "text-primary" : ""
         }`}
       />

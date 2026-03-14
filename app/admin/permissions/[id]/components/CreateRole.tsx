@@ -1,13 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
-
 import { Input } from "@/components/ui/input";
 import { CircleCheck, CircleX, Loader2, ShieldPlus, Smile } from "lucide-react";
 import { useState, useCallback } from "react";
 import { debounce } from "lodash";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Role } from "@prisma/client";
 
 const CreateRole = () => {
   const [inputValue, setInputValue] = useState("");

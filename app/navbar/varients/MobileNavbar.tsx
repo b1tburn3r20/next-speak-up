@@ -30,7 +30,7 @@ const MobileNavbar = ({
       {/* Absolutely positioned hamburger menu button - appears on both states */}
       <button
         onClick={toggleMenu}
-        className="fixed top-2 right-2 z-[60] p-2 rounded-md "
+        className="fixed top-2 right-2 z-60 p-2 rounded-md "
         aria-label="Toggle menu"
       >
         <div className="w-6 h-6 flex flex-col justify-center items-center">
@@ -70,7 +70,7 @@ const MobileNavbar = ({
           isMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="p-4 border-b border-primary/50 flex-shrink-0">
+        <div className="p-4 border-b border-primary/50 shrink-0">
           <div className="flex justify-between items-center">
             <span className="font-semibold">Menu</span>
             {/* Empty space since button is now absolutely positioned */}
@@ -88,7 +88,7 @@ const MobileNavbar = ({
             ))}
           </nav>
 
-          <div className="border-t border-primary/50 flex-shrink-0">
+          <div className="border-t border-primary/50 shrink-0">
             <NavUser />
           </div>
         </div>

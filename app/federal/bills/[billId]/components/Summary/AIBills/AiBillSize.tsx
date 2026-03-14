@@ -42,7 +42,7 @@ const AiBillSize = ({ bill }: AiBillSizeProps) => {
     <div className="bg-transparent">
       <HoverCard>
         <HoverCardTrigger asChild>
-          <div className="flex flex-col items-center rounded-full  shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+          <div className="flex flex-col items-center rounded-full  shadow-xs hover:shadow-md transition-shadow cursor-pointer">
             {/* Size Label */}
 
             {/* Thermometer */}
@@ -72,7 +72,7 @@ const AiBillSize = ({ bill }: AiBillSizeProps) => {
           </div>
         </HoverCardTrigger>
 
-        <HoverCardContent side="right" align="end" className="w-80 z-[60]">
+        <HoverCardContent side="right" align="end" className="w-80 z-60">
           <div className="space-y-4">
             <h4 className="text-sm font-semibold">Bill Size Categories</h4>
             <div className="flex items-center gap-2">

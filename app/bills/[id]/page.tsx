@@ -19,7 +19,6 @@ interface PageProps {
   }>;
 }
 
-// Cache the bill data fetch to avoid duplicate calls
 const getCachedBillData = cache(
   async (billId: string, userId: string | null, userRole: string | null) => {
     return await getComprehensiveBillData(billId, userId, userRole);
@@ -37,7 +36,6 @@ export async function generateMetadata({
   const billId = resolvedParams.id;
 
   try {
-    // Fetch minimal bill data for metadata
     const bill = await getBillForMetadata(billId);
 
     if (!bill) {
@@ -68,12 +66,10 @@ const Page = async ({ params }: PageProps) => {
   const resolvedParams = await params;
   const billId = resolvedParams.id;
 
-  // Don't redirect if it's not a number - it might be a valid name_id
   if (!billId || billId.trim() === "") {
     redirect("/bills");
   }
 
-  // Just pass the billId as-is to the hybrid function
   const bill = await getCachedBillData(
     billId,
     session?.user?.id || null,
@@ -83,17 +79,14 @@ const Page = async ({ params }: PageProps) => {
   if (!bill) {
     return <NoBillData />;
   }
-
-  // Get user preferences for authenticated users
   let isDyslexicFriendly = false;
-  let ttsVoicePreference = "heart"; // Default value
+  let ttsVoicePreference = "heart";
 
   if (session?.user?.id) {
     isDyslexicFriendly = await getUserPreferenceAsBoolean(
       session.user.id,
       "dyslexic_friendly"
     );
-    // Get TTS voice preference
 
     const cantHaveCustomTTS =
       !session?.user?.id || session?.user?.role?.name === "Member";
@@ -105,12 +98,14 @@ const Page = async ({ params }: PageProps) => {
       ttsVoicePreference = preferences.ttsVoicePreference || "heart";
     }
 
-    // Use the bill's numeric ID for markBillAsViewed
     await markBillAsViewed(
       bill.legislation.id,
       session.user.id,
       session.user.role.name
     );
+
+
+
   }
   return (
     <div>
@@ -120,12 +115,12 @@ const Page = async ({ params }: PageProps) => {
         isDyslexicFriendly={isDyslexicFriendly}
         ttsVoicePreference={ttsVoicePreference}
       />
-      <BillAskAI
-        congress={bill.legislation.congress}
-        type={bill.legislation.type}
-        number={bill.legislation.number}
-        user={session}
-      />
+      {/* <BillAskAI */}
+      {/*   congress={bill.legislation.congress} */}
+      {/*   type={bill.legislation.type} */}
+      {/*   number={bill.legislation.number} */}
+      {/*   user={session} */}
+      {/* /> */}
     </div>
   );
 };

@@ -6,6 +6,8 @@ import { TextAnimate } from "@/components/magicui/text-animate";
 import UserActivityChart from "../dashboard-components/UserActivityChart";
 import UserTrackedBills from "../dashboard-components/UserTrackedBills/UserTrackedBills";
 import UserBookmarkedForumPosts from "../dashboard-components/UserForumBookmarks/UserBookmarkedForumPosts";
+import LatestBillsWidget from "../dashboard-components/widgets/LatestBillsWidget";
+import ActivityPointsWidget from "../dashboard-components/widgets/ActivityPointsWidget";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -23,13 +25,18 @@ export default async function Home() {
 
   return (
     <div className="container mx-auto p-4 space-y-8">
-      <TextAnimate className="text-4xl m-4 font-bold [&>span:first-child]:text-primary">
+      <TextAnimate className="text-4xl font-bold [&>span:first-child]:text-primary">
         {session?.user?.id ? `Hello, ${session.user.name}` : "Hi there."}
       </TextAnimate>
-
+      <div>
+        <LatestBillsWidget />
+      </div>
       {/* Activity Chart */}
       <div className="grid gap-8 md:grid-cols-2">
+
         <UserActivityChart favoriteActions={metrics.favoriteActions} />
+        <ActivityPointsWidget />
+
         <div className="max-w-full overflow-hidden">
           <UserTrackedBills />
         </div>

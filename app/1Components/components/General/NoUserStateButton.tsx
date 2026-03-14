@@ -20,7 +20,7 @@ const NoUserStateButton = ({
       className="max-h-[300px] aspect-square select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-dashed border-border/30 rounded-3xl"
     >
       {/* Subtle gradient overlay for consistency */}
-      <div className="absolute top-1/2 left-0 right-0 bottom-0 bg-gradient-to-b from-background/0 via-background/60 to-background z-10 pointer-events-none" />
+      <div className="absolute top-1/2 left-0 right-0 bottom-0 bg-linear-to-b from-background/0 via-background/60 to-background z-10 pointer-events-none" />
 
       <div className="p-8 h-full flex flex-col relative items-center justify-center text-center">
         {/* Icon at the top */}
@@ -46,7 +46,7 @@ const NoUserStateButton = ({
 
         {/* Bottom action area with primary border on hover */}
         <div className="absolute bottom-0 left-0 right-0 z-20 p-6">
-          <div className="flex items-center justify-center border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-sm rounded-3xl p-4 transition-all duration-500 ease-out">
+          <div className="flex items-center justify-center border-2 border-transparent group-hover:border-primary group-hover:bg-background/10 group-hover:backdrop-blur-xs rounded-3xl p-4 transition-all duration-500 ease-out">
             {/* Action text */}
             <span className="text-lg font-bold text-muted-foreground/60 group-hover:text-primary transition-all duration-500 ease-out mr-2">
               <p className="text-lg font-bold text-primary opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out mr-2">

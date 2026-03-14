@@ -82,7 +82,7 @@ const AiSummaryVersionSelector = ({
           {/* Version info and TTS controls */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
-              <span className="inline-block w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+              <span className="inline-block w-2 h-2 rounded-full bg-primary shrink-0" />
               <span className="text-sm font-medium">
                 {type} - {date}
               </span>
@@ -140,7 +140,7 @@ const AiSummaryVersionSelector = ({
                   >
                     {selectedSummary && (
                       <div className="flex items-center gap-2 truncate">
-                        <span className="inline-block w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                        <span className="inline-block w-2 h-2 rounded-full bg-primary shrink-0" />
                         <span className="truncate">
                           {getDisplayText(selectedSummary)}
                         </span>
@@ -173,7 +173,7 @@ const AiSummaryVersionSelector = ({
                           <div className="flex items-center justify-between w-full gap-3">
                             <div className="flex items-center gap-2 min-w-0 flex-1">
                               <span
-                                className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
+                                className={`inline-block w-2 h-2 rounded-full shrink-0 ${
                                   isSelected
                                     ? "bg-primary"
                                     : "bg-muted-foreground"
@@ -187,7 +187,7 @@ const AiSummaryVersionSelector = ({
                                   {index === 0 && (
                                     <Badge
                                       variant="secondary"
-                                      className="text-xs flex-shrink-0"
+                                      className="text-xs shrink-0"
                                     >
                                       Latest
                                     </Badge>
@@ -211,7 +211,7 @@ const AiSummaryVersionSelector = ({
             </div>
 
             {/* Right side: TTS controls */}
-            <div className="flex items-center gap-2 lg:flex-shrink-0">
+            <div className="flex items-center gap-2 lg:shrink-0">
               {billSize === "Very Long" ? (
                 <p className="text-xs text-muted-foreground italic">
                   Bill too long for TTS

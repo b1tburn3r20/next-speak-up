@@ -4,10 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Search } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import { useRouter } from "next/navigation";
-import { H } from "@upstash/redis/zmscore-DzNHSWxc";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { SimpleLandingPageLegislatorData } from "@/lib/types/legislator-types";
 type BillSearchResult = {
@@ -156,18 +154,16 @@ const SearchLegislators = ({ legislators }: SearchLegislatorsProps) => {
           ref={(el) => (resultItemRefs.current[index] = el)}
           onMouseOver={() => handleHover(index)}
           onMouseMove={handleMouseMove}
-          className={`p-2 border-2 border-primary/50 rounded-xl ${
-            index === selectedIndex && "bg-primary text-black"
-          }`}
+          className={`p-2 border-2 border-primary/50 rounded-xl ${index === selectedIndex && "bg-primary text-black"
+            }`}
         >
           <div className="flex justify-between items-center">
             <p className="text-lg font-bold">{result.name}</p>
             <p>{result.state} </p>
           </div>
           <p
-            className={`italic ${
-              index === selectedIndex ? "text-black" : "text-muted-foreground"
-            }`}
+            className={`italic ${index === selectedIndex ? "text-black" : "text-muted-foreground"
+              }`}
           >
             {result.district
               ? `Representative - District ${result.district}`
@@ -202,7 +198,7 @@ const SearchLegislators = ({ legislators }: SearchLegislatorsProps) => {
         {shouldShowResultsContainer && (
           <div
             onMouseDown={(e) => e.preventDefault()}
-            className="absolute h-80 w-full top-[60px] z-[20] rounded-[30px] border-2 border-secondary bg-background overflow-hidden"
+            className="absolute h-80 w-full top-[60px] z-20 rounded-[30px] border-2 border-secondary bg-background overflow-hidden"
           >
             {getResultsState() === "searching" && (
               <div className="w-full h-full flex justify-center items-center">
