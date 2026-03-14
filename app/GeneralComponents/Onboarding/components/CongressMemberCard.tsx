@@ -22,9 +22,8 @@ export function CongressMemberCard({
   const getInitials = (name: string) => {
     const nameParts = name.split(" ");
     if (nameParts.length >= 2) {
-      return `${nameParts[0][0]}${
-        nameParts[nameParts.length - 1][0]
-      }`.toUpperCase();
+      return `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]
+        }`.toUpperCase();
     }
     return name.slice(0, 2).toUpperCase();
   };
@@ -73,9 +72,8 @@ export function CongressMemberCard({
 
   return (
     <div
-      className={`flex items-center space-x-3 p-2 bg-card rounded-full border ${
-        className || ""
-      }`}
+      className={`flex items-center space-x-3 p-2 bg-card rounded-full border ${className || ""
+        }`}
     >
       <div className="shrink-0 w-12 h-12">
         <Avatar className="w-full h-full">
@@ -100,16 +98,14 @@ export function CongressMemberCard({
         </div>
       </div>
       <Button
-        variant="ghost"
         size="icon"
         onClick={toggleFavorite}
         disabled={isLoading}
         className="shrink-0"
       >
         <Heart
-          className={`h-4 w-4 transition-colors ${
-            isFavorited ? "fill-red-500 text-red-500" : "text-gray-500"
-          }`}
+          className={`h-4 w-4 transition-colors ${isFavorited ? "fill-red-500 text-red-500" : "text-gray-500"
+            }`}
         />
       </Button>
     </div>

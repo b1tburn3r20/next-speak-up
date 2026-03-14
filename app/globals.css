@@ -50,7 +50,9 @@
 }
 
 :root {
-  --background: oklch(1.0000 0 0);
+  --background-light: oklch(1.0000 0 0);
+  --background: oklch(0.975 0 0);
+  --background-dark: oklch(0.95 0 0);
   --foreground: oklch(0.1884 0.0128 248.5103);
   --card: oklch(0.9784 0.0011 197.1387);
   --card-foreground: oklch(0.1884 0.0128 248.5103);
@@ -88,7 +90,9 @@
 }
 
 .dark {
-  --background: oklch(0 0 0);
+  --background-light: oklch(0.5 0 0);
+  --background: oklch(0.25 0 0);
+  --background-dark: oklch(0 0 0);
   --foreground: oklch(0.9328 0.0025 228.7857);
   --card: oklch(0.2097 0.0080 274.5332);
   --card-foreground: oklch(0.8853 0 0);
@@ -127,6 +131,8 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-light: var(--background-light);
+  --color-background-dark: var(--background-dark);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);

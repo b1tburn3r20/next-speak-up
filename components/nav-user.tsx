@@ -109,12 +109,10 @@ export function NavUser() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="ghost"
-            className={`relative h-12 hover:bg-muted shrink-0 transition-all ${
-              navCollapsed
+            className={`relative h-12 hover:bg-muted shrink-0 transition-all ${navCollapsed
                 ? "w-12 justify-center p-0"
                 : "w-full justify-start px-3 py-2"
-            }`}
+              }`}
           >
             <Avatar className="h-8 w-8  rounded-lg shrink-0">
               {renderAvatarContent()}

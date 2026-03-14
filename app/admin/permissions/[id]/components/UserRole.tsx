@@ -117,7 +117,7 @@ const UserRole = ({ user }: { user: User }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="font-semibold">
+        <Button className="font-semibold">
           {userRole || "No Role Assigned"}
         </Button>
       </DialogTrigger>

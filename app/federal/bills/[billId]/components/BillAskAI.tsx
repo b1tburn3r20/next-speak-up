@@ -131,7 +131,6 @@ const BillAskAI = ({ congress, type, number, user }) => {
           <div className="flex items-center justify-between p-3 border-b bg-muted/50">
             <h3 className="font-semibold text-sm">Bill Text</h3>
             <Button
-              variant="ghost"
               size="icon"
               className="h-6 w-6"
               onClick={toggleBillText}
@@ -172,7 +171,6 @@ const BillAskAI = ({ congress, type, number, user }) => {
             {/* Bill Text Toggle */}
             {isBillLoaded && (
               <Button
-                variant="ghost"
                 size="icon"
                 onClick={toggleBillText}
                 title={showBillText ? "Hide bill text" : "Show bill text"}
@@ -190,7 +188,6 @@ const BillAskAI = ({ congress, type, number, user }) => {
 
             {/* Minimize Button */}
             <Button
-              variant="ghost"
               size="icon"
               onClick={() => setMinimized(true)}
             >

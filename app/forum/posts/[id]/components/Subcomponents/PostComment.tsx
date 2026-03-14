@@ -204,16 +204,14 @@ const PostComment = ({
         <div className="group">
           {/* Main Comment Row */}
           <div
-            className={`py-1 px-2 rounded hover:bg-muted/30 transition-colors ${
-              isDeleted ? "opacity-70" : ""
-            } ${isInteractionDisabled ? "opacity-60" : ""}`}
+            className={`py-1 px-2 rounded hover:bg-muted/30 transition-colors ${isDeleted ? "opacity-70" : ""
+              } ${isInteractionDisabled ? "opacity-60" : ""}`}
           >
             {/* Header with avatar, username, and metadata */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
               {/* Collapse Toggle - positioned before username */}
               {hasReplies && (
                 <Button
-                  variant="ghost"
                   size="sm"
                   className="h-4 w-4 p-0 hover:bg-muted shrink-0"
                   onClick={() => setIsCollapsed(!isCollapsed)}
@@ -273,9 +271,8 @@ const PostComment = ({
             {/* Comment Body */}
             <div className="flex-1 min-w-0">
               <div
-                className={`text-sm ${isCollapsed ? "line-clamp-2" : ""} ${
-                  isDeleted ? "italic text-muted-foreground" : ""
-                }`}
+                className={`text-sm ${isCollapsed ? "line-clamp-2" : ""} ${isDeleted ? "italic text-muted-foreground" : ""
+                  }`}
                 style={{
                   marginLeft: hasReplies ? "24px" : "20px", // Align with username
                 }}
@@ -306,28 +303,24 @@ const PostComment = ({
 
                   {/* Reply Button - disable for deleted comments or when post is locked/deleted */}
                   <Button
-                    variant="ghost"
                     size="sm"
-                    className={`h-6 px-2 text-xs ${
-                      isReplying ? "bg-muted" : ""
-                    }`}
+                    className={`h-6 px-2 text-xs ${isReplying ? "bg-muted" : ""
+                      }`}
                     onClick={handleReplyClick} // Changed from onReply?.(comment.id)
                     disabled={isReplying || isDeleted || isInteractionDisabled}
                     title={
                       isPostDeleted
                         ? "Cannot reply to comments on a deleted post"
                         : isPostLocked
-                        ? "Cannot reply to comments on a locked post"
-                        : undefined
+                          ? "Cannot reply to comments on a locked post"
+                          : undefined
                     }
                   >
                     <MessageSquare className="h-3 w-3 mr-1" />
                     <span>{isReplying ? "Replying..." : "Reply"}</span>
                   </Button>
-                  {/* Delete Button - only show for comment author and not already deleted */}
                   {!isDeleted && isUserAuthor && (
                     <Button
-                      variant="ghost"
                       size="sm"
                       className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={handleDeleteComment}
@@ -336,8 +329,8 @@ const PostComment = ({
                         isPostDeleted
                           ? "Cannot delete comments on a deleted post"
                           : isPostLocked
-                          ? "Cannot delete comments on a locked post"
-                          : undefined
+                            ? "Cannot delete comments on a locked post"
+                            : undefined
                       }
                     >
                       {isMakingAPICall ? (

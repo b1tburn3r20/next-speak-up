@@ -421,24 +421,26 @@ model FavoritedCongressMember {
 }
 
 model Vote {
-  id             Int      @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   congress       Int
   chamber        Chamber
   rollNumber     Int
   date           DateTime
   time           String?
-  description    String?  @db.Text
-  question       String?  @db.Text
+  description    String?      @db.Text
+  question       String?      @db.Text
   result         String?
   billNumber     String?
   name_id        String?
   totalYea       Int
   totalNay       Int
   totalNotVoting Int
-  totalPresent   Int      @default(0)
+  totalPresent   Int          @default(0)
   totalVoting    Int?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  memberVotes    MemberVote[]
+  legislation    Legislation? @relation(fields: [name_id], references: [name_id])
 
   @@unique([congress, chamber, rollNumber], map: "Vote_congress_chamber_rollNumber_key")
   @@index([congress], map: "Vote_congress_idx")
@@ -494,6 +496,7 @@ model MemberVote {
   state        String?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+  vote         Vote         @relation(fields: [voteId], references: [id], onDelete: Cascade)
 
   @@unique([voteId, memberId], map: "MemberVote_voteId_memberId_key")
   @@index([memberId], map: "MemberVote_memberId_idx")
@@ -569,17 +572,17 @@ model Legislation {
   updatedAt           DateTime             @updatedAt
   name_id             String?              @unique(map: "Legislation_name_id_key")
   relatedBills        RelatedLegislation[]
-  // Keep these fields as they seem to be different
   fine_print          String?              @db.Text
   hidden_implications String?              @db.Text
   key_terms           String?              @db.Text
   bill_size           String?
   word_count          Int?
   actions             BillAction[]
-  // Relations
   userTracks          UserBillTrack[]
   summaries           BillSummary[]
   aiSummaries         BillAiSummary[]
+  votes               Vote[]
+  policyArea          PolicyArea?          @relation(fields: [policy_area_id], references: [id])
 
   @@index([policy_area_id], map: "Legislation_policy_area_id_fkey")
   @@map("legislation")
@@ -659,10 +662,11 @@ model LegislationCosponsor {
 }
 
 model PolicyArea {
-  id        Int      @id @default(autoincrement())
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int           @id @default(autoincrement())
+  name         String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  legislations Legislation[]
 
   @@map("policyarea")
 }

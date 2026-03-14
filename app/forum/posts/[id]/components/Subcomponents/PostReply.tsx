@@ -76,7 +76,6 @@ const PostReply = ({
             )}
           </div>
           <Button
-            variant="ghost"
             size="sm"
             onClick={onCancel}
             disabled={isMakingAPICall} // Disable cancel button during API calls
@@ -134,7 +133,6 @@ const PostReply = ({
           {/* Action buttons */}
           <div className="flex gap-2">
             <Button
-              variant="ghost"
               size="sm"
               onClick={onCancel}
               disabled={isMakingAPICall} // Disable cancel during API calls

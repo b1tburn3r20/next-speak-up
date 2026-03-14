@@ -175,11 +175,9 @@ const ForumCommentVoteButtons = ({
   return (
     <div className="flex items-center gap-1">
       <Button
-        variant="ghost"
         size="sm"
-        className={`h-6 px-2 gap-1 ${
-          showUpvoted ? "text-primary" : ""
-        } disabled:opacity-50`}
+        className={`h-6 px-2 gap-1 ${showUpvoted ? "text-primary" : ""
+          } disabled:opacity-50`}
         onClick={handleUpvote}
         disabled={isVotingDisabled}
         title={getTooltipText()}
@@ -189,11 +187,9 @@ const ForumCommentVoteButtons = ({
       </Button>
 
       <Button
-        variant="ghost"
         size="sm"
-        className={`h-6 px-2 gap-1 ${
-          hasDownvoted && !isUserAuthor ? "text-destructive" : ""
-        } disabled:opacity-50`}
+        className={`h-6 px-2 gap-1 ${hasDownvoted && !isUserAuthor ? "text-destructive" : ""
+          } disabled:opacity-50`}
         onClick={handleDownvote}
         disabled={isVotingDisabled}
         title={getTooltipText()}

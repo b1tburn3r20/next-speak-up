@@ -67,7 +67,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <body
         suppressHydrationWarning
-        className={`${openSans.variable} font-semibold text-lg antialiased`}
+        className={`${openSans.variable} bg-background-dark font-semibold text-lg antialiased`}
       >
         <AuthProvider>
           <ThemeProvider

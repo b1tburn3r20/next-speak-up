@@ -62,8 +62,7 @@ export function MemberContactList({ initialMembers, pagination }: Props) {
       if (!response.ok) throw new Error("Failed to update member info");
 
       toast.success(
-        `Updated ${field} for ${
-          members.find((m) => m.bioguideId === bioguideId)?.name
+        `Updated ${field} for ${members.find((m) => m.bioguideId === bioguideId)?.name
         }`
       );
       router.refresh();
@@ -104,8 +103,7 @@ export function MemberContactList({ initialMembers, pagination }: Props) {
       if (!response.ok) throw new Error("Failed to update missing info status");
 
       toast.success(
-        `Marked ${members.find((m) => m.bioguideId === bioguideId)?.name} as ${
-          value ? "permanently missing" : "not missing"
+        `Marked ${members.find((m) => m.bioguideId === bioguideId)?.name} as ${value ? "permanently missing" : "not missing"
         } contact info`
       );
       router.refresh();
@@ -116,7 +114,6 @@ export function MemberContactList({ initialMembers, pagination }: Props) {
     }
   };
 
-  // Rest of the component remains the same...
   return (
     <div className="space-y-4">
       <div className="grid gap-4">
@@ -125,7 +122,6 @@ export function MemberContactList({ initialMembers, pagination }: Props) {
             <CardContent className="p-4">
               <div className="grid grid-cols-[1fr_2fr_2fr_auto_auto] gap-4 items-center">
                 <Button
-                  variant="ghost"
                   size="icon"
                   onClick={() => handleGoogleSearch(member.name)}
                   title="Search on Google"

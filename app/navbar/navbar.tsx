@@ -9,7 +9,6 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession(authOptions);
   const userRole = (session?.user as UserSession)?.role.name;
 
-  // Filter and only pass hrefs
   const visibleNavHrefs = navItems
     .filter((item) => {
       if (!item.requiredRoles) return true;

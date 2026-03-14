@@ -5,7 +5,7 @@ import React from "react";
 
 const NavbarTop = () => {
   return (
-    <div className="p-1 m-1 flex justify-end gap-2 items-center">
+    <div className="p-1 bg-background flex justify-end gap-2 items-center shadow-sm">
       <ModeToggle />
       <div className="relative">
         <Search className="absolute top-[9px] text-muted-foreground left-3" />

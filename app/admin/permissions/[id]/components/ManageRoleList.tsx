@@ -88,7 +88,6 @@ const ManageRoleList = ({ roles, allPermissions }: ManageRoleProps) => {
           <Button
             onClick={addPermission}
             disabled={adding}
-            variant="ghost"
             className="h-12 shrink-0 ml-1 w-12 p-0"
           >
             {adding ? (

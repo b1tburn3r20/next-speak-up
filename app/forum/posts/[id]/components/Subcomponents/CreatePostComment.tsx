@@ -132,8 +132,8 @@ const CreatePostComment = ({ postId, userId }: CreatePostCommentProps) => {
         {isPostDeleted
           ? "Post has been deleted"
           : isPostLocked
-          ? "Post is locked"
-          : "Please log in to comment"}
+            ? "Post is locked"
+            : "Please log in to comment"}
       </Button>
     );
   }
@@ -150,8 +150,8 @@ const CreatePostComment = ({ postId, userId }: CreatePostCommentProps) => {
           {isPostDeleted
             ? "Post has been deleted"
             : isPostLocked
-            ? "Post is locked"
-            : "Please set a username to comment"}
+              ? "Post is locked"
+              : "Please set a username to comment"}
         </Button>
         <UsernameSelectDialog
           onUsernameCreation={(username) => setUserName(username)}
@@ -174,9 +174,8 @@ const CreatePostComment = ({ postId, userId }: CreatePostCommentProps) => {
   return (
     <form onSubmit={handleSubmit} className="relative w-full">
       <Input
-        className={`h-12 md:text-md border-primary/70 border-2 pr-12 ${
-          isMakingAPICall && !isSubmitting ? "opacity-50" : ""
-        }`}
+        className={`h-12 md:text-md border-primary/70 border-2 pr-12 ${isMakingAPICall && !isSubmitting ? "opacity-50" : ""
+          }`}
         placeholder={
           isMakingAPICall && !isSubmitting
             ? "Processing..."
@@ -191,13 +190,11 @@ const CreatePostComment = ({ postId, userId }: CreatePostCommentProps) => {
         type="submit"
         disabled={isDisabled}
         className="absolute right-2 top-[7px] p-1 cursor-pointer"
-        variant="ghost"
         size="icon"
       >
         <Send
-          className={`text-primary hover:text-primary ${
-            isSubmitting || isMakingAPICall ? "animate-pulse" : ""
-          }`}
+          className={`text-primary hover:text-primary ${isSubmitting || isMakingAPICall ? "animate-pulse" : ""
+            }`}
         />
       </Button>
     </form>

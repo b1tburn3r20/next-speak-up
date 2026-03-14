@@ -63,7 +63,6 @@ const AiBillHiddenImplications = ({ bill }: AiBillHiddenImplicationsProps) => {
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          variant="ghost"
           size="icon"
           className="bg-accent hover:bg-accent/70"
         >

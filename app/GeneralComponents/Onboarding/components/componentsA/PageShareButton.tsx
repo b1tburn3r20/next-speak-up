@@ -18,7 +18,6 @@ const PageShareButton = ({ shareData }: PageShareButtonProps) => {
   return (
     <Button
       onClick={handleShareClick}
-      variant="ghost"
       className="text-muted-foreground cursor-pointer p-1"
       size="icon"
       asChild

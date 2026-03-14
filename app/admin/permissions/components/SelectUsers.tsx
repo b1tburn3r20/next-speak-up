@@ -33,13 +33,14 @@ const SelectUsers = ({ users }: { users: User[] }) => {
             <p className="text-muted-foreground italic">{user.email}</p>
           </div>
           <Link href={`/admin/permissions/${user.id}`}>
-            <Button className="w-full" variant="ghost">
+            <Button className="w-full" >
               View <ArrowUpRightSquareIcon />
             </Button>
           </Link>
         </div>
-      ))}
-    </div>
+      ))
+      }
+    </div >
   );
 };
 

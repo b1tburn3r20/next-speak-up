@@ -16,7 +16,7 @@ export const ChatSettings = () => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button size="icon" className="h-8 w-8">
           <Settings className="h-4 w-4" />
           <span className="sr-only">Open settings</span>
         </Button>

@@ -88,12 +88,10 @@ const PostBookmark = ({ postId, userId }: PostBookmarkProps) => {
         <TooltipTrigger asChild>
           <Button
             size="icon"
-            variant="ghost"
             onClick={updatePostBookmarkStatus}
             disabled={isLoading}
-            className={`h-10 w-10 shrink-0 p-1 text-muted-foreground ${
-              isPostBookmarked && "text-primary"
-            } ${!isLoading && "cursor-pointer"}`}
+            className={`h-10 w-10 shrink-0 p-1 text-muted-foreground ${isPostBookmarked && "text-primary"
+              } ${!isLoading && "cursor-pointer"}`}
             asChild
           >
             {getIcon()}

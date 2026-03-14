@@ -16,7 +16,6 @@ const NavToggle = () => {
       setNavCollapsed(true);
     }
   }, []);
-  // Apply classes when state changes
   useEffect(() => {
     const navContainer = document.querySelector(".nav-container");
     const navLogo = document.querySelector(".nav-logo");
@@ -43,16 +42,13 @@ const NavToggle = () => {
   };
 
   return (
-    <div className="flex group items-center justify-between p-4 shrink-0">
+    <div className="flex group items-start justify-between p-2 shrink-0">
       <div className="nav-logo font-bold text-xl">Coolbills</div>
       <div
-        className={`${
-          !navCollapsed && "opacity-0 group-hover:opacity-100 transition-all"
-        }`}
       >
         <Button
           onClick={toggleNav}
-          variant="ghost"
+          variant="default"
           className="p-2 rounded-lg transition-colors"
         >
           {navCollapsed ? <Menu size={20} /> : <ArrowLeft size={20} />}

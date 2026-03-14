@@ -95,9 +95,8 @@ const LockForumPost = ({ userId, userRole, postId }: LockForumPostProps) => {
   if (!isAdmin) {
     return (
       <div
-        className={`h-10 w-10 shrink-0 p-1 flex items-center justify-center text-muted-foreground ${
-          isPostLocked && "text-primary"
-        }`}
+        className={`h-10 w-10 shrink-0 p-1 flex items-center justify-center text-muted-foreground ${isPostLocked && "text-primary"
+          }`}
       >
         {isPostLocked ? <Lock className=" h-8 w-8" /> : null}
       </div>
@@ -111,13 +110,11 @@ const LockForumPost = ({ userId, userRole, postId }: LockForumPostProps) => {
         <TooltipTrigger asChild>
           <Button
             size="icon"
-            variant="ghost"
             onClick={updatePostLockStatus}
             asChild
             disabled={isLoading}
-            className={`h-10 w-10 shrink-0 p-1 text-muted-foreground ${
-              isPostLocked && "text-primary"
-            } ${!isLoading && "cursor-pointer"}`}
+            className={`h-10 w-10 shrink-0 p-1 text-muted-foreground ${isPostLocked && "text-primary"
+              } ${!isLoading && "cursor-pointer"}`}
           >
             {getIcon()}
           </Button>

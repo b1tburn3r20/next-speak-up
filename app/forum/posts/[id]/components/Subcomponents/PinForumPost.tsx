@@ -95,9 +95,8 @@ const PinForumPost = ({ userId, userRole, postId }: PinForumPostProps) => {
   if (!isAdmin) {
     return (
       <div
-        className={`h-10 w-10 shrink-0 p-1 flex items-center justify-center text-muted-foreground ${
-          isPostPinned && "text-primary"
-        }`}
+        className={`h-10 w-10 shrink-0 p-1 flex items-center justify-center text-muted-foreground ${isPostPinned && "text-primary"
+          }`}
       >
         {isPostPinned ? (
           <Pin className="h-8 w-8 text-muted-foreground" />
@@ -113,13 +112,11 @@ const PinForumPost = ({ userId, userRole, postId }: PinForumPostProps) => {
         <TooltipTrigger asChild>
           <Button
             size="icon"
-            variant="ghost"
             onClick={updatePostPinStatus}
             asChild
             disabled={isLoading}
-            className={`h-10 w-10 shrink-0 p-1 text-muted-foreground ${
-              isPostPinned && "text-primary"
-            } ${!isLoading && "cursor-pointer"}`}
+            className={`h-10 w-10 shrink-0 p-1 text-muted-foreground ${isPostPinned && "text-primary"
+              } ${!isLoading && "cursor-pointer"}`}
           >
             {getIcon()}
           </Button>

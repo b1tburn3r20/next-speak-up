@@ -29,25 +29,24 @@ const ClientNavbar = ({
   const setNavState = useNavbarStore((f) => f.setNavCollapsed);
   const setActiveUserRole = useUserStore((f) => f.setActiveUserRole);
   const pathname = usePathname();
-  // Reconstruct nav items from hrefs
   const visibleNavItems = visibleNavHrefs
     .map((href) => navItems.find((item) => item.href === href))
-    .filter(Boolean); // Remove any undefined items
+    .filter(Boolean);
 
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
+      setIsMobile(window.innerWidth < 768);
     };
 
-    // Check on mount
     checkIsMobile();
 
-    // Add event listener
     window.addEventListener("resize", checkIsMobile);
 
-    // Cleanup
     return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
+
+
+
   useEffect(() => {
     if (userRole) {
       setActiveUserRole(userRole);
@@ -70,13 +69,12 @@ const ClientNavbar = ({
     );
   }
 
-  // Desktop layout (your original layout)
   return (
     <div className="flex h-screen">
-      <div className="nav-container border-r w-64 flex flex-col h-full transition-all duration-300 ease-in-out">
+      <div className="nav-container shadow-xs bg-background border-r w-64 flex flex-col h-full transition-all duration-300 ease-in-out">
         <NavToggle />
 
-        <nav className="flex  flex-col justify-between flex-1">
+        <nav className="flex flex-col justify-between flex-1">
           <div>
             {visibleNavItems.map((item) => {
               return <NavItem key={item.href} href={item.href} />;
@@ -90,7 +88,6 @@ const ClientNavbar = ({
 
       <div className="flex-1 flex flex-col">
         <NavbarTop />
-        {/* rest of app */}
         <div className="flex-1 overflow-auto">
           <div
             onClick={() => {

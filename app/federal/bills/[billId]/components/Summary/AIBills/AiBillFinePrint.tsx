@@ -53,9 +53,7 @@ const AiBillFinePrint = ({ bill }: AiBillFinePrintProps) => {
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          variant="ghost"
           size="icon"
-          className="bg-primary hover:bg-primary/70"
         >
           <TextSearch className="h-5 w-5" />
         </Button>

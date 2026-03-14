@@ -70,40 +70,38 @@ const RenderBill = ({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-0 sm:px-6 lg:px-8 py-0 sm:py-6 lg:py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-card border-0 sm:border  sm:rounded-xl sm:shadow-xs overflow-hidden">
-            <div className="p-0 sm:p-6 lg:p-8 space-y-2 sm:space-y-6">
-              <div className="text-center px-4 py-4 sm:px-0 sm:py-0">
-                <BillTitle />
-              </div>
-              <BillTimeline actions={bill?.legislation?.actions} />
-              <div className="hidden md:block border-t border-border mx-4 sm:mx-0" />
+    <div className="container mx-auto px-0 sm:px-6 lg:px-8 py-0 sm:py-6 lg:py-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-card border-0 sm:border  sm:rounded-xl sm:shadow-xs overflow-hidden">
+          <div className="p-0 sm:p-6 lg:p-8 space-y-2 sm:space-y-6">
+            <div className="text-center px-4 py-4 sm:px-0 sm:py-0">
+              <BillTitle />
+            </div>
+            <BillTimeline actions={bill?.legislation?.actions} />
+            <div className="hidden md:block border-t border-border mx-4 sm:mx-0" />
 
-              <div className="px-1">
-                <BillSummariesContainer
-                  hasOfficialSummary={hasOfficialSummary}
-                  userId={session?.user?.id}
-                  summaries={billData?.legislation?.summaries}
-                />
-              </div>
+            <div className="px-1">
+              <BillSummariesContainer
+                hasOfficialSummary={hasOfficialSummary}
+                userId={session?.user?.id}
+                summaries={billData?.legislation?.summaries}
+              />
             </div>
           </div>
-          {hasUser && (
-            <>
-              <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-xs border-t border-border sm:hidden z-20">
-                <MobileSupportBillButtons />
-              </div>
-
-              <div className="hidden sm:block">
-                <DesktopSupportBillButtons />
-              </div>
-
-              <div className="h-20 sm:hidden" />
-            </>
-          )}
         </div>
+        {hasUser && (
+          <>
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-xs border-t border-border sm:hidden z-20">
+              <MobileSupportBillButtons />
+            </div>
+
+            <div className="hidden sm:block">
+              <DesktopSupportBillButtons />
+            </div>
+
+            <div className="h-20 sm:hidden" />
+          </>
+        )}
       </div>
     </div>
   );

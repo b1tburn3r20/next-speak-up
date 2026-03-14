@@ -183,7 +183,6 @@ const AiBillKeyTerms = ({ bill }: AiBillKeyTermsProps) => {
           setSelectedTerm(null);
           setSelectedIndex(-1);
         }}
-        variant="ghost"
         size="icon"
         className="bg-accent hover:bg-accent/70"
       >
@@ -208,7 +207,6 @@ const AiBillKeyTerms = ({ bill }: AiBillKeyTermsProps) => {
             <div className="flex items-center gap-2">
               {selectedTerm ? (
                 <Button
-                  variant="ghost"
                   size="sm"
                   className="p-0 hover:bg-accent text-lg"
                   onClick={handleBackClick}
@@ -254,11 +252,10 @@ const AiBillKeyTerms = ({ bill }: AiBillKeyTermsProps) => {
                     {filteredTerms.map((term, index) => (
                       <div
                         key={index}
-                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                          index === selectedIndex
-                            ? "bg-accent"
-                            : "bg-muted/50 hover:bg-accent/50"
-                        }`}
+                        className={`p-3 rounded-lg cursor-pointer transition-colors ${index === selectedIndex
+                          ? "bg-accent"
+                          : "bg-muted/50 hover:bg-accent/50"
+                          }`}
                         onClick={() => handleTermClick(term, index)}
                       >
                         <h4 className="font-medium">{term.term}</h4>

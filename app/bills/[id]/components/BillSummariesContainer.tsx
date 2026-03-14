@@ -21,7 +21,7 @@ const BillSummariesContainer = ({
     <div className="w-full max-w-4xl mx-auto">
       <Tabs defaultValue="Official" className="w-full">
         <div>
-          <TabsList className="grid grid-cols-2 w-full h-auto p-1 bg-muted/50">
+          <TabsList className="grid grid-cols-2 w-full p-1 bg-muted/50">
             {/* <TabsTrigger */}
             {/*   className="font-bold text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-xs transition-all duration-200" */}
             {/*   value="Simplified" */}
@@ -29,7 +29,6 @@ const BillSummariesContainer = ({
             {/*   <span className="truncate">Simplified</span> */}
             {/* </TabsTrigger> */}
             <TabsTrigger
-              className="font-bold  text-center text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-xs transition-all duration-200 opacity-60"
               disabled={!hasOfficialSummary}
               value="Official"
             >
@@ -38,7 +37,6 @@ const BillSummariesContainer = ({
               </span>
             </TabsTrigger>
             <TabsTrigger
-              className="font-bold text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-xs transition-all duration-200"
               value="bill-text"
             >
               <span className="truncate">Bill Text</span>
