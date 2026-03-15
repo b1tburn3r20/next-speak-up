@@ -1,22 +1,21 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
-
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  " inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
         default:
           "bg-primary/80 text-white border-primary border-b-4 hover:bg-primary/90 active:border-b-0 dark:bg-primary dark:border-green-700/40 dark:hover:bg-primary/90",
         secondary:
-          "bg-background-light text-muted-foreground border-2 border-b-4 hover:bg-muted/40 active:border-b-2 ",
+          "bg-background-light text-muted-foreground border-2 border-b-4 hover:bg-muted/40 active:border-b-2 dark:bg-muted dark:text-muted-foreground dark:border-muted-foreground/20 dark:hover:bg-muted/60",
         super:
           "bg-blue-500 text-white border-blue-600 border-b-4 hover:bg-blue-500/90 active:border-b-0 dark:bg-blue-600 dark:border-blue-700 dark:hover:bg-blue-600/90",
         outline:
-          "bg-background-light text-muted-foreground border-2 border-b-4 hover:bg-muted/40 active:border-b-2 ",
+          "bg-background-light text-muted-foreground border-2 border-b-4 hover:bg-muted/40 active:border-b-2 dark:bg-transparent dark:text-muted-foreground dark:border-muted-foreground/20 dark:hover:bg-muted/20",
         destructive:
           "bg-rose-500 text-white border-rose-600 border-b-4 hover:bg-rose-500/90 active:border-b-0 dark:bg-rose-600 dark:border-rose-700 dark:hover:bg-rose-600/90",
         cartoon_green_outline:
@@ -54,7 +53,6 @@ function Button({
     asChild?: boolean;
   }) {
   const Comp = asChild ? Slot.Root : "button";
-
   return (
     <Comp
       data-slot="button"

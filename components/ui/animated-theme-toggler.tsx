@@ -6,6 +6,7 @@ import { flushSync } from "react-dom";
 
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
+import { useTheme } from "next-themes";
 
 interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<"button"> {
   duration?: number;
@@ -19,6 +20,7 @@ export const AnimatedThemeToggler = ({
   const [isDark, setIsDark] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
+  const { setTheme } = useTheme()
   useEffect(() => {
     const updateTheme = () => {
       setIsDark(document.documentElement.classList.contains("dark"));
@@ -42,8 +44,10 @@ export const AnimatedThemeToggler = ({
       flushSync(() => {
         const newTheme = !isDark;
         setIsDark(newTheme);
+
         document.documentElement.classList.toggle("dark");
         localStorage.setItem("theme", newTheme ? "dark" : "light");
+        setTheme(newTheme ? "dark" : "light")
       });
     }).ready;
 

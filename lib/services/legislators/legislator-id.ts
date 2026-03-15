@@ -7,22 +7,35 @@ export const getComprehensiveLegislatorInformation = async (
   userId: string,
   userRole: string
 ) => {
-  const data = await prisma.congressMember.findUnique({
-    where: {
-      bioguideId: bioguideId,
-    },
-    include: {
-      depiction: true,
-      terms: {
-        orderBy: {
-          startYear: "desc",
+  const [data, sponsoredCount, cosponsoredCount] = await Promise.all([
+    prisma.congressMember.findUnique({
+      where: { bioguideId },
+      include: {
+        depiction: true,
+        terms: {
+          orderBy: {
+            startYear: "desc",
+          },
         },
       },
-    },
-  });
+    }),
+    prisma.legislationSponsor.count({
+      where: { sponsorBioguideId: bioguideId },
+    }),
+    prisma.legislationCosponsor.count({
+      where: { cosponsorBioguideId: bioguideId },
+    }),
+  ]);
 
   await logUserAction(userId, "Get Legislator Data", bioguideId, userRole);
-  return data;
+
+  if (!data) return null;
+
+  return {
+    ...data,
+    sponsoredLegislationCount: sponsoredCount,
+    cosponsoredLegislationCount: cosponsoredCount,
+  };
 };
 
 export const getLegislatorRecentHouseVotes = async (

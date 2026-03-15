@@ -1,19 +1,13 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { Loader2, Search } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useRouter } from "next/navigation";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { SimpleLandingPageLegislatorData } from "@/lib/types/legislator-types";
-type BillSearchResult = {
-  name_id: string;
-  id: number;
-  title: string;
-  introducedDate: Date | null;
-};
 
 interface SearchLegislatorsProps {
   legislators: SimpleLandingPageLegislatorData[];
@@ -29,7 +23,7 @@ const SearchLegislators = ({ legislators }: SearchLegislatorsProps) => {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isKeyboardNavigation, setIsKeyboardNavigation] = useState(false);
   const router = useRouter();
-  const resultItemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const resultItemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   useEffect(() => {
     if (results) {
@@ -39,22 +33,18 @@ const SearchLegislators = ({ legislators }: SearchLegislatorsProps) => {
 
   useEffect(() => {
     if (selectedIndex >= 0 && resultItemRefs.current[selectedIndex]) {
-      const selectedElenent = resultItemRefs.current[selectedIndex];
-      if (selectedElenent) {
-        selectedElenent.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-        });
-      }
+      resultItemRefs.current[selectedIndex]?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
     }
   }, [selectedIndex]);
 
   const handleBlur = () => {
-    const timeout = setTimeout(() => {
-      setFocused(false);
-    }, 150);
+    const timeout = setTimeout(() => setFocused(false), 150);
     setBlurTimeout(timeout);
   };
+
   const handleFocus = () => {
     if (blurTimeout) {
       clearTimeout(blurTimeout);
@@ -77,29 +67,22 @@ const SearchLegislators = ({ legislators }: SearchLegislatorsProps) => {
       return;
     }
     const searchTerm = value.toLowerCase().trim();
-
     const filteredResults = legislators
-      .filter((legislator) => {
-        const nameMatch = legislator.name?.toLowerCase().includes(searchTerm);
-        const stateMatch = legislator.state?.toLowerCase().includes(searchTerm);
-        const districtMatch = legislator.district?.includes(searchTerm);
-        return nameMatch || stateMatch || districtMatch;
-      })
+      .filter(({ name, state, district }) =>
+        name?.toLowerCase().includes(searchTerm) ||
+        state?.toLowerCase().includes(searchTerm) ||
+        district?.includes(searchTerm)
+      )
       .slice(0, 10);
     setResults(filteredResults);
     setSearching(false);
   };
 
   const getResultsState = () => {
-    if (searching) {
-      return "searching";
-    } else if (results?.length > 0) {
-      return "results";
-    } else if (results?.length === 0) {
-      return "no results";
-    } else {
-      return "dev case";
-    }
+    if (searching) return "searching";
+    if (results?.length > 0) return "results";
+    if (results?.length === 0) return "no results";
+    return "dev case";
   };
 
   const handleSelectedResult = (e: SimpleLandingPageLegislatorData) => {
@@ -120,9 +103,7 @@ const SearchLegislators = ({ legislators }: SearchLegislatorsProps) => {
         break;
       case "Enter":
         e.preventDefault();
-        if (selectedIndex >= 0) {
-          handleSelectedResult(results[selectedIndex]);
-        }
+        if (selectedIndex >= 0) handleSelectedResult(results[selectedIndex]);
         break;
       case "Escape":
         setFocused(false);
@@ -133,89 +114,95 @@ const SearchLegislators = ({ legislators }: SearchLegislatorsProps) => {
 
   const shouldShowResultsContainer =
     (searchInput.length > 0 && focused) ||
-    (searching === true && searchInput.length > 0);
+    (searching && searchInput.length > 0);
 
   interface SearchResultItemProps {
     result: SimpleLandingPageLegislatorData;
     index: number;
   }
+
   const SearchResultItem = ({ result, index }: SearchResultItemProps) => {
-    const handleHover = (index) => {
-      if (!isKeyboardNavigation) {
-        setSelectedIndex(index);
-      }
-    };
-    const handleMouseMove = () => {
-      setIsKeyboardNavigation(false);
-    };
+    const isActive = index === selectedIndex;
+
     return (
-      <Link href={`/legislators/federal/${result.bioguideId}`}>
-        <div
-          ref={(el) => (resultItemRefs.current[index] = el)}
-          onMouseOver={() => handleHover(index)}
-          onMouseMove={handleMouseMove}
-          className={`p-2 border-2 border-primary/50 rounded-xl ${index === selectedIndex && "bg-primary text-black"
-            }`}
-        >
-          <div className="flex justify-between items-center">
-            <p className="text-lg font-bold">{result.name}</p>
-            <p>{result.state} </p>
-          </div>
-          <p
-            className={`italic ${index === selectedIndex ? "text-black" : "text-muted-foreground"
-              }`}
-          >
-            {result.district
-              ? `Representative - District ${result.district}`
-              : "Senator"}{" "}
+      <Link
+        href={`/legislators/federal/${result.bioguideId}`}
+        ref={(el) => (resultItemRefs.current[index] = el)}
+        onMouseOver={() => { if (!isKeyboardNavigation) setSelectedIndex(index); }}
+        onMouseMove={() => setIsKeyboardNavigation(false)}
+        className={`
+          flex items-center justify-between w-full px-4 py-3 rounded-xl
+          text-sm font-medium transition-all cursor-pointer no-underline
+          ${isActive
+            ? "bg-primary/80 text-white border border-primary border-b-4 hover:bg-primary/90 active:border-b-0 dark:bg-primary dark:border-green-700/40 dark:hover:bg-primary/90"
+            : "bg-background-light text-muted-foreground border-2 border-b-4 hover:bg-muted/40 active:border-b-2"
+          }
+        `}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <p className="font-semibold truncate">
+            {result.name}
           </p>
+          <span className={`text-xs shrink-0 ${isActive ? "text-white/70" : "text-muted-foreground"}`}>
+            {result.state}
+          </span>
         </div>
+        <p className={`text-xs italic shrink-0 ml-4 ${isActive ? "text-white/80" : "text-muted-foreground"}`}>
+          {result.district
+            ? `Rep. · District ${result.district}`
+            : "Senator"}
+        </p>
       </Link>
     );
   };
 
   return (
-    <div>
-      <TextAnimate
-        animation="blurInUp"
-        by="word"
-        className="text-2xl sm:text-3xl lg:text-4xl mb-4 sm:mb-6 font-bold [&>span:last-child]:text-primary px-2 sm:px-0"
-      >
-        Search Legislators
-      </TextAnimate>
-      <div className="relative">
-        <Search className="absolute top-4 left-4 text-muted-foreground" />
-        <Input
-          autoFocus
-          onFocus={() => handleFocus()}
-          onBlur={() => handleBlur()}
-          className="border-2 border-primary rounded-full h-14 text-lg pl-14"
-          placeholder="Search legislators..."
-          onKeyDown={(e) => handleKeyDown(e)}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          value={searchInput}
-        />
-        {shouldShowResultsContainer && (
-          <div
-            onMouseDown={(e) => e.preventDefault()}
-            className="absolute h-80 w-full top-[60px] z-20 rounded-[30px] border-2 border-secondary bg-background overflow-hidden"
-          >
-            {getResultsState() === "searching" && (
-              <div className="w-full h-full flex justify-center items-center">
-                <Loader2 className="animate-spin" />
-              </div>
-            )}
-            {getResultsState() === "no results" && "no results"}
-            {getResultsState() === "results" && (
-              <div className="w-full gap-2 flex flex-col p-2 overflow-auto h-full">
-                {results.map((item, index) => (
-                  <SearchResultItem result={item} index={index} key={index} />
-                ))}
-              </div>
-            )}
-            {getResultsState() === "dev case" && "Hey alejandro"}
-          </div>
-        )}
+    <div className="p-3 rounded-3xl shadow-md bg-background">
+      <div className="p-5 rounded-3xl shadow-md bg-background-light">
+        <TextAnimate
+          animation="blurInUp"
+          by="word"
+          className="text-2xl sm:text-3xl lg:text-4xl mb-4 sm:mb-6 font-bold [&>span:last-child]:text-primary px-2 sm:px-0"
+        >
+          Search Legislators
+        </TextAnimate>
+        <div className="relative">
+          <Input
+            autoFocus
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            variant="primary"
+            className="text-muted-foreground rounded-full h-14 text-lg px-8"
+            placeholder="Search legislators..."
+            onKeyDown={handleKeyDown}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            value={searchInput}
+          />
+          {shouldShowResultsContainer && (
+            <div
+              onMouseDown={(e) => e.preventDefault()}
+              className="absolute h-80 w-full top-[60px] z-20 rounded-[30px] border bg-background shadow-md overflow-hidden"
+            >
+              {getResultsState() === "searching" && (
+                <div className="w-full h-full flex justify-center items-center">
+                  <Loader2 className="animate-spin" />
+                </div>
+              )}
+              {getResultsState() === "no results" && (
+                <p className="text-center items-center flex justify-center w-full h-full text-muted-foreground text-sm">
+                  No results found
+                </p>
+              )}
+              {getResultsState() === "results" && (
+                <div className="w-full flex flex-col gap-1.5 p-3 overflow-auto h-full">
+                  {results.map((item, index) => (
+                    <SearchResultItem result={item} index={index} key={index} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

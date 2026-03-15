@@ -77,7 +77,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Navbar>
-              <main className="container mx-auto space-x-4 ">
+              <main className="">
                 {children}
               </main>
             </Navbar>

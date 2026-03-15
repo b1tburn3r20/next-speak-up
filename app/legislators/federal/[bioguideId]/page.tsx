@@ -5,6 +5,7 @@ import { AuthSession } from "@/lib/types/user-types";
 import CongressMemberCard from "./components/CongressMemberCard";
 import PolicyAreaBreakdown from "./components/PolicyAreaBreakdown";
 import HouseVotesList from "./components/HouseVoteList";
+import PolicyAreaBreakdownTable from "./components/PolicyAreaBreakdownTable";
 
 interface PageProps {
   params: Promise<{
@@ -31,12 +32,19 @@ const Page = async ({ params }: PageProps) => {
     bioguideId,
   );
 
-
+  console.log(memberData)
   return (
-    <div className="p-4">
-      <CongressMemberCard congressMember={memberData} />{" "}
-      <PolicyAreaBreakdown data={policyAreaBreakdown} />
-      <HouseVotesList votes={houseVoteData} />
+    <div className="p-4 flex justify-center items-center w-full h-full">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-4">
+            <CongressMemberCard congressMember={memberData} />
+            <PolicyAreaBreakdown data={policyAreaBreakdown} />
+          </div>
+          <PolicyAreaBreakdownTable data={policyAreaBreakdown} />
+        </div>
+        <HouseVotesList votes={houseVoteData} />
+      </div>
     </div>
   );
 };

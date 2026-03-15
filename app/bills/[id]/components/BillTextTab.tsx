@@ -90,9 +90,9 @@ const BillTextTab = () => {
 
   return (
 
-    <div className="h-full border border-red-500 overflow-x-hidden">
+    <div className="h-full p-3 bg-background-light shadow-md rounded-3xl overflow-x-hidden">
       <div
-        className="font-sans font-semibold text-lg leading-relaxed whitespace-pre-wrap break-words text-left overflow-wrap-anywhere max-w-full"
+        className="font-thin p-2"
         dangerouslySetInnerHTML={{ __html: cleaned }}
       />
     </div>)

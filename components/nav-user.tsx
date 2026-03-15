@@ -108,10 +108,10 @@ export function NavUser() {
     <div className={`${navCollapsed ? "p-[8px]" : "p-2"}`}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            className={`relative h-12 hover:bg-muted shrink-0 transition-all ${navCollapsed
-                ? "w-12 justify-center p-0"
-                : "w-full justify-start px-3 py-2"
+          <div
+            className={`relative flex h-18 items-center rounded-3xl cursor-pointer hover:bg-muted shrink-0 transition-all ${navCollapsed
+              ? "w-12 justify-center p-0"
+              : "w-full justify-start px-3 py-2"
               }`}
           >
             <Avatar className="h-8 w-8  rounded-lg shrink-0">
@@ -135,7 +135,7 @@ export function NavUser() {
                 <ChevronsUpDown className="ml-auto text-muted-foreground h-4 w-4" />
               </>
             )}
-          </Button>
+          </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           className="w-56 rounded-lg"
@@ -144,29 +144,29 @@ export function NavUser() {
         >
           <DropdownMenuGroup className="flex gap-2 justify-between">
             <Link href="/settings" className="w-full">
-              <DropdownMenuItem className="w-full">
+              <DropdownMenuItem className="w-full h-full">
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </DropdownMenuItem>
             </Link>
             <ModeToggle />
           </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={startQuickstart}>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Quickstart
-            </DropdownMenuItem>
-
-            <DropdownMenuItem>
-              <BadgeCheck className="mr-2 h-4 w-4" />
-              Account
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Bell className="mr-2 h-4 w-4" />
-              Notifications
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
+          {/* <DropdownMenuSeparator /> */}
+          {/* <DropdownMenuGroup> */}
+          {/*   <DropdownMenuItem onClick={startQuickstart}> */}
+          {/*     <Sparkles className="mr-2 h-4 w-4" /> */}
+          {/*     Quickstart */}
+          {/*   </DropdownMenuItem> */}
+          {/**/}
+          {/*   <DropdownMenuItem> */}
+          {/*     <BadgeCheck className="mr-2 h-4 w-4" /> */}
+          {/*     Account */}
+          {/*   </DropdownMenuItem> */}
+          {/*   <DropdownMenuItem> */}
+          {/*     <Bell className="mr-2 h-4 w-4" /> */}
+          {/*     Notifications */}
+          {/*   </DropdownMenuItem> */}
+          {/* </DropdownMenuGroup> */}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => signOut({ callbackUrl: window.location.href })}

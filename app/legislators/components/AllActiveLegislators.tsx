@@ -1,71 +1,115 @@
 "use client";
+import { useState } from "react";
 import { SimpleLandingPageLegislatorData } from "@/lib/types/legislator-types";
-import LegislatorCard from "./LegislatorCard";
 import { TextAnimate } from "@/components/magicui/text-animate";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { states } from "@/app/data/states";
 
 interface AllActiveLegislatorsProps {
   legislators: SimpleLandingPageLegislatorData[];
   userId: string | null;
 }
 
-const AllActiveLegislators = ({
-  legislators,
-  userId,
-}: AllActiveLegislatorsProps) => {
-  const sortedLegislators = [...legislators].sort((a, b) => {
-    const stateCompare = a.state.localeCompare(b.state);
-    if (stateCompare !== 0) return stateCompare;
-    // sort by district
-    const districtA = a.district ? parseInt(a.district) : 0;
-    const districtB = b.district ? parseInt(b.district) : 0;
-    return districtA - districtB;
-  });
+const AllActiveLegislators = ({ legislators, userId }: AllActiveLegislatorsProps) => {
+  const houseLegislators = [...legislators]
+    .filter((l) => !!l.district)
+    .sort((a, b) => {
+      const stateCompare = a.state.localeCompare(b.state);
+      if (stateCompare !== 0) return stateCompare;
+      return parseInt(a.district) - parseInt(b.district);
+    });
 
-  interface CongressMemberListItemProps {
-    congressMember: SimpleLandingPageLegislatorData;
-    index: number;
-  }
-  const CongressMemberListItem = ({
-    congressMember,
-    index,
-  }: CongressMemberListItemProps) => {
-    return (
-      <Link href={`/legislators/federal/${congressMember.bioguideId}`}>
-        <div
-          className={`flex text-lg gap-2 p-2 ${
-            index % 2 === 0 ? "bg-muted/40" : ""
-          }`}
-        >
-          <p className="text-primary font-bold">{congressMember.state}</p>
-          <p>{congressMember.name}</p>
-          <p>{congressMember.role}</p>
-          <p>
-            {congressMember.district
-              ? `District ${congressMember.district}`
-              : "Senator"}
-          </p>
-        </div>
-      </Link>
-    );
-  };
+  const senateLegislators = [...legislators]
+    .filter((l) => !l.district)
+    .sort((a, b) => a.state.localeCompare(b.state));
 
   return (
-    <div className="">
+    <div className="p-8 rounded-3xl shadow-md bg-background">
       <TextAnimate className="text-2xl sm:text-3xl lg:text-4xl mb-4 sm:mb-6 font-bold [&>span:first-child]:text-primary">
         All Active Legislators
       </TextAnimate>
-      <div className="flex flex-col">
-        {sortedLegislators.map((legislator, index) => (
-          <CongressMemberListItem
-            congressMember={legislator}
-            index={index}
-            key={index}
-          />
-        ))}
-        )
-      </div>
+      <Accordion type="multiple" defaultValue={["house"]} className="flex flex-col gap-3">
+        <AccordionItem value="house" className="rounded-2xl overflow-hidden">
+          <AccordionTrigger className="border-b-2 px-6 py-4 rounded-none rounded-t-2xl bg-background-light hover:bg-muted/50 hover:no-underline">
+            <span className="text-lg  font-semibold">House of Representatives</span>
+          </AccordionTrigger>
+          <AccordionContent className="pb-0">
+            <Table className="bg-background-light ">
+              <TableHeader>
+                <TableRow className="hover:bg-unset bg-accent h-14">
+                  <TableHead>State</TableHead>
+                  <TableHead>First Name</TableHead>
+                  <TableHead>Last Name</TableHead>
+                  <TableHead>District</TableHead>
+                  <TableHead>View</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {houseLegislators.map((l, i) => {
+                  const firstName = l?.name.split(",")[1]
+                  const lastName = l?.name.split(",")[0]
+                  return (
+                    (
+                      <TableRow className={`${i % 2 === 0 ? "bg-background" : ""} hover:bg-unset `} key={i}>
+                        <TableCell>{l.state}</TableCell>
+                        <TableCell>{firstName}</TableCell>
+                        <TableCell>{lastName}</TableCell>
+                        <TableCell>{l.district}</TableCell>
+                        <TableCell>
+                          <Link href={`/legislators/federal/${l.bioguideId}`}>
+                            <Button><ArrowRight /> </Button>
+                          </Link>
+                        </TableCell>
+
+                      </TableRow>
+                    )
+
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="senate" className="rounded-2xl overflow-hidden">
+          <AccordionTrigger className="px-6 py-4 rounded-none rounded-t-2xl bg-background-light hover:bg-muted/50 hover:no-underline">
+            <span className="text-lg font-semibold">Senate</span>
+          </AccordionTrigger>
+          <AccordionContent className="pb-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-unset bg-accent h-14">
+                  <TableHead>State</TableHead>
+                  <TableHead>First Name</TableHead>
+                  <TableHead>Last Name</TableHead>
+                  <TableHead>View</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {senateLegislators.map((l, i) => {
+
+                  const firstName = l?.name.split(",")[1]
+                  const lastName = l?.name.split(",")[0]
+                  return (
+                    <TableRow className={`${i % 2 === 0 ? "bg-background-light" : ""} hover:bg-unset`} key={i}>
+                      <TableCell>{l.state}</TableCell>
+                      <TableCell>{firstName}</TableCell>
+                      <TableCell>{lastName}</TableCell>
+                      <TableCell>
+                        <Link href={`/legislators/federal/${l.bioguideId}`}>
+                          <Button><ArrowRight /> </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 };

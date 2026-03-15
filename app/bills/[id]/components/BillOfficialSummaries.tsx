@@ -43,7 +43,7 @@ const BillOfficialSummaries = ({ summaries }: BillOfficialSummariesProps) => {
 
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="space-y-6">
       <Select value={versionCode} onValueChange={handleSelect}>
         <SelectTrigger>
           <SelectValue placeholder="Select a summary" />
@@ -53,8 +53,7 @@ const BillOfficialSummaries = ({ summaries }: BillOfficialSummariesProps) => {
           {summaries?.map((sum) => <SelectItem key={sum?.versionCode} value={sum.versionCode} >{sum.actionDesc}</SelectItem>)}
         </SelectContent>
       </Select>
-
-      <div>
+      <div className="bg-background-light p-3 rounded-3xl shadow-md">
         <div dangerouslySetInnerHTML={{ __html: cleaned }} />
       </div>
     </div>

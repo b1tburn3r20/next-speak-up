@@ -11,6 +11,7 @@ interface BillSummariesContainerProps {
 }
 
 const BillSummariesContainer = ({
+
   userId,
   hasOfficialSummary,
   summaries
@@ -20,30 +21,27 @@ const BillSummariesContainer = ({
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Tabs defaultValue="Official" className="w-full">
-        <div>
-          <TabsList className="grid grid-cols-2 w-full p-1 bg-muted/50">
-            {/* <TabsTrigger */}
-            {/*   className="font-bold text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-xs transition-all duration-200" */}
-            {/*   value="Simplified" */}
-            {/* > */}
-            {/*   <span className="truncate">Simplified</span> */}
-            {/* </TabsTrigger> */}
-            <TabsTrigger
-              disabled={!hasOfficialSummary}
-              value="Official"
-            >
-              <span className="truncate text-center">
-                {!hasOfficialSummary ? "No Official Summary" : "Official Summary"}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="bill-text"
-            >
-              <span className="truncate">Bill Text</span>
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
+        <TabsList className="grid grid-cols-2 w-full p-1 bg-muted/50">
+          {/* <TabsTrigger */}
+          {/*   className="font-bold text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-xs transition-all duration-200" */}
+          {/*   value="Simplified" */}
+          {/* > */}
+          {/*   <span className="truncate">Simplified</span> */}
+          {/* </TabsTrigger> */}
+          <TabsTrigger
+            disabled={!hasOfficialSummary}
+            value="Official"
+          >
+            <span className="truncate text-center">
+              {!hasOfficialSummary ? "No Official Summary" : "Official Summary"}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="bill-text"
+          >
+            <span className="truncate">Bill Text</span>
+          </TabsTrigger>
+        </TabsList>
         {/* <TabsContent */}
         {/*   value="Simplified" */}
         {/*   className="mt-4 sm:mt-6 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-lg" */}
@@ -55,9 +53,8 @@ const BillSummariesContainer = ({
         {/**/}
         <TabsContent
           value="Official"
-          className="mt-4 sm:mt-6 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-lg"
+          className="mt-4"
         >
-
           <BillOfficialSummaries summaries={summaries} />
         </TabsContent>
         <TabsContent
