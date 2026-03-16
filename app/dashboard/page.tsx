@@ -36,7 +36,7 @@ export default async function Home() {
       </BlockA>
       <BlockA>
         {userId ? (
-          <UserPersonalizedDashboard session={session} />
+          <UserPersonalizedDashboard />
         ) : (
           <NoUserDashboard />
         )}

@@ -1,3 +1,4 @@
+import BlockB from "@/components/cb/block-b";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -5,7 +6,7 @@ import Link from "next/link";
 
 const Hero = () => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center px-4 py-8 lg:py-16">
+    <div className=" grid grid-cols-1 lg:grid-cols-2 gap-8 items-center px-4">
       <div className="space-y-6 lg:space-y-8 text-center lg:text-left">
         <TextAnimate
           animation="blurInUp"
@@ -26,17 +27,13 @@ const Hero = () => {
           </Link>
         </div>
       </div>
-      <div className="w-full flex justify-center lg:justify-end">
-        <div className="relative w-full max-w-md lg:max-w-none aspect-video">
-          {/* <iframe */}
-          {/*   className="w-full h-full rounded-lg" */}
-          {/*   src="https://www.youtube.com/embed/lhe286ky-9A?si=P4zvnHUc0bS9698I" */}
-          {/*   title="YouTube video player" */}
-          {/*   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" */}
-          {/*   allowFullScreen */}
-          {/* /> */}
+      <BlockB>
+        <div className="w-full flex justify-center lg:justify-end">
+          <div className="relative w-full max-w-md lg:max-w-none aspect-video flex justify-center items-center">
+            <p>Video explaining coolbills</p>
+          </div>
         </div>
-      </div>
+      </BlockB>
     </div>
   );
 };

@@ -4,7 +4,7 @@ import SiteSearch from "./site-search";
 
 const NavbarTop = () => {
   return (
-    <div className="p-1 px-4 bg-background flex justify-end gap-2 items-center shadow-sm">
+    <div className="bg-background z-10 p-1 px-4 flex justify-end gap-2 items-center shadow-sm">
       <ModeToggle />
       <SiteSearch />
     </div>

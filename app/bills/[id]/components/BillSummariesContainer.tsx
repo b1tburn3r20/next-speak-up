@@ -21,7 +21,7 @@ const BillSummariesContainer = ({
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Tabs defaultValue="Official" className="w-full">
-        <TabsList className="grid grid-cols-2 w-full p-1 bg-muted/50">
+        <TabsList className="grid grid-cols-2 w-full">
           {/* <TabsTrigger */}
           {/*   className="font-bold text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-xs transition-all duration-200" */}
           {/*   value="Simplified" */}
@@ -32,9 +32,7 @@ const BillSummariesContainer = ({
             disabled={!hasOfficialSummary}
             value="Official"
           >
-            <span className="truncate text-center">
-              {!hasOfficialSummary ? "No Official Summary" : "Official Summary"}
-            </span>
+            {!hasOfficialSummary ? "No Official Summary" : "Official Summary"}
           </TabsTrigger>
           <TabsTrigger
             value="bill-text"

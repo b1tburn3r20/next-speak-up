@@ -132,8 +132,8 @@ const DesktopBillCard = ({ bill, size = "lg" }: BillViewCardProps) => {
   const cleaned = sanitizeText(latestSummary?.text)
   return (
     <Link href={`/bills/${bill.name_id}`} className="block">
-      <Card className={`${config.card} select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden border-2 border-border/50`}>
-        <div className={`absolute ${config.gradientStart} left-0 right-0 bottom-0 bg-linear-to-b from-background/0 via-background/80 to-background z-10 pointer-events-none`} />
+      <Card className={`${config.card} select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden`}>
+        <div className={`absolute ${config.gradientStart} left-0 right-0 bottom-0 bg-linear-to-b from-background-light/0 via-background-light/80 to-background-light z-10 pointer-events-none`} />
         {getIcon()}
 
         <div className={`${config.padding} h-full flex flex-col relative`}>
@@ -282,7 +282,7 @@ const BillViewCard = ({ bill, size = "lg" }: BillViewCardProps) => {
   return (
     <>
       {/* Hidden on small screens, shown on md and above */}
-      <div className="hidden md:block">
+      <div className="hidden md:block my-4 mx-2">
         <DesktopBillCard bill={bill} size={size} />
       </div>
       {/* Shown on small screens, hidden on md and above */}

@@ -6,19 +6,24 @@ import Features from "./landing/components/Features";
 import Product from "./landing/components/Product";
 import FAQ from "./landing/components/FAQ";
 import Compare from "./landing/components/Compare";
+import BlockA from "@/components/cb/block-a";
 
 const Page = () => {
   return (
     <div>
       <LandingNavbar>
-        <div className="space-y-4 my-14">
-          <Hero />
+        <div className="space-y-4 container mx-auto">
+          <BlockA className="mt-24">
+            <Hero />
+          </BlockA>
           {/* <Features /> */}
           {/* <Compare /> */}
           {/* <SocialProof /> */}
           {/* <Product /> */}
           {/* <FAQ /> */}
-          <Contact />
+          <BlockA>
+            <Contact />
+          </BlockA>
         </div>
       </LandingNavbar>
     </div>

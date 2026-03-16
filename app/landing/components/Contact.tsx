@@ -1,5 +1,6 @@
 "use client";
 
+import BlockB from "@/components/cb/block-b";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -160,11 +161,10 @@ const Contact = () => {
         {/* Status Message */}
         {submitStatus.type && (
           <div
-            className={`p-4 rounded-lg text-sm ${
-              submitStatus.type === "success"
-                ? "bg-green-50 text-green-700 border border-green-200"
-                : "bg-red-50 text-red-700 border border-red-200"
-            }`}
+            className={`p-4 rounded-lg text-sm ${submitStatus.type === "success"
+              ? "bg-green-50 text-green-700 border border-green-200"
+              : "bg-red-50 text-red-700 border border-red-200"
+              }`}
           >
             {submitStatus.message}
           </div>
@@ -220,9 +220,9 @@ const Contact = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 max-w-6xl mx-auto">
           {/* Contact Form */}
           <div className="lg:col-span-2 order-2 lg:order-1">
-            <div className="bg-card border rounded-xl p-6 sm:p-8 shadow-xs">
+            <BlockB>
               <ContactForm />
-            </div>
+            </BlockB>
           </div>
 
           {/* Contact Info */}
