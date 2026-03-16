@@ -1,6 +1,6 @@
+import { fixGoogleImageUrl } from "@/app/utils/text";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { fixGoogleImageUrl } from "@/lib/utils";
 import { User } from "@prisma/client";
 import { ArrowRightSquareIcon, ArrowUpRightSquareIcon } from "lucide-react";
 import Link from "next/link";

@@ -26,13 +26,13 @@ const NoUserDashboard = () => {
 
   return (
     <div className="bg-accent text-primary border-2 text-center border-primary border-dashed p-4 rounded-3xl">
-      <p>Hey, no pressure but without an account we can't give you a personalized dashboard. If its not important to you no worries, but if you want one you click below </p>
+      <p className="text-sm md:text-md">Hey, no pressure but without an account we can't give you a personalized dashboard. If its not important to you no worries, but if you want one you click below </p>
       <div className="flex gap-2 items-center font-normal text-center w-full  justify-center">
-        <p className="underline cursor-pointer" onClick={() => handleActionClick("Login")}>
+        <p className="text-sm md:text-md underline cursor-pointer" onClick={() => handleActionClick("Login")}>
           Login
         </p>
         or
-        <p className="underline cursor-pointer" onClick={() => handleActionClick("Sign up")}>
+        <p className="underline text-sm md:text-md cursor-pointer" onClick={() => handleActionClick("Sign up")}>
           Sign up
         </p>
       </div>

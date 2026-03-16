@@ -1,9 +1,9 @@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
-import { fixGoogleImageUrl } from "@/lib/utils";
 import { formatIsoDate } from "@/lib/utils/StringFunctions";
 import { User } from "@prisma/client";
 import UserRole from "./UserRole";
+import { fixGoogleImageUrl } from "@/app/utils/text";
 
 interface UserAccountInformationProps {
   user: User;
