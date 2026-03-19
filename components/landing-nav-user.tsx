@@ -109,9 +109,10 @@ export function LandingNavUser() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            className={`relative h-12 hover:bg-muted shrink-0 transition-all ${navCollapsed
-                ? "w-12 justify-center p-0"
-                : "w-full justify-start px-3 py-2"
+            variant="outline"
+            className={`relative rounded-full h-12 hover:bg-muted shrink-0 transition-all ${navCollapsed
+              ? "w-fit justify-center p-0"
+              : "w-full justify-start p-0"
               }`}
           >
             <Avatar className="h-8 w-8  rounded-lg shrink-0">
@@ -150,22 +151,6 @@ export function LandingNavUser() {
               </DropdownMenuItem>
             </Link>
             <ModeToggle />
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={startQuickstart}>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Quickstart
-            </DropdownMenuItem>
-
-            <DropdownMenuItem>
-              <BadgeCheck className="mr-2 h-4 w-4" />
-              Account
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Bell className="mr-2 h-4 w-4" />
-              Notifications
-            </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem

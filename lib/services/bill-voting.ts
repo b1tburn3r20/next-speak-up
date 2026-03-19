@@ -8,7 +8,6 @@ export const voteOnLegislation = async (
   votePosition: VotePosition,
   role: string
 ) => {
-  // Check if legislation exists
   const legislation = await prisma.legislation.findUnique({
     where: { id: legislationId },
   });
@@ -17,7 +16,6 @@ export const voteOnLegislation = async (
     throw new Error(`Legislation with ID ${legislationId} not found`);
   }
 
-  // Use upsert to either create a new vote or update an existing one
   await prisma.userVote.upsert({
     where: {
       userId_entityType_entityId: {
@@ -38,7 +36,7 @@ export const voteOnLegislation = async (
       legislationId,
     },
   });
-  return getComprehensiveBillData(legislationId, userId, role);
+  return getUserVoteObject(legislationId, userId, role);
 };
 
 export const updateBillTracking = async (
@@ -73,7 +71,55 @@ export const updateBillTracking = async (
   );
   return getComprehensiveBillData(legislationId, userId, role);
 };
+export const getUserVoteObject = async (
+  billId: string | number,
+  userId: string | null,
+  userRole: string
+) => {
+  const whereClause =
+    typeof billId === "string"
+      ? {
+        name_id: billId,
+      }
+      : {
+        id: billId,
+      };
 
+  const billData = await prisma.legislation.findUnique({
+    where: whereClause,
+  });
+
+  if (!billData) {
+    await logUserAction(
+      userId,
+      "getComprehensiveBillData",
+      String(billId),
+      userRole
+    );
+    return null;
+  }
+
+  let userVote = null;
+  if (userId) {
+    userVote = await prisma.userVote.findFirst({
+      where: {
+        userId,
+        entityType: "legislation",
+        entityId: billData.id,
+      },
+    });
+  }
+  await logUserAction(
+    userId,
+    "voteOnLegislation",
+    String(billId),
+    userRole
+  );
+
+  return {
+    userVote,
+  };
+};
 export const getComprehensiveBillData = async (
   billId: string | number,
   userId: string | null,

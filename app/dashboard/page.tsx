@@ -7,6 +7,13 @@ import LatestBillsWidget from "../dashboard-components/widgets/LatestBillsWidget
 import BlockA from "@/components/cb/block-a";
 import NoUserDashboard from "./components/no-user-dashboard";
 import UserPersonalizedDashboard from "./components/user-personalized-dashboard";
+import { Metadata } from "next"
+
+
+export const metadata: Metadata = {
+  title: "Coolbills | Personalized Dashboard",
+  description: "See what your representative is up to"
+};
 
 export default async function Home() {
   const session = await getServerSession(authOptions);

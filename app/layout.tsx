@@ -9,6 +9,7 @@ import { OnboardingModal } from "./GeneralComponents/Onboarding/OnboardingModal"
 import Navbar from "./navbar/navbar";
 import { Open_Sans, Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import Modals from "@/components/cb/modals";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -84,6 +85,7 @@ export default function RootLayout({
             <Toaster />
             {/* <OnboardingModal /> */}
           </ThemeProvider>
+          <Modals />
         </AuthProvider>
       </body>
     </html>

@@ -8,23 +8,36 @@ import PolicyAreaWidget from "./rep-widget/rep-policy-chart";
 import RepRecentVotesWidget from "./rep-widget/rep-recent-votes";
 import { Label } from "@/components/ui/label";
 import { TextAnimate } from "@/components/magicui/text-animate";
-
+import { useModalStore } from "@/app/stores/useModalStore";
+import { Button } from "@/components/ui/button";
 type DataResponse = {
   policyAreaBreakdown: CongressMemberPolicyAreaBreakdownRowType[]
   recentVotes: CongressMemberHouseOfRepresentativesVoteType[]
   representative: CongressMember
 }
-
+const Error404 = () => {
+  const setOpen = useModalStore((f) => f.setIsDistrictModalOpen)
+  return (
+    <div className="bg-accent text-primary border-2 text-center border-primary border-dashed p-4 rounded-3xl">
+      <p className="text-sm">Looks like you haven't selected a district yet.</p>
+      <Button variant="link" className="text-sm" onClick={() => setOpen(true)}>
+        Select your district
+      </Button>
+    </div>
+  )
+}
 const UserPersonalizedDashboardRepresentativeWidget = () => {
   const [fetching, setFetching] = useState(false)
   const [data, setData] = useState<null | DataResponse>(null)
-
+  const [error, setError] = useState<string>("")
   useEffect(() => {
     const fetchData = async () => {
       setFetching(true)
       try {
         const response = await fetch("/api/dashboard/widgets/user-policy-and-rep")
-        if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`)
+        if (!response.ok) {
+          handleError(response)
+        }
         const json = await response.json()
         setData(json.data)
       } catch (error) {
@@ -36,12 +49,33 @@ const UserPersonalizedDashboardRepresentativeWidget = () => {
     fetchData()
   }, [])
 
+  const handleError = (error: Response) => {
+    setError(error.status.toString())
+  }
+
+  const renderError = () => {
+    switch (error) {
+      case "404":
+        return <Error404 />
+        break;
+
+      default:
+        break;
+    }
+  }
+
+
+
   if (fetching) return (
     <div className="min-h-50 w-full bg-background-light shadow-md rounded-2xl p-4 flex items-center justify-center">
       <Loader className="animate-spin" size={32} />
     </div>
   )
 
+
+  if (error) {
+    return renderError()
+  }
   if (!data) return null
 
   return (

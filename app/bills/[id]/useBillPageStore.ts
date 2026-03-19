@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { FullUserLegislationData } from "@/lib/types/bill-types";
+import { UserVote } from "@prisma/client";
 
 interface WordTimestamp {
   word: string;
@@ -34,6 +35,8 @@ export type BillPageStore = {
   setTtsWordTimestamps: (timestamps: WordTimestamp[]) => void;
   setTtsCurrentWordIndex: (index: number) => void;
   resetTtsState: () => void;
+  // helpers
+  setVote: (data: UserVote) => void
 };
 
 const initialData = {
@@ -90,4 +93,11 @@ export const useBillPageStore = create<BillPageStore>((set) => ({
       ttsWordTimestamps: [],
       ttsCurrentWordIndex: -1,
     }),
+  setVote: (data: UserVote) =>
+    set((state) => ({
+      billData: state.billData ? {
+        ...state.billData,
+        userVote: data,
+      } : null
+    }))
 }));

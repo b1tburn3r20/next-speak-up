@@ -1,55 +1,64 @@
-import { NextResponse } from "next/server";
-
-export async function POST(request: Request) {
+import { NextResponse } from "next/server"
+import { NextRequest } from "next/server"
+const FIPS_TO_STATE: Record<string, string> = {
+  "01": "Alabama", "02": "Alaska", "04": "Arizona", "05": "Arkansas",
+  "06": "California", "08": "Colorado", "09": "Connecticut", "10": "Delaware",
+  "11": "District of Columbia", "12": "Florida", "13": "Georgia", "15": "Hawaii",
+  "16": "Idaho", "17": "Illinois", "18": "Indiana", "19": "Iowa",
+  "20": "Kansas", "21": "Kentucky", "22": "Louisiana", "23": "Maine",
+  "24": "Maryland", "25": "Massachusetts", "26": "Michigan", "27": "Minnesota",
+  "28": "Mississippi", "29": "Missouri", "30": "Montana", "31": "Nebraska",
+  "32": "Nevada", "33": "New Hampshire", "34": "New Jersey", "35": "New Mexico",
+  "36": "New York", "37": "North Carolina", "38": "North Dakota", "39": "Ohio",
+  "40": "Oklahoma", "41": "Oregon", "42": "Pennsylvania", "44": "Rhode Island",
+  "45": "South Carolina", "46": "South Dakota", "47": "Tennessee", "48": "Texas",
+  "49": "Utah", "50": "Vermont", "51": "Virginia", "53": "Washington",
+  "54": "West Virginia", "55": "Wisconsin", "56": "Wyoming"
+}
+export async function POST(request: NextRequest) {
   try {
-    const { latitude, longitude } = await request.json();
+    const geoRes = await fetch(
+      `https://www.googleapis.com/geolocation/v1/geolocate?key=${process.env.GOOGLE_MAPS_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      }
+    )
 
-    if (!latitude || !longitude) {
-      return NextResponse.json(
-        { error: "Missing coordinates" },
-        { status: 400 }
-      );
-    }
+    if (!geoRes.ok) throw new Error(`Google Geolocation API error: ${geoRes.status}`)
+
+    const geoData = await geoRes.json()
+    const { lat, lng } = geoData.location
 
     const censusUrl = new URL(
       "https://geocoding.geo.census.gov/geocoder/geographies/coordinates"
-    );
+    )
+    censusUrl.searchParams.append("x", lng.toString())
+    censusUrl.searchParams.append("y", lat.toString())
+    censusUrl.searchParams.append("benchmark", "Public_AR_Current")
+    censusUrl.searchParams.append("vintage", "Current_Current")
+    censusUrl.searchParams.append("layers", "119th Congressional Districts")
+    censusUrl.searchParams.append("format", "json")
 
-    censusUrl.searchParams.append("x", longitude.toString());
-    censusUrl.searchParams.append("y", latitude.toString());
-    censusUrl.searchParams.append("benchmark", "Public_AR_Current");
-    censusUrl.searchParams.append("vintage", "Current_Current");
-    censusUrl.searchParams.append("layers", "119th Congressional Districts");
-    censusUrl.searchParams.append("format", "json");
+    const censusRes = await fetch(censusUrl.toString())
+    if (!censusRes.ok) throw new Error(`Census API error: ${censusRes.status}`)
 
-    const response = await fetch(censusUrl.toString());
+    const censusData = await censusRes.json()
+    const district = censusData.result?.geographies?.["119th Congressional Districts"]?.[0]
 
-    if (!response.ok) {
-      throw new Error(`Census API responded with status: ${response.status}`);
-    }
+    if (!district) throw new Error("No district found for your location")
 
-    const data = await response.json();
-
-    const district =
-      data.result?.geographies?.["119th Congressional Districts"]?.[0];
-
-    if (!district) {
-      throw new Error("No district found for these coordinates");
-    }
-
+    console.log("district object:", JSON.stringify(district, null, 2))
     return NextResponse.json({
-      state: district.STATE,
+      state: FIPS_TO_STATE[district.STATE] ?? district.STATE,
       district: district.CD119,
-    });
+    })
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error:", error)
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to process location",
-        details: "Please try entering your address instead",
-      },
+      { error: error instanceof Error ? error.message : "Failed to process location" },
       { status: 500 }
-    );
+    )
   }
 }

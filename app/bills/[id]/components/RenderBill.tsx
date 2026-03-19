@@ -7,11 +7,10 @@ import { useEffect, useState } from "react";
 import { useBillPageStore } from "../useBillPageStore";
 import BillSummariesContainer from "./BillSummariesContainer";
 import BillTitle from "./BillTitle";
-import DesktopSupportBillButtons from "./DesktopSupportBillButtons";
 import HasVotedBillPage from "./has-voted-components/HasVotedBillPage";
-import MobileSupportBillButtons from "./MobileSupportBillButtons";
 import BillTimeline from "./BillTimeline/BillTimeline";
 import { Separator } from "@/components/ui/separator";
+import FederalLegislationVoteButtons from "./federal-legislation-vote-buttons";
 
 interface RenderBillProps {
   bill: FullUserLegislationData;
@@ -35,7 +34,6 @@ const RenderBill = ({
     (f) => f.setTTSVoicePreferance
   );
   const resetBillState = useBillPageStore((f) => f.resetBillState);
-  const hasUser = session?.user?.id;
   const hasVoted = !!billData?.userVote;
 
   const [hasOfficialSummary, setHasOfficialSummary] = useState(false)
@@ -49,19 +47,8 @@ const RenderBill = ({
     if (billData?.legislation?.summaries) {
       setHasOfficialSummary(true)
     }
-    console.log("Heres the bill data", bill)
-  }, [billData]);
+  }, [billData?.legislation]);
 
-
-
-  if (hasVoted) {
-    return (
-      <HasVotedBillPage
-        noOfficialSummary={!hasOfficialSummary}
-        session={session}
-      />
-    );
-  }
   if (!billData) {
     return (
       <div className="min-h-[80vh] w-full flex justify-center items-center">
@@ -85,21 +72,11 @@ const RenderBill = ({
               userId={session?.user?.id}
               summaries={billData?.legislation?.summaries}
             />
+            <FederalLegislationVoteButtons
+              session={session.user}
+            />
           </div>
         </div>
-        {hasUser && (
-          <>
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-xs border-t border-border sm:hidden z-20">
-              <MobileSupportBillButtons />
-            </div>
-
-            <div className="hidden sm:block">
-              <DesktopSupportBillButtons />
-            </div>
-
-            <div className="h-20 sm:hidden" />
-          </>
-        )}
       </div>
     </div>
   );

@@ -1,14 +1,18 @@
-import React from "react";
+import type { Metadata } from 'next'
 import LandingNavbar from "./landing/navbar/navbar";
 import Hero from "./landing/components/Hero";
 import Contact from "./landing/components/Contact";
-import Features from "./landing/components/Features";
-import Product from "./landing/components/Product";
-import FAQ from "./landing/components/FAQ";
-import Compare from "./landing/components/Compare";
 import BlockA from "@/components/cb/block-a";
 
+
+export const metadata: Metadata = {
+  title: 'Coolbills | Learn about who represents you',
+  description: "Coolbills allows you to see your repesentative, compare your representative to see if you agree on things."
+}
+
 const Page = () => {
+
+
   return (
     <div>
       <LandingNavbar>
@@ -16,11 +20,6 @@ const Page = () => {
           <BlockA className="mt-24">
             <Hero />
           </BlockA>
-          {/* <Features /> */}
-          {/* <Compare /> */}
-          {/* <SocialProof /> */}
-          {/* <Product /> */}
-          {/* <FAQ /> */}
           <BlockA>
             <Contact />
           </BlockA>
