@@ -10,10 +10,10 @@ import { formatIsoDate } from "@/lib/utils/StringFunctions"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
 import { useAppStore } from "@/app/stores/useAppStore"
+import Link from "next/link"
 
 interface Props {
   votes: CongressMemberHouseOfRepresentativesVoteType[]
-  onGoToBill?: (vote: CongressMemberHouseOfRepresentativesVoteType) => void
 }
 
 const POSITION_BADGE: Record<string, { label: string; variant: string }> = {
@@ -23,7 +23,7 @@ const POSITION_BADGE: Record<string, { label: string; variant: string }> = {
   NOT_VOTING: { label: "Avoided", variant: "muted" },
 }
 
-export default function RepRecentVotesWidget({ votes, onGoToBill }: Props) {
+export default function RepRecentVotesWidget({ votes }: Props) {
   const isMobile = useAppStore((f) => f.isMobile)
   return (
     <div className="bg-background-light shadow-md rounded-2xl p-3 w-full overflow-hidden">
@@ -78,15 +78,16 @@ export default function RepRecentVotesWidget({ votes, onGoToBill }: Props) {
                         {formatIsoDate(vote.date, false)}
                       </TableCell>
                       <TableCell className="py-1.5 text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                          onClick={() => onGoToBill?.(vote)}
-                          aria-label="Go to bill"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                        </Button>
+                        <Link href={`/bills/${vote.nameId}`}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            aria-label="Go to bill"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                        </Link>
                       </TableCell>
                     </TableRow>
                   )

@@ -1,4 +1,5 @@
-import { BillAiSummary, BillSummary } from "@prisma/client";
+import { BillAiSummary, BillSummary, CongressMember } from "@prisma/client";
+import { number, string } from "zod";
 
 export type LegislationUserTracks = {
   hasViewed: boolean;
@@ -71,4 +72,45 @@ export type FullUserLegislationData = {
   userVote: LegislationUserVote;
   userTracking: LegislationUserTracking;
 };
+
+
+export type CongressionalVoteMemberVote = {
+  createdAt: Date
+  id: number
+  member: CongressMember
+  memberId: number
+  party: string
+  state: string
+  updatedAt: Date
+  voteId: number
+  votePosition: string
+}
+
+export type CongressionalVoteType = {
+  billNumber: string
+  chamber: string
+  congress: number
+  createdAt: Date
+  date: Date
+  description: string | null
+  id: number
+  memberVotes: CongressionalVoteMemberVote[]
+  name_id: string
+  question: string | null
+  result: string
+  rollNumber: number
+  time: Date | null
+  totalNay: number
+  totalNotVoting: number
+  totalPresent: number
+  totalVoting: number
+  totalYea: number
+  updatedAt: Date
+}
+
+
+
+
+
+
 // sponsors and more later.

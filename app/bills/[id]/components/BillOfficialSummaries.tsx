@@ -44,7 +44,7 @@ const BillOfficialSummaries = ({ summaries }: BillOfficialSummariesProps) => {
 
   return (
     <div className="space-y-6">
-      <Select value={versionCode} onValueChange={handleSelect}>
+      <Select disabled={summaries?.length < 2} value={versionCode} onValueChange={handleSelect}>
         <SelectTrigger>
           <SelectValue placeholder="Select a summary" />
         </SelectTrigger>

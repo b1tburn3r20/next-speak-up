@@ -14,13 +14,19 @@ type DataResponse = {
   recentVotes: CongressMemberHouseOfRepresentativesVoteType[]
   representative: CongressMember
 }
-const Error404 = () => {
+
+interface MissingDistrictModalProps {
+  pText?: string
+  bText?: string
+}
+
+export const MissingDistrictModal = ({ pText, bText }: MissingDistrictModalProps) => {
   const setOpen = useModalStore((f) => f.setIsDistrictModalOpen)
   return (
     <div className="bg-accent text-primary border-2 text-center border-primary border-dashed p-4 rounded-3xl">
-      <p className="text-sm">Looks like you haven't selected a district yet.</p>
+      <p className="text-sm">{pText ? pText : "Looks like you haven't selected a district yet."} </p>
       <Button variant="link" className="text-sm" onClick={() => setOpen(true)}>
-        Select your district
+        {bText ? bText : "Select your district"}
       </Button>
     </div>
   )
@@ -55,7 +61,7 @@ const UserPersonalizedDashboardRepresentativeWidget = () => {
   const renderError = () => {
     switch (error) {
       case "404":
-        return <Error404 />
+        return <MissingDistrictModal />
         break;
 
       default:

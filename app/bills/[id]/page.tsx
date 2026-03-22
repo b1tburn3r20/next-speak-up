@@ -12,6 +12,8 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import RenderBill from "./components/RenderBill";
 import NoBillData from "./components/NoBillData";
+import CongressionalBillVoteTabs from "./components/congressional-votes/your-rep-votes";
+import { AuthSession } from "@/lib/types/user-types";
 
 interface PageProps {
   params: Promise<{
@@ -61,7 +63,7 @@ export async function generateMetadata({
 }
 
 const Page = async ({ params }: PageProps) => {
-  const session = await getServerSession(authOptions);
+  const session: AuthSession = await getServerSession(authOptions);
 
   const resolvedParams = await params;
   const billId = resolvedParams.id;
@@ -104,17 +106,18 @@ const Page = async ({ params }: PageProps) => {
       session.user.role.name
     );
 
-
+    console.log(bill)
 
   }
   return (
-    <div>
+    <div className="flex gap-2 justify-evenly py-4">
       <RenderBill
         bill={bill}
         session={session}
         isDyslexicFriendly={isDyslexicFriendly}
         ttsVoicePreference={ttsVoicePreference}
       />
+
       {/* <BillAskAI */}
       {/*   congress={bill.legislation.congress} */}
       {/*   type={bill.legislation.type} */}

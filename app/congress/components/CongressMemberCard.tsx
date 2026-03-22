@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-type CongressMemberCardProps = {
+export type CongressMemberCardProps = {
   member: {
     bioguideId: string;
     name: string;

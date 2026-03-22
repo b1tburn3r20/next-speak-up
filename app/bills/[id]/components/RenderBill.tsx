@@ -11,6 +11,8 @@ import BillTimeline from "./BillTimeline/BillTimeline";
 import { Separator } from "@/components/ui/separator";
 import FederalLegislationVoteButtons from "./federal-legislation-vote-buttons";
 import BlockB from "@/components/cb/block-b";
+import CongressionalBillVoteTabs from "./congressional-votes/your-rep-votes";
+import YourRepVotes from "./congressional-votes/your-rep-votes";
 
 interface RenderBillProps {
   bill: FullUserLegislationData;
@@ -57,28 +59,27 @@ const RenderBill = ({
   }
 
   return (
-    <div className="container mx-auto  sm:px-6 lg:px-8 p-2 sm:py-6 lg:py-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="border-0 bg-background shadow-md  rounded-3xl overflow-hidden">
-          <div className="p-2 sm:p-6 lg:p-8 space-y-2 sm:space-y-6">
-            <BlockB>
-              <div className="text-center px-4 py-4 sm:px-0 sm:py-0">
-                <BillTitle />
-              </div>
-            </BlockB>
-            <BlockB>
-              <BillTimeline actions={bill?.legislation?.actions} />
-            </BlockB>
-            <Separator className="my-6" />
-            <BillSummariesContainer
-              hasOfficialSummary={hasOfficialSummary}
-              userId={session?.user?.id}
-              summaries={billData?.legislation?.summaries}
-            />
-            <FederalLegislationVoteButtons
-              session={session.user}
-            />
-          </div>
+    <div className="max-w-4xl mx-auto">
+      <div className="border-0 bg-background shadow-md  rounded-3xl overflow-hidden">
+        <div className="p-2 sm:p-6 lg:p-8 space-y-2 sm:space-y-6">
+          <BlockB>
+            <div className="text-center px-4 py-4 sm:px-0 sm:py-0">
+              <BillTitle />
+            </div>
+          </BlockB>
+          <BlockB>
+            <BillTimeline actions={bill?.legislation?.actions} />
+          </BlockB>
+          <Separator className="my-6" />
+          <BillSummariesContainer
+            hasOfficialSummary={hasOfficialSummary}
+            userId={session?.user?.id}
+            summaries={billData?.legislation?.summaries}
+          />
+          <FederalLegislationVoteButtons
+            session={session?.user}
+          />
+          <YourRepVotes userId={session?.user.id} district={session?.user?.district} state={session?.user?.state} congressionalVotes={bill?.congressionalVotes} />
         </div>
       </div>
     </div>

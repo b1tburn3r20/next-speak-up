@@ -251,7 +251,11 @@ export const getComprehensiveBillData = async (
               id: {
                 in: memberIds,
               },
+
             },
+            include: {
+              depiction: true
+            }
           })
           : [];
 

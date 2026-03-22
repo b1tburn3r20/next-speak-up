@@ -18,7 +18,7 @@ const BillSummariesContainer = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Tabs defaultValue={hasOfficialSummary ? "bill-summary" : "bill-text"} className="w-full">
+      <Tabs key={hasOfficialSummary.toString()} defaultValue={hasOfficialSummary ? "bill-summary" : "bill-text"} className="w-full">
         <TabsList className="grid grid-cols-2 w-full">
           {/* <TabsTrigger */}
           {/*   className="font-bold text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-xs transition-all duration-200" */}

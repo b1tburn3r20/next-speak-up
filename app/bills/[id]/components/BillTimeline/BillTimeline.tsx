@@ -14,7 +14,6 @@ function getActionLabel(code: string, fallback?: string): string {
   return billActionMap.find((e) => e.code === code)?.label ?? fallback ?? code;
 }
 
-// ── Stages ────────────────────────────────────────────────────────────────────
 const INTRO_CODES = new Set(["1000", "1025"]);
 
 const STAGE_LABELS = ["Introduced", "Committee", "House Floor", "Senate", "President", "Became Law"];
@@ -37,7 +36,6 @@ function getStageIndex(code: string): number | null {
   return null;
 }
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 type StageDetail = {
   code: string;
   date: string;
@@ -53,7 +51,6 @@ type BillAnalysis = {
 
 const STALE_DAYS = 180;
 
-// ── Analysis ──────────────────────────────────────────────────────────────────
 function analyzeBill(actions: FullUserLegislationData["legislation"]["actions"]): BillAnalysis {
   const sorted = [...actions].sort(
     (a, b) => new Date(a.actionDate).getTime() - new Date(b.actionDate).getTime()
@@ -99,7 +96,6 @@ function formatDate(dateStr: string) {
   });
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
 interface BillTimelineProps {
   actions: FullUserLegislationData["legislation"]["actions"];
 }
@@ -131,8 +127,8 @@ const BillTimeline = ({ actions }: BillTimelineProps) => {
                   !isReached && "bg-muted text-muted-foreground border-transparent opacity-40",
                   isPast && "bg-muted text-muted-foreground border-transparent",
                   isFurthest && !isCurrent && "bg-orange-500/50 text-foreground border-transparent",
-                  isCurrent && "bg-primary/50 text-foreground border-transparent"
-                )}
+                  isCurrent && "bg-primary/80 text-white font-bold border-transparent"
+                  , "shadow-sm")}
               >
                 {label}
               </div>
