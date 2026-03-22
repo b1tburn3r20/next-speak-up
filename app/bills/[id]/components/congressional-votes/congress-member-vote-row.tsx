@@ -34,9 +34,9 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
         )
 
       case "YEA":
-        return `I voted to PASS this legislation on behalf of ${congressMember?.state}.`;
+        return `I voted to PASS this legislation on behalf of ${congressMember?.member.state}.`;
       case "NAY":
-        return `I voted to STOP this legislation on behalf of ${congressMember?.state}.`;
+        return `I voted to STOP this legislation on behalf of ${congressMember?.member.state}.`;
       case "PRESENT":
         return (
           <p>
@@ -69,25 +69,20 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
             {congressMember.member.lastName[0]}
           </AvatarFallback>
         </Avatar>
-        <BlockB className="relative">
+        <BlockB className="relative w-full">
           {hidden ? (
-            <div className="bg-black/5 backdrop-blur-2xl w-full h-full top-0 left-0 absolute z-10 rounded-xl flex items-center justify-center">
-              <BlockA >
-                <div
-                  className="flex gap-2 items-center text-lg"
-                  onClick={() => handleRevealClick()}
-                >
-                  <p className="flex gap-1 items-center">Reveal how<span className="text-primary">your</span> representative voted on this legislation</p>
-                  <Button size="icon">
+            <BlockA className="w-full h-full top-0 left-0 absolute z-10 " >
+              <div
+                className="flex justify-between gap-2 w-full items-center text-lg"
+                onClick={() => handleRevealClick()}
+              >
+                <p className="flex gap-1 items-center">Reveal how<span className="text-primary">your</span> representative voted on this legislation</p>
+                <Button size="icon">
 
-                    <Eye />
-                  </Button>
-                </div>
-              </BlockA>
-
-            </div>
-
-
+                  <Eye />
+                </Button>
+              </div>
+            </BlockA>
           ) : (
             ""
           )}
@@ -110,10 +105,15 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-2 items-center">
-            <DialogClose asChild><Button variant="secondary">I'll vote first</Button></DialogClose>
-            <DialogClose asChild><Button onClick={() => setHidden(false)} variant="destructive">Show me anyways</Button> </DialogClose>
-          </div>
-        </DialogContent>
+            <DialogClose asChild>
+              <Button variant="secondary">I'll vote first</Button>
+            </DialogClose>
+            <DialogClose asChild>
+              <Button onClick={() => setHidden(false)} variant="destructive">
+                Show me anyways
+              </Button>
+            </DialogClose>
+          </div>        </DialogContent>
       </Dialog>
     </div>
   )

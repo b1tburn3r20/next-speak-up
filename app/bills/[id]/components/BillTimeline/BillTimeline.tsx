@@ -127,7 +127,7 @@ const BillTimeline = ({ actions }: BillTimelineProps) => {
                   !isReached && "bg-muted text-muted-foreground border-transparent opacity-40",
                   isPast && "bg-muted text-muted-foreground border-transparent",
                   isFurthest && !isCurrent && "bg-orange-500/50 text-foreground border-transparent",
-                  isCurrent && "bg-primary/80 text-white font-bold border-transparent"
+                  isCurrent && "bg-primary/80 text-white fnt-bold border-transparent"
                   , "shadow-sm")}
               >
                 {label}

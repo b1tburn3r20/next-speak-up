@@ -8,6 +8,7 @@ import {
 import NumberTicker from "@/components/ui/number-ticker";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface CongressMemberCardProps {
   congressMember: ComprehensiveLegislatorData;
@@ -70,8 +71,9 @@ const WidgetRepCard = ({ congressMember }: CongressMemberCardProps) => {
           <span className="text-sm font-medium">{formatTimeUntilReelection() ?? "—"}</span>
         </div>
       </div>
-
-      <Button className="w-full mt-3 h-8 text-sm">View more</Button>
+      <Link href={`/legislators/federal/${congressMember?.bioguideId}`}>
+        <Button className="w-full mt-3 h-8 text-sm">View more</Button>
+      </Link>
     </div>);
 };
 

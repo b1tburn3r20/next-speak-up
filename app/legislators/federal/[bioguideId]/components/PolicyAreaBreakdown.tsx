@@ -45,7 +45,7 @@ export default function PolicyAreaBreakdown({ data }: Props) {
   })
 
   return (
-    <div className="bg-background space-y-6 p-2 rounded-3xl shadow-md h-full">
+    <div className="bg-background space-y-6 p-2 rounded-3xl shadow-md h-full w-full">
       <div className="bg-background-light p-3 rounded-3xl shadow-md h-full">
         <div className="font-normal">Full Policy Area Breakdown</div>
         <div className="text-sm text-muted-foreground">

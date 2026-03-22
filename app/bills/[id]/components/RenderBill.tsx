@@ -59,7 +59,7 @@ const RenderBill = ({
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="lg:w-4xl max-w-4xl mx-auto">
       <div className="border-0 bg-background shadow-md  rounded-3xl overflow-hidden">
         <div className="p-2 sm:p-6 lg:p-8 space-y-2 sm:space-y-6">
           <BlockB>

@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button"
 import { ExternalLink } from "lucide-react"
 import { CongressMemberHouseOfRepresentativesVoteType } from "../congress-member-types"
 import { formatIsoDate } from "@/lib/utils/StringFunctions"
+import Link from "next/link"
 
 interface Props {
   votes: CongressMemberHouseOfRepresentativesVoteType[]
-  onGoToBill?: (vote: CongressMemberHouseOfRepresentativesVoteType) => void
 }
 
 const POSITION_BADGE: Record<string, { label: string; variant: string }> = {
@@ -21,7 +21,7 @@ const POSITION_BADGE: Record<string, { label: string; variant: string }> = {
 }
 
 
-export default function HouseVotesList({ votes, onGoToBill }: Props) {
+export default function HouseVotesList({ votes }: Props) {
   return (
     <div className="bg-background p-2 shadow-md rounded-3xl min-w-0 overflow-x-auto">
       <div className="bg-background-light p-4 shadow-md rounded-3xl min-w-0 overflow-hidden">
@@ -86,15 +86,17 @@ export default function HouseVotesList({ votes, onGoToBill }: Props) {
                       </TableCell>
 
                       <TableCell className="text-right align-top pt-3">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                          onClick={() => onGoToBill?.(vote)}
-                          aria-label="Go to bill"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
+                        <Link href={`/bills/${vote?.nameId}`}>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            aria-label="Go to bill"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </Link>
                       </TableCell>
                     </TableRow>
                   )
