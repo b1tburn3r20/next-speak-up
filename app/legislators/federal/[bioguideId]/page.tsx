@@ -32,18 +32,23 @@ const Page = async ({ params }: PageProps) => {
     bioguideId,
   );
 
-  console.log(memberData)
   return (
-    <div className="p-4 flex justify-center items-center w-full h-full">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="p-4 flex justify-center items-start w-full">
+      <div className="w-full grid grid-cols-1 xl:grid-cols-2 gap-4">
+
+        {/* Left column */}
         <div className="flex flex-col gap-4">
-          <div className="flex gap-4">
+          {/* Card + PolicyAreaBreakdown: stacked on mobile, row on lg+ */}
+          <div className="flex flex-col lg:flex-row gap-4">
             <CongressMemberCard congressMember={memberData} />
             <PolicyAreaBreakdown data={policyAreaBreakdown} />
           </div>
           <PolicyAreaBreakdownTable data={policyAreaBreakdown} />
         </div>
+
+        {/* Right column: below everything on <xl, beside left col on xl */}
         <HouseVotesList votes={houseVoteData} />
+
       </div>
     </div>
   );

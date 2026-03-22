@@ -22,20 +22,21 @@ export const navItems: NavItem[] = [
   { href: "/", icon: Home, label: "Home" },
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   {
-    href: "/bills",
-    icon: Book,
-    label: "Bills",
-  },
-  {
     href: "/legislators",
     icon: Briefcase,
     label: "Legislators",
   },
   {
-    href: "/forum",
-    icon: Users,
-    label: "Forum",
+    href: "/bills",
+    icon: Book,
+    label: "Bills",
   },
+
+  // {
+  //   href: "/forum",
+  //   icon: Users,
+  //   label: "Forum",
+  // },
   {
     href: "/admin/permissions",
     icon: Key,

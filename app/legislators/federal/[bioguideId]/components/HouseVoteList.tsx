@@ -20,89 +20,95 @@ const POSITION_BADGE: Record<string, { label: string; variant: string }> = {
   NOT_VOTING: { label: "Avoided", variant: "muted" },
 }
 
+
 export default function HouseVotesList({ votes, onGoToBill }: Props) {
   return (
-    <div className="bg-background p-2 shadow-md rounded-3xl">
-      <div className="bg-background-light p-4 shadow-md rounded-3xl">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-24">Position</TableHead>
-              <TableHead>Bill</TableHead>
-              <TableHead className="hidden md:table-cell">Policy Area</TableHead>
-              <TableHead className="">Date</TableHead>
-              <TableHead className="w-10"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {votes.length === 0 ? (
+    <div className="bg-background p-2 shadow-md rounded-3xl min-w-0 overflow-x-auto">
+      <div className="bg-background-light p-4 shadow-md rounded-3xl min-w-0 overflow-hidden">
+        <div className="w-full overflow-x-auto">
+          <Table className="table-fixed w-full">
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  No votes match the current filter.
-                </TableCell>
+                <TableHead className="w-24">Position</TableHead>
+                <TableHead>Bill</TableHead>
+                <TableHead className="hidden md:table-cell w-36">Policy Area</TableHead>
+                <TableHead className="hidden sm:table-cell w-24">Date</TableHead>
+                <TableHead className="w-10"></TableHead>
               </TableRow>
-            ) : (
-              votes.map((vote, i) => {
-                const pos = POSITION_BADGE[vote.votePosition] ?? POSITION_BADGE.NOT_VOTING
-                const title = vote.billTitle || `Roll #${vote.rollNumber}`
+            </TableHeader>
 
-                return (
-                  <TableRow
-                    key={vote.memberVoteId}
-                    className={i % 2 === 0 ? "bg-muted/30" : ""}
-                  >
-                    {/* Badge only — no button here */}
-                    <TableCell>
-                      <Badge variant={pos.variant}>{pos.label}</Badge>
-                    </TableCell>
+            <TableBody>
+              {votes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    No votes match the current filter.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                votes.map((vote, i) => {
+                  const pos = POSITION_BADGE[vote.votePosition] ?? POSITION_BADGE.NOT_VOTING
+                  const title = vote.billTitle || `Roll #${vote.rollNumber}`
 
-                    <TableCell>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-sm font-medium max-w-100 whitespace-pre-wrap">
-                          {title}
-                        </span>
-                        {vote.billNumber && (
-                          <span className="text-xs text-muted-foreground">
-                            {vote.nameId}
+                  return (
+                    <TableRow
+                      key={vote.memberVoteId}
+                      className={i % 2 === 0 ? "bg-muted/30" : ""}
+                    >
+                      <TableCell className="align-top pt-3">
+                        <Badge variant={pos.variant}>{pos.label}</Badge>
+                      </TableCell>
+
+                      <TableCell className="align-top pt-3">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-medium break-words line-clamp-3 max-w-[200px] sm:max-w-xs md:max-w-sm xl:max-w-none">
+                            {title}
                           </span>
-                        )}
-                      </div>
-                    </TableCell>
+                          {vote.billNumber && (
+                            <span className="text-xs text-muted-foreground">
+                              {vote.nameId}
+                            </span>
+                          )}
+                          {/* Show date inline on mobile where the date column is hidden */}
+                          <span className="text-xs text-muted-foreground sm:hidden">
+                            {formatIsoDate(vote.date, false)}
+                          </span>
+                        </div>
+                      </TableCell>
 
-                    <TableCell className="hidden md:table-cell">
-                      <span className="text-sm text-muted-foreground">
-                        {vote.policyArea}
-                      </span>
-                    </TableCell>
+                      <TableCell className="hidden md:table-cell align-top pt-3">
+                        <span className="text-sm text-muted-foreground">
+                          {vote.policyArea}
+                        </span>
+                      </TableCell>
 
-                    <TableCell className="text-right text-sm text-muted-foreground whitespace-nowrap">
-                      {formatIsoDate(vote.date, false)}
-                    </TableCell>
+                      <TableCell className="hidden sm:table-cell text-right text-sm text-muted-foreground whitespace-nowrap align-top pt-3">
+                        {formatIsoDate(vote.date, false)}
+                      </TableCell>
 
-                    {/* Compact action — icon button, no label needed */}
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                        onClick={() => onGoToBill?.(vote)}
-                        aria-label="Go to bill"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                )
-              })
-            )}
-          </TableBody>
-        </Table>
+                      <TableCell className="text-right align-top pt-3">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          onClick={() => onGoToBill?.(vote)}
+                          aria-label="Go to bill"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
 
-        {votes.length > 0 && (
-          <p className="mt-3 text-right text-xs text-muted-foreground">
-            Showing {votes.length} of {votes.length} votes
-          </p>
-        )}
+          {votes.length > 0 && (
+            <p className="mt-3 text-right text-xs text-muted-foreground">
+              Showing {votes.length} of {votes.length} votes
+            </p>
+          )}
+        </div>
       </div>
     </div>
   )

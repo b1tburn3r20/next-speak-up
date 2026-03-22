@@ -17,19 +17,6 @@ export function ResponsiveSupportBill({
 }: ResponsiveSupportBillProps) {
   const [isMobile, setIsMobile] = useState(false);
 
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
-    };
-
-    // Check on mount
-    checkScreenSize();
-
-    // Listen for resize events
-    window.addEventListener("resize", checkScreenSize);
-
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
 
   return <MobileSupportBillButton bill={bill} votes={votes} />;
 }

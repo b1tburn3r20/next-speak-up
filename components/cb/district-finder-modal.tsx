@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useModalStore } from "@/app/stores/useModalStore"
+import BlockB from "./block-b"
+import BlockA from "./block-a"
 
 type FoundDistrict = { state: string; district: number }
 
@@ -41,12 +43,13 @@ export function DistrictFinderModal() {
     if (!found) return
     setIsSaving(true)
     try {
-      await fetch("/api/user/district", {
-        method: "POST",
+      await fetch("/api/user/set-state-and-district", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(found),
       })
       setOpen(false)
+      window.location.reload()
       // optionally trigger a refetch of the widget here
     } catch {
       setError("Failed to save. Please try again.")
@@ -80,18 +83,20 @@ export function DistrictFinderModal() {
               Find my district
             </Button>
           ) : (
-            <div className="rounded-lg bg-muted px-4 py-3 space-y-2 text-sm">
-              <div>
-                <p className="text-muted-foreground text-xs">State</p>
-                <p className="font-medium">{found.state}</p>
-              </div>
-              <div>
+            <BlockA className="flex flex-col gap-2 bg-muted/50">
+              <BlockB>
+                <div>
+                  <p className="text-muted-foreground text-xs">State</p>
+                  <p className="font-medium">{found.state}</p>
+                </div>
+              </BlockB>
+              <BlockB>
                 <p className="text-muted-foreground text-xs">District</p>
                 <p className="font-medium">
                   {found.district}{getOrdinal(found.district)} Congressional District
                 </p>
-              </div>
-            </div>
+              </BlockB>
+            </BlockA>
           )}
 
           {error && (

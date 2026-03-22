@@ -11,6 +11,8 @@ import { useNavbarStore } from "../useNavbarStore";
 import { useUserStore } from "@/app/admin/stores/useUserStore";
 import { usePathname } from "next/navigation";
 import NavbarTop from "../navbar-top";
+import { useAppStore } from "@/app/stores/useAppStore";
+import { Loader } from "lucide-react";
 
 interface ClientNavbarProps {
   visibleNavHrefs: string[];
@@ -25,26 +27,26 @@ const ClientNavbar = ({
   userRole,
   children,
 }: ClientNavbarProps) => {
-  const [isMobile, setIsMobile] = useState(false);
   const setNavState = useNavbarStore((f) => f.setNavCollapsed);
   const setActiveUserRole = useUserStore((f) => f.setActiveUserRole);
   const pathname = usePathname();
+  const isMobile = useAppStore((f) => f.isMobile)
+  const setIsMobile = useAppStore((f) => f.setIsMobile)
   const visibleNavItems = visibleNavHrefs
     .map((href) => navItems.find((item) => item.href === href))
     .filter(Boolean);
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    const checkIsMobile = () => {
+    const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
+      setLoaded(true)
     };
 
-    checkIsMobile();
-
-    window.addEventListener("resize", checkIsMobile);
-
-    return () => window.removeEventListener("resize", checkIsMobile);
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
-
 
 
   useEffect(() => {
@@ -57,6 +59,16 @@ const ClientNavbar = ({
     return <>{children}</>;
   }
 
+  if (!loaded) {
+    return (
+
+
+      <div className="h-screen w-screen bg-background flex flex-col justify-center items-center">
+        <Loader className="animate-spin" />
+
+      </div>
+    )
+  }
   if (isMobile) {
     return (
       <MobileNavbar

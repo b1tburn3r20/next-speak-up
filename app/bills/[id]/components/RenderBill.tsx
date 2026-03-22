@@ -7,10 +7,10 @@ import { useEffect, useState } from "react";
 import { useBillPageStore } from "../useBillPageStore";
 import BillSummariesContainer from "./BillSummariesContainer";
 import BillTitle from "./BillTitle";
-import HasVotedBillPage from "./has-voted-components/HasVotedBillPage";
 import BillTimeline from "./BillTimeline/BillTimeline";
 import { Separator } from "@/components/ui/separator";
 import FederalLegislationVoteButtons from "./federal-legislation-vote-buttons";
+import BlockB from "@/components/cb/block-b";
 
 interface RenderBillProps {
   bill: FullUserLegislationData;
@@ -34,7 +34,6 @@ const RenderBill = ({
     (f) => f.setTTSVoicePreferance
   );
   const resetBillState = useBillPageStore((f) => f.resetBillState);
-  const hasVoted = !!billData?.userVote;
 
   const [hasOfficialSummary, setHasOfficialSummary] = useState(false)
 
@@ -44,7 +43,7 @@ const RenderBill = ({
     setBillData(bill);
     setIsDyslexicFriendly(isDyslexicFriendly);
     setTTSVoicePreference(ttsVoicePreference);
-    if (billData?.legislation?.summaries) {
+    if (billData?.legislation?.summaries?.length) {
       setHasOfficialSummary(true)
     }
   }, [billData?.legislation]);
@@ -58,14 +57,18 @@ const RenderBill = ({
   }
 
   return (
-    <div className="container mx-auto px-0 sm:px-6 lg:px-8 py-0 sm:py-6 lg:py-8">
+    <div className="container mx-auto  sm:px-6 lg:px-8 p-2 sm:py-6 lg:py-8">
       <div className="max-w-4xl mx-auto">
         <div className="border-0 bg-background shadow-md  rounded-3xl overflow-hidden">
-          <div className="p-0 sm:p-6 lg:p-8 space-y-2 sm:space-y-6">
-            <div className="text-center px-4 py-4 sm:px-0 sm:py-0">
-              <BillTitle />
-            </div>
-            <BillTimeline actions={bill?.legislation?.actions} />
+          <div className="p-2 sm:p-6 lg:p-8 space-y-2 sm:space-y-6">
+            <BlockB>
+              <div className="text-center px-4 py-4 sm:px-0 sm:py-0">
+                <BillTitle />
+              </div>
+            </BlockB>
+            <BlockB>
+              <BillTimeline actions={bill?.legislation?.actions} />
+            </BlockB>
             <Separator className="my-6" />
             <BillSummariesContainer
               hasOfficialSummary={hasOfficialSummary}

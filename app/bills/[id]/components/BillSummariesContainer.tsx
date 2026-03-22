@@ -1,5 +1,4 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AIBillSummaries from "./AIBillSummaries";
 import BillTextTab from "./BillTextTab";
 import BillOfficialSummaries from "./BillOfficialSummaries";
 import { BillSummary } from "@prisma/client";
@@ -11,7 +10,6 @@ interface BillSummariesContainerProps {
 }
 
 const BillSummariesContainer = ({
-
   userId,
   hasOfficialSummary,
   summaries
@@ -20,7 +18,7 @@ const BillSummariesContainer = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <Tabs defaultValue="Official" className="w-full">
+      <Tabs defaultValue={hasOfficialSummary ? "bill-summary" : "bill-text"} className="w-full">
         <TabsList className="grid grid-cols-2 w-full">
           {/* <TabsTrigger */}
           {/*   className="font-bold text-sm sm:text-base py-2 px-3 sm:py-3 sm:px-4 data-[state=active]:bg-background data-[state=active]:shadow-xs transition-all duration-200" */}
@@ -30,7 +28,7 @@ const BillSummariesContainer = ({
           {/* </TabsTrigger> */}
           <TabsTrigger
             disabled={!hasOfficialSummary}
-            value="Official"
+            value="bill-summary"
           >
             {!hasOfficialSummary ? "No Official Summary" : "Official Summary"}
           </TabsTrigger>
@@ -50,7 +48,7 @@ const BillSummariesContainer = ({
         {/* </TabsContent> */}
         {/**/}
         <TabsContent
-          value="Official"
+          value="bill-summary"
           className="mt-4"
         >
           <BillOfficialSummaries summaries={summaries} />

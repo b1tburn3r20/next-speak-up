@@ -51,14 +51,13 @@ export default function PolicyAreaBreakdown({ data }: Props) {
         <div className="text-sm text-muted-foreground">
           {sorted.length} policy areas · {total} tracked total votes by CoolBills
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-col sm:flex-row gap-2 items-center">
           <div className="mt-4 space-y-4">
             {sorted?.slice(0, 7).map((row, i) => {
               const config = PolicyAreas[row.policyArea as keyof typeof PolicyAreas]
               const indicatorColor = config
                 ? (isDark ? config.chart_color_light : config.chart_color_light)
                 : "transparent"
-
 
               return (
                 <div className="flex gap-2 items-center" key={i}>
@@ -74,6 +73,7 @@ export default function PolicyAreaBreakdown({ data }: Props) {
           </div>
           <ChartContainer
             config={chartConfig}
+
             className="mx-auto aspect-square h-70"
           >
             <PieChart>

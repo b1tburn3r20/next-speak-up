@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { MessageCircle, Minimize2, Eye, EyeOff, Settings } from "lucide-react";
+import { MessageCircle, Minimize2, Eye, EyeOff, } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { useBillState } from "../useBillState";
 import { useChatStore } from "./Chatbot/useChatStore";
 import { ChatSettings } from "./Chatbot/ChatSettings";
@@ -45,9 +44,6 @@ const BillAskAI = ({ congress, type, number, user }) => {
     if (isBillLoading) return; // Prevent multiple simultaneous loads
 
     setBillLoading(true);
-    toast.success("Loading bill text...", {
-      position: "bottom-center",
-    });
     try {
       const formattedType = type
         .toLowerCase()
@@ -66,7 +62,6 @@ const BillAskAI = ({ congress, type, number, user }) => {
       setIsOpen(true);
     } catch (err) {
       console.error("Error fetching bill text:", err);
-      toast.error("Failed to load bill text. Please try again later.");
     } finally {
       setBillLoading(false);
     }

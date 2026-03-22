@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import WidgetRepCard from "./rep-widget/rep-card";
 import PolicyAreaWidget from "./rep-widget/rep-policy-chart";
 import RepRecentVotesWidget from "./rep-widget/rep-recent-votes";
-import { Label } from "@/components/ui/label";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { useModalStore } from "@/app/stores/useModalStore";
 import { Button } from "@/components/ui/button";
@@ -88,17 +87,16 @@ const UserPersonalizedDashboardRepresentativeWidget = () => {
         Your Rep Recap
       </TextAnimate>
 
-      <div className="flex gap-3 w-full h-full">
-        <div className="flex flex-col gap-3">
+      <div className="flex flex-col md:flex-row gap-3 w-full">
+        <div className="flex flex-col gap-3 md:w-72 lg:w-80 shrink-0">
           <WidgetRepCard congressMember={data.representative} />
           <PolicyAreaWidget data={data.policyAreaBreakdown} />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <RepRecentVotesWidget votes={data.recentVotes} />
         </div>
       </div>
-    </div>
-  )
+    </div>)
 }
 
 export default UserPersonalizedDashboardRepresentativeWidget

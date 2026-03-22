@@ -32,7 +32,7 @@ const Page = async () => {
 
   const results = await getCongressLegislators(userId, role);
   return (
-    <div className="flex flex-col pt-4 space-y-12 container mx-auto">
+    <div className="flex flex-col pt-4 space-y-12 container mx-auto p-2">
       <SearchLegislators legislators={results} />
       <AllActiveLegislators legislators={results} userId={userId} />
       <StateAndDistrictSelectDialog />
