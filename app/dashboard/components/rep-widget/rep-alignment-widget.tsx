@@ -287,63 +287,68 @@ const UserRepAlignmentWidget = () => {
         </CardHeader>
 
         <CardContent className="flex flex-1 justify-center pb-0">
-          <ChartContainer
-            id={id}
-            config={chartConfig}
-            className="mx-auto aspect-square w-full max-w-75"
-          >
-            <PieChart>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel nameKey="slice" />}
-              />
-              <Pie
-                data={chartData}
-                dataKey="count"
-                nameKey="slice"
-                innerRadius={60}
-                strokeWidth={5}
-                activeShape={renderActiveShape}
-                activeIndex={activeIndex}
-                onClick={(entry) => {
-                  const key = entry?.slice as SliceKey
-                  setActiveSlice(key)
-                  handleSliceClick(key)
-                }}
-                className="cursor-pointer"
-              >
-                <Label
-                  content={({ viewBox }) => {
-                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                      return (
-                        <text
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                        >
-                          <tspan
+          {data?.bills?.AGREE?.length === 0 && data?.bills?.DISAGREE?.length === 0 ? (
+            <p>No votes to compare yet, go choose Yes or No on some bills and come back to see how you align.</p>
+          ) : (
+            <ChartContainer
+              id={id}
+              config={chartConfig}
+              className="mx-auto aspect-square w-full max-w-75"
+            >
+              <PieChart>
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel nameKey="slice" />}
+                />
+                <Pie
+                  data={chartData}
+                  dataKey="count"
+                  nameKey="slice"
+                  innerRadius={60}
+                  strokeWidth={5}
+                  activeShape={renderActiveShape}
+                  activeIndex={activeIndex}
+                  onClick={(entry) => {
+                    const key = entry?.slice as SliceKey
+                    setActiveSlice(key)
+                    handleSliceClick(key)
+                  }}
+                  className="cursor-pointer"
+                >
+                  <Label
+                    content={({ viewBox }) => {
+                      if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                        return (
+                          <text
                             x={viewBox.cx}
                             y={viewBox.cy}
-                            className="fill-foreground text-3xl font-bold"
+                            textAnchor="middle"
+                            dominantBaseline="middle"
                           >
-                            {agreePercent}%
-                          </tspan>
-                          <tspan
-                            x={viewBox.cx}
-                            y={(viewBox.cy || 0) + 24}
-                            className="fill-muted-foreground text-xs"
-                          >
-                            aligned
-                          </tspan>
-                        </text>
-                      )
-                    }
-                  }}
-                />
-              </Pie>
-            </PieChart>
-          </ChartContainer>
+                            <tspan
+                              x={viewBox.cx}
+                              y={viewBox.cy}
+                              className="fill-foreground text-3xl font-bold"
+                            >
+                              {agreePercent}%
+                            </tspan>
+                            <tspan
+                              x={viewBox.cx}
+                              y={(viewBox.cy || 0) + 24}
+                              className="fill-muted-foreground text-xs"
+                            >
+                              aligned
+                            </tspan>
+                          </text>
+                        )
+                      }
+                    }}
+                  />
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+
+          )}
         </CardContent>
 
         <div className="flex flex-wrap justify-center gap-2 px-4 pb-4 pt-2">
