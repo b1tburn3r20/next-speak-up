@@ -72,7 +72,7 @@ const UserPersonalizedDashboardRepresentativeWidget = () => {
 
 
   if (fetching) return (
-    <div className="min-h-50 w-full bg-background-light shadow-md rounded-2xl p-4 flex items-center justify-center">
+    <div className="min-h-120 w-full bg-background-light shadow-md rounded-2xl p-4 flex items-center justify-center">
       <Loader className="animate-spin" size={32} />
     </div>
   )

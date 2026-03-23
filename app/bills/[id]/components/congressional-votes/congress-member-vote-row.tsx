@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Eye, } from "lucide-react"
 import { useBillPageStore } from "../../useBillPageStore"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogClose, DialogTitle } from "@/components/ui/dialog"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface CongressMemberVoteRowProps {
   congressMember: any
@@ -20,7 +20,15 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
   const [open, setOpen] = useState<boolean>(false)
   const [hidden, setHidden] = useState<boolean>(!userVote)
 
-
+  useEffect(() => {
+    // its weird that its not working on state initialization, but this useEffect will ensure it like a warden ensures prisoners stay in their cells.
+    // not accounting for breakouts lol
+    if (userVote) {
+      setHidden(false)
+    } else {
+      setHidden(true)
+    }
+  }, [userVote])
 
 
 
@@ -34,9 +42,17 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
         )
 
       case "YEA":
-        return `I voted to PASS this legislation on behalf of ${congressMember?.member.state}.`;
+        return (
+          <p>
+            {congressMember?.member?.firstName} {congressMember?.member?.lastName} voted to <span className={hidden ? "" : "bg-green-500"}>PASS</span> this legislation on behalf of the entire state of {congressMember?.member?.state}
+          </p>
+        )
       case "NAY":
-        return `I voted to STOP this legislation on behalf of ${congressMember?.member.state}.`;
+        return (
+          <p>
+            {congressMember?.member?.firstName} {congressMember?.member?.lastName} voted <span className={hidden ? "" : "bg-red-500"}>AGAINST</span> this legislation on behalf of the entire state of {congressMember?.member?.state}
+          </p>
+        )
       case "PRESENT":
         return (
           <p>
@@ -76,7 +92,7 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
                 className="flex justify-between gap-2 w-full items-center text-lg"
                 onClick={() => handleRevealClick()}
               >
-                <p className="flex gap-1 items-center">Reveal how<span className="text-primary">your</span> representative voted on this legislation</p>
+                <p className="flex gap-1 items-center">Vote to reveal how<span className="text-primary">your</span> representative voted on this legislation</p>
                 <Button size="icon">
 
                   <Eye />

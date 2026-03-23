@@ -17,19 +17,11 @@ const FIPS_TO_STATE: Record<string, string> = {
 }
 export async function POST(request: NextRequest) {
   try {
-    const geoRes = await fetch(
-      `https://www.googleapis.com/geolocation/v1/geolocate?key=${process.env.GOOGLE_MAPS_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      }
-    )
+    const { lat, lng } = await request.json()
 
-    if (!geoRes.ok) throw new Error(`Google Geolocation API error: ${geoRes.status}`)
-
-    const geoData = await geoRes.json()
-    const { lat, lng } = geoData.location
+    if (typeof lat !== "number" || typeof lng !== "number") {
+      return NextResponse.json({ error: "Missing coordinates" }, { status: 400 })
+    }
 
     const censusUrl = new URL(
       "https://geocoding.geo.census.gov/geocoder/geographies/coordinates"
@@ -43,13 +35,11 @@ export async function POST(request: NextRequest) {
 
     const censusRes = await fetch(censusUrl.toString())
     if (!censusRes.ok) throw new Error(`Census API error: ${censusRes.status}`)
-
     const censusData = await censusRes.json()
-    const district = censusData.result?.geographies?.["119th Congressional Districts"]?.[0]
 
+    const district = censusData.result?.geographies?.["119th Congressional Districts"]?.[0]
     if (!district) throw new Error("No district found for your location")
 
-    console.log("district object:", JSON.stringify(district, null, 2))
     return NextResponse.json({
       state: FIPS_TO_STATE[district.STATE] ?? district.STATE,
       district: district.CD119,

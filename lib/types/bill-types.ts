@@ -1,4 +1,4 @@
-import { BillAiSummary, BillSummary, CongressMember } from "@prisma/client";
+import { BillAiSummary, BillSummary, CongressMember, PolicyArea } from "@prisma/client";
 import { number, string } from "zod";
 
 export type LegislationUserTracks = {
@@ -71,6 +71,7 @@ export type FullUserLegislationData = {
   legislation: FullLegislation;
   userVote: LegislationUserVote;
   userTracking: LegislationUserTracking;
+  policyArea: any
 };
 
 

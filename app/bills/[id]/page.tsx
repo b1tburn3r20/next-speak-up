@@ -106,7 +106,7 @@ const Page = async ({ params }: PageProps) => {
       session.user.role.name
     );
 
-    console.log(bill)
+    console.log(bill.policyArea)
 
   }
   return (

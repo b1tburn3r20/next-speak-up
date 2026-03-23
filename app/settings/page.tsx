@@ -24,6 +24,7 @@ export default async function SettingsPage() {
             username={user.username}
             email={user.email}
             state={user.state}
+            district={user.district ? String(user.district) : undefined}
             ageRange={user.ageRange}
             householdIncome={user.householdIncome}
           />

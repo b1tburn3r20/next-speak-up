@@ -3,6 +3,7 @@ import { Select, SelectContent, SelectItem, SelectLabel, SelectTrigger, SelectVa
 import { BillSummary } from "@prisma/client";
 import { useEffect, useState } from "react";
 import DOMPurify from 'dompurify';
+import BillPolicyAreaMarker from "./bill-policy-area-marker";
 interface BillOfficialSummariesProps {
   summaries: BillSummary[]
 }
@@ -43,19 +44,22 @@ const BillOfficialSummaries = ({ summaries }: BillOfficialSummariesProps) => {
 
 
   return (
-    <div className="space-y-6">
-      <Select disabled={summaries?.length < 2} value={versionCode} onValueChange={handleSelect}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select a summary" />
-        </SelectTrigger>
-        <SelectContent>
-
-          {summaries?.map((sum) => <SelectItem key={sum?.versionCode} value={sum.versionCode} >{sum.actionDesc}</SelectItem>)}
-        </SelectContent>
-      </Select>
-      <div className="bg-background-light p-3 rounded-3xl shadow-md">
+    <div>
+      <div className="flex justify-between items-center">
+        <Select disabled={summaries?.length < 2} value={versionCode} onValueChange={handleSelect}>
+          <SelectTrigger className="m-2" >
+            <SelectValue placeholder="Select a summary" />
+          </SelectTrigger>
+          <SelectContent>
+            {summaries?.map((sum) => <SelectItem key={sum?.versionCode} value={sum.versionCode} >{sum.actionDesc}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <BillPolicyAreaMarker />
+      </div>
+      <div className="bg-background-light p-3 rounded-3xl mt-4 shadow-md">
         <div dangerouslySetInnerHTML={{ __html: cleaned }} />
       </div>
+
     </div>
   )
 }

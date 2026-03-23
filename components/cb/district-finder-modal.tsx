@@ -7,6 +7,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useModalStore } from "@/app/stores/useModalStore"
 import BlockB from "./block-b"
 import BlockA from "./block-a"
+import StateSelect from "@/components/cb/state-selector"
+import DistrictSelect from "@/components/cb/district-selector"
 
 type FoundDistrict = { state: string; district: number }
 
@@ -24,16 +26,25 @@ export function DistrictFinderModal() {
     setError(null)
     setFound(null)
     try {
+      const position = await new Promise<GeolocationPosition>((res, rej) =>
+        navigator.geolocation.getCurrentPosition(res, rej)
+      )
+      const { latitude: lat, longitude: lng } = position.coords
+
       const response = await fetch("/api/district/find-by-coordinates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ lat, lng }),
       })
       const data = await response.json()
       if (!response.ok || data.error) throw new Error(data.error || "Failed to find district")
       setFound({ state: data.state, district: parseInt(data.district) })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
+      if (err instanceof GeolocationPositionError) {
+        setError("Location access denied. Please select your state and district manually.")
+      } else {
+        setError(err instanceof Error ? err.message : "Something went wrong")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -50,7 +61,6 @@ export function DistrictFinderModal() {
       })
       setOpen(false)
       window.location.reload()
-      // optionally trigger a refetch of the widget here
     } catch {
       setError("Failed to save. Please try again.")
     } finally {
@@ -85,16 +95,35 @@ export function DistrictFinderModal() {
           ) : (
             <BlockA className="flex flex-col gap-2 bg-muted/50">
               <BlockB>
-                <div>
-                  <p className="text-muted-foreground text-xs">State</p>
-                  <p className="font-medium">{found.state}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-muted-foreground text-xs">State</p>
+                    <p className="font-medium">{found.state}</p>
+                  </div>
+                  <StateSelect
+                    value={found.state}
+                    onValueChange={(val) =>
+                      setFound((prev) => prev ? { state: val ?? prev.state, district: prev.district } : prev)
+                    }
+                  />
                 </div>
               </BlockB>
               <BlockB>
-                <p className="text-muted-foreground text-xs">District</p>
-                <p className="font-medium">
-                  {found.district}{getOrdinal(found.district)} Congressional District
-                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-muted-foreground text-xs">District</p>
+                    <p className="font-medium">
+                      {found.district}{getOrdinal(found.district)} Congressional District
+                    </p>
+                  </div>
+                  <DistrictSelect
+                    state={found.state}
+                    value={String(found.district)}
+                    onValueChange={(val) =>
+                      setFound((prev) => prev ? { ...prev, district: parseInt(val) } : prev)
+                    }
+                  />
+                </div>
               </BlockB>
             </BlockA>
           )}

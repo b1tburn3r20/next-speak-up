@@ -17,30 +17,29 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover-dialog";
 import { useEffect, useState } from "react";
-import { useUserStore } from "@/app/admin/stores/useUserStore";
 
-const DistrictSelect = () => {
+
+interface DistrictSelectProps {
+  state: string | null
+  value: string | null
+  onValueChange: (val: string) => void
+}
+const DistrictSelect = ({ state, value, onValueChange }: DistrictSelectProps) => {
   const [open, setOpen] = useState(false);
   const [districts, setDistricts] = useState([]);
 
-  const selectedState = useUserStore((s) => s.userState);
-  const value = useUserStore((f) => f.userDistrict);
-  const setValue = useUserStore((f) => f.setUserDistrict);
-  const numberOfDistrictsInState = usStateToDistrictMap[selectedState];
+
+  const numberOfDistrictsInState = usStateToDistrictMap[state];
 
   useEffect(() => {
-    if (selectedState) {
-      console.log(numberOfDistrictsInState);
-
+    if (state) {
       const districtList = Array.from(
         { length: numberOfDistrictsInState },
         (_, i) => i + 1
       );
-
       setDistricts(districtList);
-      console.log(selectedState, districtList);
     }
-  }, [selectedState]);
+  }, [state]);
 
   return (
     <Popover modal={false} open={open} onOpenChange={setOpen}>
@@ -49,20 +48,20 @@ const DistrictSelect = () => {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
-          disabled={!districts.length || !selectedState}
+          className="w-50 justify-between"
+          disabled={!districts.length || !state}
         >
           {value ? (
             value
           ) : (
             <p>
-              {selectedState ? "Select District..." : "Select State First..."}
+              {state ? "Select District..." : "Select State First..."}
             </p>
           )}
           <Search />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px]">
+      <PopoverContent className="w-50">
         <Command>
           <CommandInput
             autoFocus
@@ -77,7 +76,7 @@ const DistrictSelect = () => {
                   key={district}
                   value={String(district)}
                   onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue);
+                    onValueChange(currentValue === value ? null : currentValue);
                     setOpen(false);
                   }}
                 >

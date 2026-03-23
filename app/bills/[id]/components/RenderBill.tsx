@@ -11,7 +11,6 @@ import BillTimeline from "./BillTimeline/BillTimeline";
 import { Separator } from "@/components/ui/separator";
 import FederalLegislationVoteButtons from "./federal-legislation-vote-buttons";
 import BlockB from "@/components/cb/block-b";
-import CongressionalBillVoteTabs from "./congressional-votes/your-rep-votes";
 import YourRepVotes from "./congressional-votes/your-rep-votes";
 
 interface RenderBillProps {
