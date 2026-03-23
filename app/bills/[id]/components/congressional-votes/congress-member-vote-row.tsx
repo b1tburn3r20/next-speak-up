@@ -3,10 +3,11 @@ import BlockA from "@/components/cb/block-a"
 import BlockB from "@/components/cb/block-b"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Eye, } from "lucide-react"
+import { CircleCheck, CircleX, Eye, } from "lucide-react"
 import { useBillPageStore } from "../../useBillPageStore"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogClose, DialogTitle } from "@/components/ui/dialog"
 import { useEffect, useState } from "react"
+import { Badge } from "@/components/ui/badge"
 
 interface CongressMemberVoteRowProps {
   congressMember: any
@@ -37,21 +38,21 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
       case "NOT_VOTING":
         return (
           <p>
-            {congressMember?.member?.firstName} {congressMember?.member?.lastName} <span className={hidden ? "" : "bg-red-500"}>avoided voting </span> on this legislation on behalf of the entire state of {congressMember?.member?.state}
+            {congressMember?.member?.firstName} {congressMember?.member?.lastName} <Badge className={hidden ? "" : "bg-red-500"}>avoided voting </Badge> on this legislation on behalf of the entire state of {congressMember?.member?.state}
           </p>
         )
 
       case "YEA":
         return (
-          <p>
-            {congressMember?.member?.firstName} {congressMember?.member?.lastName} voted to <span className={hidden ? "" : "bg-green-500"}>PASS</span> this legislation on behalf of the entire state of {congressMember?.member?.state}
-          </p>
+          <div className="flex gap-2 items-center">
+            <CircleCheck className="text-green-500" />  <p>{congressMember?.member?.firstName} {congressMember?.member?.lastName} voted to pass this legislation on behalf of the entire state of {congressMember?.member?.state}</p>
+          </div>
         )
       case "NAY":
         return (
-          <p>
-            {congressMember?.member?.firstName} {congressMember?.member?.lastName} voted <span className={hidden ? "" : "bg-red-500"}>AGAINST</span> this legislation on behalf of the entire state of {congressMember?.member?.state}
-          </p>
+          <div className="flex gap-2 items-center">
+            <CircleX className="text-red-500" />  <p>{congressMember?.member?.firstName} {congressMember?.member?.lastName} voted to stop this legislation on behalf of the entire state of {congressMember?.member?.state}</p>
+          </div>
         )
       case "PRESENT":
         return (
@@ -75,7 +76,7 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
 
   return (
     <div key={congressMember?.member?.bioguideId} className="relative">
-      <BlockA className="flex gap-2 items-center">
+      <BlockB className="flex gap-2 items-center  relative w-full">
         <Avatar className="w-20 h-20 md:h-16 md:w-16">
           {congressMember.member.depiction ? (
             <AvatarImage src={congressMember.member.depiction.imageUrl} alt={congressMember.name} />
@@ -85,31 +86,26 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
             {congressMember.member.lastName[0]}
           </AvatarFallback>
         </Avatar>
-        <BlockB className="relative w-full">
-          {hidden ? (
-            <BlockA className="w-full h-full top-0 left-0 absolute z-10 " >
-              <div
-                className="flex justify-between gap-2 w-full items-center text-lg"
-                onClick={() => handleRevealClick()}
-              >
-                <p className="flex gap-1 items-center">Vote to reveal how<span className="text-primary">your</span> representative voted on this legislation</p>
-                <Button size="icon">
 
-                  <Eye />
-                </Button>
-              </div>
-            </BlockA>
-          ) : (
-            ""
-          )}
+        {hidden ? (
+          <BlockB className="w-full h-full top-0 left-0 absolute z-10" >
+            <div
+              className="flex justify-center gap-2 w-full h-full items-center text-lg"
+              onClick={() => handleRevealClick()}
+            >
+              <p className="flex gap-1 items-center">Vote to reveal how<span className="text-primary">your</span> representative voted on this legislation</p>
+            </div>
+          </BlockB>
+        ) : (
+          ""
+        )}
 
 
-          <div className="italic text-sm  md:text-lg">
-            {getVoteText()}
-          </div>
-        </BlockB>
+        <div className="italic text-sm  md:text-lg">
+          {getVoteText()}
+        </div>
+      </BlockB>
 
-      </BlockA>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>

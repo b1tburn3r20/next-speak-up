@@ -115,7 +115,7 @@ const BillTextTab = () => {
 
   return (
 
-    <div className="h-full p-3 bg-background-light shadow-md rounded-3xl overflow-x-hidden max-w-4xl lg:w-4xl flex justify-center">
+    <div className="h-full p-3 bg-background-light shadow-md rounded-3xl overflow-x-hidden w-full flex justify-center">
       <div
         className="font-thin p-2"
         dangerouslySetInnerHTML={{ __html: cleaned }}

@@ -9,6 +9,8 @@ import RepRecentVotesWidget from "./rep-widget/rep-recent-votes";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { useModalStore } from "@/app/stores/useModalStore";
 import { Button } from "@/components/ui/button";
+import UserRepAlignmentWidget from "./rep-widget/rep-alignment-widget";
+
 type DataResponse = {
   policyAreaBreakdown: CongressMemberPolicyAreaBreakdownRowType[]
   recentVotes: CongressMemberHouseOfRepresentativesVoteType[]
@@ -98,8 +100,9 @@ const UserPersonalizedDashboardRepresentativeWidget = () => {
           <WidgetRepCard congressMember={data.representative} />
           <PolicyAreaWidget data={data.policyAreaBreakdown} />
         </div>
+        <UserRepAlignmentWidget />
         <div className="min-w-0 flex-1">
-          <RepRecentVotesWidget votes={data.recentVotes} />
+          <RepRecentVotesWidget votes={data.recentVotes} bioguideId={data?.representative?.bioguideId} />
         </div>
       </div>
     </div>)

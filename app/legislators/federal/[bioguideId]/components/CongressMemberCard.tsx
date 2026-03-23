@@ -38,7 +38,7 @@ const CongressMemberCard = ({ congressMember }: CongressMemberCardProps) => {
     }
   };
   return (
-    <div className="w-fit h-full flex flex-col gap-4 bg-background shadow-md p-2 rounded-3xl">
+    <div className="w-full h-full flex flex-col gap-4 bg-background shadow-md p-2 rounded-3xl">
       <div className="flex flex-row items-center gap-4 space-y-0 p-3 rounded-3xl bg-background-light shadow-md">
         <div className="w-24 h-24 rounded-xl overflow-hidden bg-muted shrink-0">
           {congressMember.depiction?.imageUrl && (

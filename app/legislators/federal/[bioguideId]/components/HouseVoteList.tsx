@@ -29,11 +29,11 @@ export default function HouseVotesList({ votes }: Props) {
           <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12"></TableHead>
                 <TableHead className="w-24">Position</TableHead>
                 <TableHead>Bill</TableHead>
                 <TableHead className="hidden md:table-cell w-36">Policy Area</TableHead>
                 <TableHead className="hidden sm:table-cell w-24">Date</TableHead>
-                <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
 
@@ -54,6 +54,19 @@ export default function HouseVotesList({ votes }: Props) {
                       key={vote.memberVoteId}
                       className={i % 2 === 0 ? "bg-muted/30" : ""}
                     >
+                      <TableCell className="text-right align-top pt-3">
+                        <Link href={`/bills/${vote?.nameId}`}>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            aria-label="Go to bill"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                      </TableCell>
                       <TableCell className="align-top pt-3">
                         <Badge variant={pos.variant}>{pos.label}</Badge>
                       </TableCell>
@@ -85,19 +98,6 @@ export default function HouseVotesList({ votes }: Props) {
                         {formatIsoDate(vote.date, false)}
                       </TableCell>
 
-                      <TableCell className="text-right align-top pt-3">
-                        <Link href={`/bills/${vote?.nameId}`}>
-
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                            aria-label="Go to bill"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </TableCell>
                     </TableRow>
                   )
                 })

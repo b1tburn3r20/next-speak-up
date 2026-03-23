@@ -14,6 +14,7 @@ import Link from "next/link"
 
 interface Props {
   votes: CongressMemberHouseOfRepresentativesVoteType[]
+  bioguideId: string
 }
 
 const POSITION_BADGE: Record<string, { label: string; variant: string }> = {
@@ -23,7 +24,7 @@ const POSITION_BADGE: Record<string, { label: string; variant: string }> = {
   NOT_VOTING: { label: "Avoided", variant: "muted" },
 }
 
-export default function RepRecentVotesWidget({ votes }: Props) {
+export default function RepRecentVotesWidget({ votes, bioguideId }: Props) {
   const isMobile = useAppStore((f) => f.isMobile)
   return (
     <div className="bg-background-light shadow-md rounded-2xl p-3 w-full overflow-hidden">
@@ -97,7 +98,9 @@ export default function RepRecentVotesWidget({ votes }: Props) {
           </Table>
         </div>
       </ScrollArea>
-      <Button className="w-full mt-3 h-8 text-sm">View more</Button>
+      <Link href={`/legislators/federal/${bioguideId}`}>
+        <Button className="w-full mt-3 h-8 text-sm">View more</Button>
+      </Link>
     </div>
   )
 }

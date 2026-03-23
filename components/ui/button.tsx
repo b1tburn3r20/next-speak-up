@@ -23,6 +23,7 @@ const buttonVariants = cva(
         cartoon_dangerOutline:
           "bg-white text-rose-500 border-2 border-rose-200 hover:bg-slate-100 dark:bg-slate-900 dark:text-rose-400 dark:border-rose-800 dark:hover:bg-slate-800",
         link: "text-primary underline-offset-4 hover:underline",
+        ghost: "text-muted-foreground bg-transparent hover:bg-muted",
       },
       size: {
         default: "h-14 md:h-9 px-4 py-2 has-[>svg]:px-3",

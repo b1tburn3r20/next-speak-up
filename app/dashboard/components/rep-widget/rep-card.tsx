@@ -71,9 +71,6 @@ const WidgetRepCard = ({ congressMember }: CongressMemberCardProps) => {
           <span className="text-sm font-medium">{formatTimeUntilReelection() ?? "—"}</span>
         </div>
       </div>
-      <Link href={`/legislators/federal/${congressMember?.bioguideId}`}>
-        <Button className="w-full mt-3 h-8 text-sm">View more</Button>
-      </Link>
     </div>);
 };
 
