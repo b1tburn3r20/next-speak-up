@@ -1,16 +1,12 @@
 "use client";
 import {
-  BadgeCheck,
-  Bell,
   ChevronsUpDown,
   LogOut,
   Settings,
-  Sparkles,
   User,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,11 +31,22 @@ import {
 } from "./ui/dialog";
 import LoginForm from "./login-form";
 import { useNavbarStore } from "@/app/navbar/useNavbarStore";
+import { navItems } from "@/app/data/navbarData";
 
 export function NavUser() {
   const { data: session, status } = useSession();
   const { navCollapsed } = useNavbarStore();
   const { isLoginDialogOpen, setIsLoginDialogOpen } = useLoginStore();
+
+
+  const handleSignOut = () => {
+    const currentPath = window.location.pathname;
+    const currentNavItem = navItems.find((item) =>
+      currentPath.startsWith(item.href === "/" ? "/?" : item.href)
+    );
+    const isProtected = !!currentNavItem?.requiredRoles?.length;
+    signOut({ callbackUrl: isProtected ? "/" : window.location.href });
+  };
   const startQuickstart = async () => {
     try {
       const response = await fetch("/api/user/onboarding", {
@@ -169,7 +176,10 @@ export function NavUser() {
           {/* </DropdownMenuGroup> */}
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={() => signOut({ callbackUrl: window.location.href })}
+            onClick={() => {
+              handleSignOut()
+            }
+            }
             className="cursor-pointer"
           >
             <LogOut className="mr-2 h-4 w-4" />
