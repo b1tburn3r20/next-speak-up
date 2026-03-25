@@ -288,7 +288,10 @@ const UserRepAlignmentWidget = () => {
 
         <CardContent className="flex flex-1 justify-center pb-0">
           {data?.bills?.AGREE?.length === 0 && data?.bills?.DISAGREE?.length === 0 ? (
-            <p>No votes to compare yet, go choose Yes or No on some bills and come back to see how you align.</p>
+            <div
+
+              className="mx-auto aspect-square w-full max-w-75"
+            >No votes to compare yet, go choose Yes or No on some bills and come back to see how you align.</div>
           ) : (
             <ChartContainer
               id={id}

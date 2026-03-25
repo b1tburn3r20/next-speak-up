@@ -5,7 +5,7 @@ import { checkRateLimit, getUserRole } from "@/lib/ratelimiter";
 import prisma from "@/prisma/client";
 
 // Helper function to get client IP address
-function getClientIP(request: NextRequest): string | null {
+export function getClientIP(request: NextRequest): string | null {
   const forwarded = request.headers.get("x-forwarded-for");
   const realIp = request.headers.get("x-real-ip");
 

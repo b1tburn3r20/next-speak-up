@@ -1,5 +1,9 @@
 import prisma from "@/prisma/client";
 import { logUserAction } from "./user";
+
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { AuthSession } from "../types/user-types";
 export const checkPermission = async (name: string) => {
   return await prisma.permission.findUnique({
     where: {
@@ -34,10 +38,30 @@ export const createRole = async (name: string, description: string) => {
 };
 
 export const getAllRoles = async () => {
+  const session: AuthSession = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  if (!["Admin", "Super Admin"].includes(session.user.role.name)) {
+    throw new Error("Forbidden");
+  }
+
   return await prisma.role.findMany();
 };
 
 export const getAllPermissions = async () => {
+  const session: AuthSession = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  if (!["Admin", "Super Admin"].includes(session.user.role.name)) {
+    throw new Error("Forbidden");
+  }
+
   return await prisma.permission.findMany();
 };
 
@@ -191,3 +215,31 @@ export const changeUserRole = async (
 
   return result;
 };
+
+
+export const updateRole = async (roleId: number, description: string) => {
+  return await prisma.role.update({
+    where: { id: roleId },
+    data: { description }
+  })
+}
+
+export const updatePermission = async (permissionId: number, description: string) => {
+  return await prisma.permission.update({
+    where: { id: permissionId },
+    data: { description }
+  })
+}
+
+export const deleteRole = async (roleId: number) => {
+  return await prisma.role.delete({
+    where: { id: roleId }
+  })
+}
+export const deletePermission = async (permissionId: number) => {
+  return await prisma.permission.delete({
+    where: { id: permissionId }
+  })
+}
+
+

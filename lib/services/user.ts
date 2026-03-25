@@ -5,8 +5,12 @@ import {
   IncomeRange,
   Prisma,
 } from "@prisma/client";
+
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/prisma/client";
 import { headers } from "next/headers";
+import { AuthSession } from "../types/user-types";
+import { getServerSession } from "next-auth";
 
 // Use Prisma's generated type and extend it if needed
 export type User = PrismaUser;
@@ -173,8 +177,19 @@ export const userService = {
   },
 };
 export const getAllUsers = async () => {
+  const session: AuthSession = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  if (!["Admin", "Super Admin"].includes(session.user.role.name)) {
+    throw new Error("Forbidden");
+  }
+
   return await prisma.user.findMany();
-};
+}
+
 export const getUserById = async (userId: number) => {
   return prisma.user.findUnique({
     where: { id: String(userId) },
@@ -437,8 +452,8 @@ export const getSoftUserByIdWithMetrics = async (userId: string) => {
       postUpvoteRatio:
         totalPostUpvotes + totalPostDownvotes > 0
           ? Math.round(
-              (totalPostUpvotes / (totalPostUpvotes + totalPostDownvotes)) * 100
-            )
+            (totalPostUpvotes / (totalPostUpvotes + totalPostDownvotes)) * 100
+          )
           : 0,
     },
   };
