@@ -55,7 +55,7 @@ export default function HouseVotesList({ votes }: Props) {
                       className={i % 2 === 0 ? "bg-muted/30" : ""}
                     >
                       <TableCell className="text-right align-top pt-3">
-                        <Link href={`/bills/${vote?.nameId}`}>
+                        <Link target="_blank" href={`/bills/${vote?.nameId}`}>
 
                           <Button
                             variant="ghost"

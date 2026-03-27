@@ -33,11 +33,11 @@ export default function RepRecentVotesWidget({ votes, bioguideId }: Props) {
           <Table className="w-full table-fixed md:table-auto">
             <TableHeader className="bg-background-light sticky top-0 z-10">
               <TableRow>
+                <TableHead className="w-8 py-2" />
                 <TableHead className="w-14 md:w-16 py-2 text-xs">Position</TableHead>
                 <TableHead className="py-2 text-xs">Bill</TableHead>
                 <TableHead className="hidden md:table-cell py-2 text-xs">Area</TableHead>
                 <TableHead className="w-16 md:w-auto py-2 text-xs">Date</TableHead>
-                <TableHead className="w-8 py-2" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -53,6 +53,18 @@ export default function RepRecentVotesWidget({ votes, bioguideId }: Props) {
                   const title = vote.billTitle || `Roll #${vote.rollNumber}`
                   return (
                     <TableRow key={vote.memberVoteId} className={i % 2 === 0 ? "bg-muted/30" : ""}>
+                      <TableCell className="py-1.5 text-right">
+                        <Link target="_blank" href={`/bills/${vote.nameId}`}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            aria-label="Go to bill"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </Button>
+                        </Link>
+                      </TableCell>
                       <TableCell className="py-1.5">
                         <Badge variant={pos.variant} className="text-xs px-1.5 py-0">
                           {isMobile ? (
@@ -78,18 +90,7 @@ export default function RepRecentVotesWidget({ votes, bioguideId }: Props) {
                       <TableCell className="py-1.5 text-xs text-muted-foreground md:whitespace-nowrap">
                         {formatIsoDate(vote.date, false)}
                       </TableCell>
-                      <TableCell className="py-1.5 text-right">
-                        <Link href={`/bills/${vote.nameId}`}>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                            aria-label="Go to bill"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
-                        </Link>
-                      </TableCell>
+
                     </TableRow>
                   )
                 })
