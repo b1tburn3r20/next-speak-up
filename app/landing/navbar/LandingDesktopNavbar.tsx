@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { LandingNavbarData as navItems } from "./LandingNavbarData";
 import LandingNavUser from "@/components/landing-nav-user";
 import Link from "next/link";
+import Image from "next/image";
 
 const LandingDesktopNavbar = () => {
   const pathname = usePathname();
@@ -41,21 +42,18 @@ const LandingDesktopNavbar = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        navState === "visible"
-          ? isAtTop
-            ? "bg-transparent border-transparent"
-            : "bg-background/95 backdrop-blur-sm border-b supports-backdrop-filter:bg-background/60"
-          : "-translate-y-full"
-      }`}
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${navState === "visible"
+        ? isAtTop
+          ? "bg-transparent border-transparent"
+          : "bg-background/95 backdrop-blur-sm border-b supports-backdrop-filter:bg-background/60"
+        : "-translate-y-full"
+        }`}
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="shrink-0 group">
-            <div className="font-bold text-2xl bg-linear-to-r from-primary to-primary/80 bg-clip-text text-transparent group-hover:from-primary/80 group-hover:to-primary transition-all duration-300">
-              CoolBills
-            </div>
+            <Image height={50} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} />
           </Link>
 
           {/* Navigation Links */}
@@ -66,11 +64,10 @@ const LandingDesktopNavbar = () => {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-muted/50 ${
-                    isActive
-                      ? "text-primary bg-primary/10"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
+                  className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-muted/50 ${isActive
+                    ? "text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground"
+                    }`}
                 >
                   {item.label}
                   {isActive && (

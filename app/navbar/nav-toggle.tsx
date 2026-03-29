@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { ArrowLeft, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavbarStore } from "./useNavbarStore";
+import Image from "next/image";
 
 const NavToggle = () => {
   const navCollapsed = useNavbarStore((f) => f.navCollapsed);
@@ -43,7 +44,13 @@ const NavToggle = () => {
 
   return (
     <div className="flex group items-start justify-between p-2 shrink-0">
-      <div className="nav-logo font-bold text-xl">Coolbills</div>
+      <div className={navCollapsed ? "" : "p-2"}>
+        {
+          navCollapsed ? "" : (
+            <Image height={50} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} />
+          )
+        }
+      </div>
       <div
       >
         <Button
