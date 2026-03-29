@@ -7,18 +7,25 @@ const redis = Redis.fromEnv();
 // Define rate limits for different endpoints and roles
 export const RATE_LIMITS = {
   chatbot: {
-    unauthenticated: { requests: 5, window: "1 d" }, // 3 per day for guests
+    unauthenticated: { requests: 5, window: "1 d" },
     Member: { requests: 15, window: "1 d" },
     Supporter: { requests: 70, window: "1 d" },
     Admin: null, // Unlimited
     "Super Admin": null, // Unlimited
   },
   tts: {
-    unauthenticated: { requests: 2, window: "1 h" }, // 2 per hour for guests
+    unauthenticated: { requests: 2, window: "1 h" },
     Member: { requests: 5, window: "1 h" },
     Supporter: { requests: 30, window: "1 h" },
     Admin: null, // Unlimited
     "Super Admin": null, // Unlimited
+  },
+  email: {
+    unauthenticated: { requests: 2, window: "1 h" },
+    Member: { requests: 2, window: "1 h" },
+    Supporter: { requests: 2, window: "1 h" },
+    Admin: { requests: 2, window: "1 h" },
+    "Super Admin": { requests: 2, window: "1 h" },
   },
   general: {
     unauthenticated: { requests: 3, window: "10 s" },
@@ -65,7 +72,6 @@ export async function checkRateLimit(
   error?: string;
 }> {
   const limits = RATE_LIMITS[endpoint];
-  // assigning unauthenticated users a value so we can rate limit them
   if (!userRole) {
     userRole = "unauthenticated";
   }

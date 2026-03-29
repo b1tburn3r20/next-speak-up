@@ -159,7 +159,7 @@ const ManageRoleList = ({ roles, allPermissions }: ManageRoleProps) => {
 
     return (
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="min-w-4xl">
           <DialogHeader>
             <DialogTitle>Manage Role: {roleData.name || "..."}</DialogTitle>
           </DialogHeader>
@@ -173,14 +173,19 @@ const ManageRoleList = ({ roles, allPermissions }: ManageRoleProps) => {
                     Available Permissions
                   </Label>
                   <Separator className="my-2" />
-                  <div className="space-y-2 ">
-                    {allPermissionsNotInRole.map((permission) => (
-                      <AddPermission
-                        key={permission.id}
-                        permission={permission}
-                      />
-                    ))}
-                  </div>
+                  <ScrollArea>
+                    <div className="h-200 ">
+
+
+                      {allPermissionsNotInRole.map((permission) => (
+                        <AddPermission
+                          key={permission.id}
+                          permission={permission}
+                        />
+                      ))}
+                    </div>
+                  </ScrollArea>
+
                 </div>
               </div>
               <Separator
@@ -193,20 +198,23 @@ const ManageRoleList = ({ roles, allPermissions }: ManageRoleProps) => {
                     Current Permissions
                   </Label>
                   <Separator className="my-2" />
-                  <div className="space-y-2 ">
-                    {allPermissionsInRole.map((permission) => (
-                      <RemovePermission
-                        key={permission.id}
-                        permission={permission}
-                      />
-                    ))}
-                  </div>
+                  <ScrollArea>
+                    <div className="h-200 ">
+
+                      {allPermissionsInRole.map((permission) => (
+                        <RemovePermission
+                          key={permission.id}
+                          permission={permission}
+                        />
+                      ))}
+                    </div>
+                  </ScrollArea>
                 </div>
               </div>
             </div>
           )}
         </DialogContent>
-      </Dialog>
+      </Dialog >
     );
   };
 

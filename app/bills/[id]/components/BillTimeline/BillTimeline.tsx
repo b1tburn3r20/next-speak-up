@@ -9,6 +9,7 @@ import {
 import { billActionMap } from "@/lib/data/billActionMap";
 import { FullUserLegislationData } from "@/lib/types/bill-types";
 import { cn } from "@/lib/utils";
+import BillMoreInfo from "../bill-more-info";
 
 function getActionLabel(code: string, fallback?: string): string {
   return billActionMap.find((e) => e.code === code)?.label ?? fallback ?? code;
@@ -97,10 +98,11 @@ function formatDate(dateStr: string) {
 }
 
 interface BillTimelineProps {
-  actions: FullUserLegislationData["legislation"]["actions"];
+  bill: FullUserLegislationData;
 }
 
-const BillTimeline = ({ actions }: BillTimelineProps) => {
+const BillTimeline = ({ bill }: BillTimelineProps) => {
+  const actions = bill?.legislation?.actions
   if (!actions?.length) return null;
 
   const { furthestStep, currentStep, isStalled, lastActionDate, stageDetails } =
@@ -109,61 +111,66 @@ const BillTimeline = ({ actions }: BillTimelineProps) => {
   const notStarted = furthestStep === -1;
 
   return (
-    <TooltipProvider delayDuration={100}>
-      <div className="w-full space-y-2">
-        <div className="flex items-center gap-1 flex-wrap">
-          {STAGE_LABELS.map((label, i) => {
-            const isFurthest = i === furthestStep;
-            const isCurrent = i === currentStep;
-            const isPast = i < currentStep;
-            const isReached = i <= furthestStep;
-            const detail = stageDetails[i];
+    <div className="flex gap-2 items-center">
+      <TooltipProvider delayDuration={100}>
+        <div className="w-full space-y-2">
+          <div className="flex items-center gap-1 flex-wrap">
+            {STAGE_LABELS.map((label, i) => {
+              const isFurthest = i === furthestStep;
+              const isCurrent = i === currentStep;
+              const isPast = i < currentStep;
+              const isReached = i <= furthestStep;
+              const detail = stageDetails[i];
 
-            const pill = (
-              <div
-                key={label}
-                className={cn(
-                  "px-3 py-1 rounded-full text-xs font-medium border transition-colors select-none",
-                  !isReached && "bg-muted text-muted-foreground border-transparent opacity-40",
-                  isPast && "bg-muted text-muted-foreground border-transparent",
-                  isFurthest && !isCurrent && "bg-orange-500/50 text-foreground border-transparent",
-                  isCurrent && "bg-primary/80 text-white fnt-bold border-transparent"
-                  , "shadow-sm")}
-              >
-                {label}
+              const pill = (
+                <div
+                  key={label}
+                  className={cn(
+                    "px-3 py-1 rounded-full text-xs font-medium border transition-colors select-none",
+                    !isReached && "bg-muted text-muted-foreground border-transparent opacity-40",
+                    isPast && "bg-muted text-muted-foreground border-transparent",
+                    isFurthest && !isCurrent && "bg-orange-500/50 text-foreground border-transparent",
+                    isCurrent && "bg-primary/80 text-white fnt-bold border-transparent"
+                    , "shadow-sm")}
+                >
+                  {label}
+                </div>
+              );
+
+              if (!detail) return pill;
+
+              return (
+                <Tooltip key={label}>
+                  <TooltipTrigger asChild>{pill}</TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-[220px] text-center">
+                    <p className="font-medium text-xs">{getActionLabel(detail.code)}</p>
+                    <p className="text-muted-foreground text-xs mt-0.5">
+                      {formatDate(detail.date)}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+
+            {isStalled && !notStarted && (
+              <div className="px-3 py-1 rounded-full text-xs font-medium border border-destructive/40 text-destructive bg-destructive/10">
+                Stalled
               </div>
-            );
+            )}
+          </div>
 
-            if (!detail) return pill;
-
-            return (
-              <Tooltip key={label}>
-                <TooltipTrigger asChild>{pill}</TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-[220px] text-center">
-                  <p className="font-medium text-xs">{getActionLabel(detail.code)}</p>
-                  <p className="text-muted-foreground text-xs mt-0.5">
-                    {formatDate(detail.date)}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            );
-          })}
-
-          {isStalled && !notStarted && (
-            <div className="px-3 py-1 rounded-full text-xs font-medium border border-destructive/40 text-destructive bg-destructive/10">
-              Stalled
-            </div>
+          {lastActionDate && (
+            <p className="text-xs text-muted-foreground pl-0.5">
+              Last action {formatDate(lastActionDate)}
+              {isStalled && " · No recent movement"}
+            </p>
           )}
-        </div>
 
-        {lastActionDate && (
-          <p className="text-xs text-muted-foreground pl-0.5">
-            Last action {formatDate(lastActionDate)}
-            {isStalled && " · No recent movement"}
-          </p>
-        )}
-      </div>
-    </TooltipProvider>
+
+        </div>
+      </TooltipProvider>
+      <BillMoreInfo bill={bill} />
+    </div>
   );
 };
 

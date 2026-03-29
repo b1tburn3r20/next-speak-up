@@ -7,9 +7,7 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 
 export async function POST(request: NextRequest) {
   try {
-    // Get user session
     const session = await getServerSession(authOptions);
-
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Authentication required" },
@@ -17,7 +15,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse request body
     const body = await request.json();
     const { legislationNameId, vote } = body;
 
@@ -28,7 +25,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get legislation ID from name_id
     const legislation = await prisma.legislation.findUnique({
       where: { name_id: legislationNameId },
       select: { id: true },
@@ -41,18 +37,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Record the vote
-    const data = await voteOnLegislation(
-      session.user.id,
-      legislation.id,
-      vote,
-      session?.user?.role?.name
-    );
+    const data = await voteOnLegislation(legislation.id, vote);
 
-    // Return success response with the vote
-    return NextResponse.json({
-      data,
-    });
+    return NextResponse.json({ data });
   } catch (error) {
     console.error("Error recording vote:", error);
     return NextResponse.json(

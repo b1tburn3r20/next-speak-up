@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LucideIcon,
   Settings,
+  Smile,
   Users,
 } from "lucide-react";
 
@@ -19,8 +20,7 @@ export type NavItem = {
 };
 
 export const navItems: NavItem[] = [
-  { href: "/", icon: Home, label: "Home" },
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard", icon: Home, label: "Dashboard" },
   {
     href: "/legislators",
     icon: Briefcase,
@@ -31,7 +31,12 @@ export const navItems: NavItem[] = [
     icon: Book,
     label: "Bills",
   },
-
+  {
+    href: "/dev/add-contacts",
+    icon: Smile,
+    label: "Add Contacts to Legislators",
+    requiredRoles: ["Admin", "Super Admin"]
+  },
   // {
   //   href: "/forum",
   //   icon: Users,
@@ -44,6 +49,7 @@ export const navItems: NavItem[] = [
     requiredRoles: ["Super Admin", "Admin"],
   },
 
+  // { href: "/", icon: Home, label: "Home" },
   {
     href: "/settings",
     icon: Settings,

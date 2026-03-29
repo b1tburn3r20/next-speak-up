@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useTheme } from "next-themes"
@@ -28,68 +29,70 @@ export default function PolicyAreaBreakdownTable({ data }: Props) {
   const averageYes = total > 0 ? Math.round((totalYes / total) * 100) : 0
 
   return (
-    <div className="bg-background p-2 rounded-3xl shadow-md w-full">
-      <div className="bg-background-light p-3 rounded-3xl shadow-md overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="whitespace-nowrap">Policy Area</TableHead>
-              <TableHead className="text-right whitespace-nowrap">Yes</TableHead>
-              <TableHead className="text-right whitespace-nowrap">No</TableHead>
-              <TableHead className="text-right whitespace-nowrap">Avoided</TableHead>
-              <TableHead className="text-right whitespace-nowrap">Yes %</TableHead>
-              <TableHead className="text-right whitespace-nowrap">Total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sorted.map((row, i) => {
-              const yeaPct = row.total > 0 ? Math.round((row.YEA / row.total) * 100) : 0
-              const config = PolicyAreas[row.policyArea as keyof typeof PolicyAreas]
-              const indicatorColor = config
-                ? (isDark ? config.chart_color_light : config.chart_color_light)
-                : "transparent"
+    <div className="bg-background p-2 rounded-3xl shadow-md w-full min-w-0 overflow-hidden">
+      <div className="bg-background-light p-3 rounded-3xl shadow-md min-w-0 overflow-hidden">
+        <div className="w-full overflow-x-auto">
+          <Table className="table-fixed w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40%]">Policy Area</TableHead>
+                <TableHead className="text-right w-[12%]">Yes</TableHead>
+                <TableHead className="text-right w-[12%]">No</TableHead>
+                <TableHead className="text-right w-[12%]">Avoided</TableHead>
+                <TableHead className="text-right w-[12%]">Yes %</TableHead>
+                <TableHead className="text-right w-[12%]">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sorted.map((row, i) => {
+                const yeaPct = row.total > 0 ? Math.round((row.YEA / row.total) * 100) : 0
+                const config = PolicyAreas[row.policyArea as keyof typeof PolicyAreas]
+                const indicatorColor = config
+                  ? (isDark ? config.chart_color_light : config.chart_color_light)
+                  : "transparent"
 
-              return (
-                <TableRow className={`${i % 2 === 0 ? "bg-muted/30" : ""}`} key={row.policyArea}>
-                  <TableCell className="flex items-center gap-2 whitespace-nowrap">
-                    <div
-                      className="h-2 w-2 shrink-0 rounded-full"
-                      style={{ backgroundColor: indicatorColor }}
-                    />
-                    {row.policyArea}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums text-green-600 dark:text-green-400">
-                    {row.YEA}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums text-red-600 dark:text-red-400">
-                    {row.NAY}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums text-muted-foreground">
-                    {row.PRESENT + row.NOT_VOTING}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className={yeaPct >= 50 ? "text-green-600" : "text-red-400"}>
-                      {yeaPct}%
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right font-medium tabular-nums">
-                    {row.total}
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-            <TableRow>
-              <TableCell className="flex items-center gap-2" />
-              <TableCell className="text-right tabular-nums text-green-600 dark:text-green-400">{totalYes}</TableCell>
-              <TableCell className="text-right tabular-nums text-red-600 dark:text-red-400">{totalNo}</TableCell>
-              <TableCell className="text-right tabular-nums text-muted-foreground">{totalNotVoted}</TableCell>
-              <TableCell className="text-right">
-                <div className={averageYes >= 50 ? "text-green-600" : "text-red-400"}>{averageYes}%</div>
-              </TableCell>
-              <TableCell className="text-right font-medium tabular-nums">{total}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+                return (
+                  <TableRow className={i % 2 === 0 ? "bg-muted/30" : ""} key={row.policyArea}>
+                    <TableCell className="flex items-center gap-2">
+                      <div
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        style={{ backgroundColor: indicatorColor }}
+                      />
+                      <span className="truncate">{row.policyArea}</span>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-green-600 dark:text-green-400">
+                      {row.YEA}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-red-600 dark:text-red-400">
+                      {row.NAY}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
+                      {row.PRESENT + row.NOT_VOTING}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className={yeaPct >= 50 ? "text-green-600" : "text-red-400"}>
+                        {yeaPct}%
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right font-medium tabular-nums">
+                      {row.total}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+              <TableRow>
+                <TableCell />
+                <TableCell className="text-right tabular-nums text-green-600 dark:text-green-400">{totalYes}</TableCell>
+                <TableCell className="text-right tabular-nums text-red-600 dark:text-red-400">{totalNo}</TableCell>
+                <TableCell className="text-right tabular-nums text-muted-foreground">{totalNotVoted}</TableCell>
+                <TableCell className="text-right">
+                  <div className={averageYes >= 50 ? "text-green-600" : "text-red-400"}>{averageYes}%</div>
+                </TableCell>
+                <TableCell className="text-right font-medium tabular-nums">{total}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   )

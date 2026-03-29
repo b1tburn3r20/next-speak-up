@@ -1,13 +1,17 @@
 import prisma from "@/prisma/client";
 import { VotePosition } from "@prisma/client";
 import { logUserAction } from "./user";
+import { getVerifiedSession } from "./bills";
 
 export const voteOnLegislation = async (
-  userId: string,
   legislationId: number,
-  votePosition: VotePosition,
-  role: string
+  votePosition: VotePosition
 ) => {
+  const { userId, userRole } = await getVerifiedSession();
+  if (!userId) {
+    throw new Error("Unauthorized: must be signed in to vote");
+  }
+
   const legislation = await prisma.legislation.findUnique({
     where: { id: legislationId },
   });
@@ -36,15 +40,20 @@ export const voteOnLegislation = async (
       legislationId,
     },
   });
-  return getUserVoteObject(legislationId, userId, role);
+
+  return getUserVoteObject(legislationId);
 };
 
 export const updateBillTracking = async (
-  userId: string,
   legislationId: number,
-  currentTracking: boolean,
-  role: string
+  currentTracking: boolean
 ) => {
+  const { userId, userRole } = await getVerifiedSession();
+
+  if (!userId) {
+    throw new Error("Unauthorized: must be signed in to track bills");
+  }
+
   const newTrackingStatus = !currentTracking;
 
   await prisma.userBillTrack.upsert({
@@ -63,39 +72,24 @@ export const updateBillTracking = async (
       tracking: newTrackingStatus,
     },
   });
-  await logUserAction(
-    userId,
-    "updateBillTracking",
-    String(legislationId),
-    role
-  );
-  return getComprehensiveBillData(legislationId, userId, role);
+
+  await logUserAction(userId, "updateBillTracking", String(legislationId), userRole);
+
+  return getComprehensiveBillData(legislationId);
 };
-export const getUserVoteObject = async (
-  billId: string | number,
-  userId: string | null,
-  userRole: string
-) => {
+
+export const getUserVoteObject = async (billId: string | number) => {
+  const { userId, userRole } = await getVerifiedSession();
+
   const whereClause =
-    typeof billId === "string"
-      ? {
-        name_id: billId,
-      }
-      : {
-        id: billId,
-      };
+    typeof billId === "string" ? { name_id: billId } : { id: billId };
 
   const billData = await prisma.legislation.findUnique({
     where: whereClause,
   });
 
   if (!billData) {
-    await logUserAction(
-      userId,
-      "getComprehensiveBillData",
-      String(billId),
-      userRole
-    );
+    await logUserAction(userId, "getUserVoteObject", String(billId), userRole);
     return null;
   }
 
@@ -109,191 +103,126 @@ export const getUserVoteObject = async (
       },
     });
   }
-  await logUserAction(
-    userId,
-    "voteOnLegislation",
-    String(billId),
-    userRole
-  );
 
-  return {
-    userVote,
-  };
+  await logUserAction(userId, "voteOnLegislation", String(billId), userRole);
+
+  return { userVote };
 };
-export const getComprehensiveBillData = async (
-  billId: string | number,
-  userId: string | null,
-  userRole: string
-) => {
+
+export const getComprehensiveBillData = async (billId: string | number) => {
+  const { userId, userRole } = await getVerifiedSession();
+
   const whereClause =
-    typeof billId === "string"
-      ? {
-        name_id: billId,
-      }
-      : {
-        id: billId,
-      };
+    typeof billId === "string" ? { name_id: billId } : { id: billId };
 
   const billData = await prisma.legislation.findUnique({
     where: whereClause,
     include: {
-      userTracks: userId
-        ? {
-          where: { userId },
-        }
-        : false,
+
+      userTracks: userId ? { where: { userId } } : false,
       summaries: {
-        orderBy: {
-          actionDate: "desc",
-        },
+        orderBy: { actionDate: "desc" },
       },
       aiSummaries: {
-        orderBy: {
-          actionDate: "desc",
-        },
+        orderBy: { actionDate: "desc" },
       },
       actions: {
-        orderBy: {
-          actionDate: "desc",
-        },
+        orderBy: { actionDate: "desc" },
       },
       relatedBills: {},
     },
   });
 
   if (!billData) {
-    await logUserAction(
-      userId,
-      "getComprehensiveBillData",
-      String(billId),
-      userRole
-    );
+    await logUserAction(userId, "getComprehensiveBillData", String(billId), userRole);
     return null;
   }
 
-  // Get user's vote on this legislation if they're authenticated
   let userVote = null;
   if (userId) {
     userVote = await prisma.userVote.findFirst({
       where: {
         userId,
-        entityType: "legislation", // Assuming this is how you track legislation votes
-        entityId: billData.id, // Always use the numeric id from the fetched bill data
+        entityType: "legislation",
+        entityId: billData.id,
       },
     });
   }
 
-  // Get sponsors of the legislation
   const sponsors = await prisma.legislationSponsor.findMany({
-    where: {
-      legislationId: billData.id, // Always use the numeric id from the fetched bill data
-    },
-  });
+    where: { legislationId: billData.id, },
 
-  // Get cosponsors of the legislation
+
+
+  },);
+
   const cosponsors = await prisma.legislationCosponsor.findMany({
-    where: {
-      legislationId: billData.id, // Always use the numeric id from the fetched bill data
-    },
+    where: { legislationId: billData.id },
   });
 
-  // Get sponsor member details
   const sponsorMembers =
     sponsors.length > 0
       ? await prisma.congressMember.findMany({
         where: {
-          bioguideId: {
-            in: sponsors.map((s) => s.sponsorBioguideId),
-          },
+          bioguideId: { in: sponsors.map((s) => s.sponsorBioguideId) },
         },
+        include: { depiction: true },
       })
       : [];
 
-  // Get cosponsor member details
   const cosponsorMembers =
     cosponsors.length > 0
       ? await prisma.congressMember.findMany({
         where: {
-          bioguideId: {
-            in: cosponsors.map((c) => c.cosponsorBioguideId),
-          },
+          bioguideId: { in: cosponsors.map((c) => c.cosponsorBioguideId) },
         },
+
+        include: { depiction: true },
       })
       : [];
 
-  // Get related votes (if the legislation has associated congressional votes)
   let congressionalVotes = [];
   if (billData.name_id) {
     const votes = await prisma.vote.findMany({
-      where: {
-        name_id: billData.name_id,
-      },
-
-      orderBy: {
-        date: "desc",
-      },
+      where: { name_id: billData.name_id },
+      orderBy: { date: "desc" },
     });
 
-    // Get member votes for each congressional vote
     for (const vote of votes) {
       const memberVotes = await prisma.memberVote.findMany({
-        where: {
-          voteId: vote.id,
-        },
+        where: { voteId: vote.id },
       });
 
-      // Get member details for the votes
       const memberIds = memberVotes.map((mv) => mv.memberId);
       const members =
         memberIds.length > 0
           ? await prisma.congressMember.findMany({
-            where: {
-              id: {
-                in: memberIds,
-              },
-
-            },
-            include: {
-              depiction: true
-            }
+            where: { id: { in: memberIds } },
+            include: { depiction: true },
           })
           : [];
 
-      // Combine member votes with member details
       const memberVotesWithDetails = memberVotes.map((memberVote) => ({
         ...memberVote,
         member: members.find((m) => m.id === memberVote.memberId),
       }));
 
-      congressionalVotes.push({
-        ...vote,
-        memberVotes: memberVotesWithDetails,
-      });
+      congressionalVotes.push({ ...vote, memberVotes: memberVotesWithDetails });
     }
   }
 
-  // Get latest action for the bill
   const latestAction = await prisma.latestAction.findUnique({
-    where: {
-      legislation_id: billData.id, // Always use the numeric id from the fetched bill data
-    },
+    where: { legislation_id: billData.id },
   });
 
-  // Get policy area if it exists
   let policyArea = null;
   if (billData.policy_area_id) {
     policyArea = await prisma.policyArea.findUnique({
-      where: {
-        id: billData.policy_area_id,
-      },
-      select: {
-        id: true,
-        name: true,
-      },
+      where: { id: billData.policy_area_id },
+      select: { id: true, name: true },
     });
   }
 
-  // Check if user has favorited any of the sponsors/cosponsors (if authenticated)
   let favoritedSponsors = [];
   let favoritedCosponsors = [];
   if (userId) {
@@ -304,14 +233,9 @@ export const getComprehensiveBillData = async (
       const favorited = await prisma.favoritedCongressMember.findMany({
         where: {
           userId,
-          memberId: {
-            in: allMemberIds,
-          },
+          memberId: { in: allMemberIds },
         },
-        select: {
-          memberId: true,
-          favoritedAt: true,
-        },
+        select: { memberId: true, favoritedAt: true },
       });
 
       favoritedSponsors = favorited.filter((f) =>
@@ -323,7 +247,6 @@ export const getComprehensiveBillData = async (
     }
   }
 
-  // Log the action
   await logUserAction(
     userId,
     "getComprehensiveBillData",
@@ -331,16 +254,10 @@ export const getComprehensiveBillData = async (
     userRole
   );
 
-  // Return comprehensive bill data
   return {
-    // Main legislation data
     legislation: billData,
-
-    // User-specific data (null for guests)
     userVote,
     userTracking: billData.userTracks?.[0] || null,
-
-    // Sponsors and cosponsors with member details
     sponsors: sponsorMembers.map((member) => ({
       ...member,
       isFavorited: favoritedSponsors.some((f) => f.memberId === member.id),
@@ -348,7 +265,6 @@ export const getComprehensiveBillData = async (
         favoritedSponsors.find((f) => f.memberId === member.id)?.favoritedAt ||
         null,
     })),
-
     cosponsors: cosponsorMembers.map((member) => ({
       ...member,
       isFavorited: favoritedCosponsors.some((f) => f.memberId === member.id),
@@ -356,7 +272,6 @@ export const getComprehensiveBillData = async (
         favoritedCosponsors.find((f) => f.memberId === member.id)
           ?.favoritedAt || null,
     })),
-
     congressionalVotes,
     latestAction,
     policyArea,

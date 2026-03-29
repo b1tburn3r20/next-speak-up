@@ -26,11 +26,7 @@ export const metadata: Metadata = {
 const Page = async () => {
   const session: AuthSession = await getServerSession(authOptions);
   const userId = session?.user?.id;
-  const role = session?.user?.role?.name;
-
-  //
-
-  const results = await getCongressLegislators(userId, role);
+  const results = await getCongressLegislators();
   return (
     <div className="flex flex-col pt-4 space-y-12 container mx-auto p-2">
       <SearchLegislators legislators={results} />

@@ -18,7 +18,6 @@ function SearchPageContent() {
   const performSearch = async () => {
     setIsLoading(true);
     try {
-      // Construct the search parameters
       const searchQuery = new URLSearchParams();
       if (query) searchQuery.append("query", query);
       if (tags.length > 0) searchQuery.append("tags", JSON.stringify(tags));

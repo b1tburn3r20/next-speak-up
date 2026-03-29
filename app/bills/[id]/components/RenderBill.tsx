@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import FederalLegislationVoteButtons from "./federal-legislation-vote-buttons";
 import BlockB from "@/components/cb/block-b";
 import YourRepVotes from "./congressional-votes/your-rep-votes";
+import BillMoreInfo from "./bill-more-info";
 
 interface RenderBillProps {
   bill: FullUserLegislationData;
@@ -61,13 +62,16 @@ const RenderBill = ({
     <div className="lg:w-4xl max-w-4xl mx-auto">
       <div className="border-0 bg-background shadow-md  rounded-3xl overflow-hidden">
         <div className="p-2 sm:p-6 lg:p-8 space-y-2 sm:space-y-6">
-          <BlockB>
-            <div className="text-center px-4 py-4 sm:px-0 sm:py-0">
+          <BlockB className="relative">
+            <div className=" text-center px-4 py-4 sm:px-0 sm:py-0">
+
               <BillTitle />
+              <div className="absolute right-0.5 top-0.5">
+              </div>
             </div>
           </BlockB>
           <BlockB>
-            <BillTimeline actions={bill?.legislation?.actions} />
+            <BillTimeline bill={bill} />
           </BlockB>
           <Separator className="my-6" />
           <BillSummariesContainer

@@ -30,12 +30,10 @@ const Page = async () => {
           <Label className="text-3xl">All Users</Label>
           <SelectUsers users={users} />
         </TabsContent>
-        <TabsContent value="permissions" className="flex flex-col gap-4">
-          <Label className="text-3xl">All Permissions</Label>
+        <TabsContent value="permissions" >
           <AllPermissions permissions={permissions} />
         </TabsContent>
-        <TabsContent value="roles" className="flex flex-col gap-4">
-          <Label className="text-3xl">All Roles</Label>
+        <TabsContent value="roles" >
           <AllRoles roles={roles} />
         </TabsContent>
       </Tabs>

@@ -1,20 +1,37 @@
-import { formatBillText } from "@/lib/utils/StringFunctions";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession, Session } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/route";
+import { getClientIP } from "../../feature-suggestion/route";
+import { checkRateLimit } from "@/lib/ratelimiter";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const congress = searchParams.get("congress");
   const type = searchParams.get("type");
   const number = searchParams.get("number");
 
-  // First, fetch the versions list
+
+  const cip = getClientIP(request)
+  const session: Session = await getServerSession(authOptions)
+  const id = session?.user?.id
+  const role = session?.user?.role?.name || "unauthorized"
+  const identifier = id || cip
+
+  const rateLimitResult = await checkRateLimit("general", role, identifier)
+
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded" },
+      { status: 429 }
+    )
+  }
+
   const versionsUrl = `https://api.congress.gov/v3/bill/${congress}/${type}/${number}/text?api_key=${process.env.CONGRESS_API_KEY}`;
 
   try {
     const versionsResponse = await fetch(versionsUrl);
     const versionsData = await versionsResponse.json();
 
-    // Get the most recent version (first in the array)
     const latestVersion = versionsData.textVersions[0];
     if (!latestVersion) {
       return NextResponse.json(
@@ -23,7 +40,6 @@ export async function GET(request: Request) {
       );
     }
 
-    // Get the HTML format URL
     const htmlFormat = latestVersion.formats.find(
       (f) => f.type === "Formatted Text"
     );
@@ -34,12 +50,8 @@ export async function GET(request: Request) {
       );
     }
 
-    // Fetch the HTML content
     const htmlResponse = await fetch(htmlFormat.url);
     const htmlText = await htmlResponse.text();
-    console.log(htmlText)
-    // Could add some basic HTML-to-text conversion here if needed
-    // For now, just return the raw HTML
 
     return NextResponse.json({
       text: htmlText,

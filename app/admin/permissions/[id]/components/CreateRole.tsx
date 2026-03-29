@@ -28,7 +28,6 @@ const CreateRole = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // If role exists, it's NOT available for creation
         setIsAvailable(!data.exists);
       } else {
         console.error("API error:", data.error);
@@ -61,6 +60,7 @@ const CreateRole = () => {
       const data = await response.json();
 
       if (response.ok) {
+        window.location.reload()
         setInputValue("");
         setDescription("");
         setIsAvailable(null);
@@ -76,7 +76,6 @@ const CreateRole = () => {
     }
   };
 
-  // Debounce the API call to avoid too many requests
   const debouncedCheck = useCallback(debounce(checkIfRoleIsAvailable, 500), []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,7 +150,8 @@ const CreateRole = () => {
             Creating...
           </>
         ) : isAvailable ? (
-          `Create role '${inputValue}'`
+
+          `Create Role ' ${inputValue?.length > 10 ? `${inputValue?.slice(0, 10)}...` : inputValue}'`
         ) : (
           "Waiting for server 'OK'"
         )}

@@ -30,3 +30,16 @@ export type CongressMemberHouseOfRepresentativesVoteType = {
   voteId: number
   votePosition: string
 }
+export type CongressMemberSponsorPolicyAreaBreakdownRowType = {
+  policyArea: string;
+  sponsored: number;
+  cosponsored: number;
+  combined: number;
+};
+
+export type CongressMemberSponsorBillType = {
+  nameId: string;
+  title: string;
+  policyArea: string;
+  sponsorType: "sponsored" | "cosponsored";
+};

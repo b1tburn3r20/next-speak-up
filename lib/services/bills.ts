@@ -1,5 +1,27 @@
 import prisma from "@/prisma/client";
 import { logUserAction } from "./user";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { AuthSession } from "../types/user-types";
+import { Permission } from "@prisma/client";
+
+export const getVerifiedSession = async (): Promise<{
+  userId: string | null;
+  userRole: string;
+  permissions: Permission[]
+}> => {
+  const session: AuthSession = await getServerSession(authOptions);
+  return {
+    userId: session?.user?.id ?? null,
+    userRole: session?.user?.role?.name ?? "guest",
+    permissions: session?.user?.permissions ?? [],
+  };
+};
+
+export const checkHasPermission = (permission: string, permissions: Permission[]) =>
+  permissions?.find((p) => p.name === permission)
+
+
 
 export const roleHasPermission = async (
   roleId: number,
@@ -8,26 +30,24 @@ export const roleHasPermission = async (
   const existing = await prisma.rolePermission.findUnique({
     where: {
       roleId_permissionId: {
-        roleId: roleId,
-        permissionId: permissionId,
+        roleId,
+        permissionId,
       },
     },
   });
   return existing !== null;
 };
 
-export const getBillData = async (
-  billId: string, // This is the name_id we're searching by
-  userId: string | null,
-  userRole: string
-) => {
+export const getBillData = async (billId: string) => {
+  const { userId, userRole } = await getVerifiedSession();
+
   const response = await prisma.legislation.findUnique({
     where: {
       name_id: billId,
     },
     include: {
-      summaries: true, // Include all summaries
-      aiSummaries: true, // Include all AI summaries
+      summaries: true,
+      aiSummaries: true,
       userTracks: userId
         ? {
           where: { userId },
@@ -42,13 +62,12 @@ export const getBillData = async (
     },
   });
 
-  // Separately fetch user vote if user exists
   let userVote = null;
   if (userId && response) {
     userVote = await prisma.userVote.findFirst({
       where: {
         userId,
-        legislationId: response.id, // Use the numeric id from the legislation we just found
+        legislationId: response.id,
       },
       select: { votePosition: true, createdAt: true, updatedAt: true },
     });
@@ -61,11 +80,10 @@ export const getBillData = async (
     userVotes: userVote ? [userVote] : [],
   };
 };
-export const getRecentBills = async (
-  userId: string | null,
-  userRole: string
-) => {
-  // Get legislation IDs sorted by most recent action date
+
+export const getRecentBills = async () => {
+  const { userId, userRole } = await getVerifiedSession();
+
   const latestActions = await prisma.billAction.groupBy({
     by: ["legislationId"],
     _max: { actionDate: true },
@@ -96,10 +114,8 @@ export const getRecentBills = async (
     },
   });
 
-  // Re-sort to match groupBy order
   const sortedBills = billIds.map((id) => bills.find((b) => b.id === id)!);
 
-  // Fetch user votes if logged in
   let userVotes: { [key: number]: any } = {};
   if (userId) {
     const votes = await prisma.userVote.findMany({
@@ -136,14 +152,11 @@ export const getRecentBills = async (
   return billsWithVotes;
 };
 
-export const markBillAsViewed = async (
-  billId: number,
-  userId: string | null,
-  userRole: string
-) => {
-  // Only track bill views for authenticated users
+export const markBillAsViewed = async (billId: number) => {
+  const { userId, userRole } = await getVerifiedSession();
+
   if (!userId) {
-    await logUserAction(userId, "markBillAsViewed", String(billId), userRole);
+    await logUserAction(null, "markBillAsViewed", String(billId), userRole);
     return;
   }
 
@@ -156,7 +169,6 @@ export const markBillAsViewed = async (
     },
   });
 
-  // Always update the viewedAt timestamp
   await prisma.userBillTrack.upsert({
     where: {
       userId_legislationId: {
@@ -172,23 +184,20 @@ export const markBillAsViewed = async (
     },
     update: {
       hasViewed: true,
-      viewedAt: new Date(), // Always update the timestamp
+      viewedAt: new Date(),
     },
   });
 
-  // Only log the action if this is the first time viewing
   if (!existing?.hasViewed) {
     await logUserAction(userId, "markBillAsViewed", String(billId), userRole);
   }
 };
 
-export const getLastViewedBill = async (
-  userId: string | null,
-  userRole: string
-) => {
-  // Return null for guests since they don't have tracked views
+export const getLastViewedBill = async () => {
+  const { userId, userRole } = await getVerifiedSession();
+
   if (!userId) {
-    await logUserAction(userId, "getLastViewedBill", null, userRole);
+    await logUserAction(null, "getLastViewedBill", null, userRole);
     return null;
   }
 
@@ -203,8 +212,8 @@ export const getLastViewedBill = async (
     include: {
       legislation: {
         include: {
-          summaries: true, // Include all summaries
-          aiSummaries: true, // Include all AI summaries
+          summaries: true,
+          aiSummaries: true,
           userTracks: {
             where: { userId },
           },
@@ -218,7 +227,6 @@ export const getLastViewedBill = async (
     return null;
   }
 
-  // Fetch user vote for this legislation
   const userVote = await prisma.userVote.findFirst({
     where: {
       userId,
@@ -229,17 +237,15 @@ export const getLastViewedBill = async (
 
   await logUserAction(userId, "getLastViewedBill", null, userRole);
 
-  // Return the legislation data with user vote
   return {
     ...lastViewed.legislation,
     userVotes: userVote ? [userVote] : [],
   };
 };
 
-export const getTrackedBills = async (
-  userId: string | null,
-  userRole: string
-) => {
+export const getTrackedBills = async () => {
+  const { userId } = await getVerifiedSession();
+
   if (!userId) {
     return [];
   }
@@ -258,8 +264,8 @@ export const getTrackedBills = async (
     },
     take: 15,
     include: {
-      summaries: true, // Include all summaries
-      aiSummaries: true, // Include all AI summaries
+      summaries: true,
+      aiSummaries: true,
       userTracks: {
         where: { userId },
       },

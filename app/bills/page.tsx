@@ -1,10 +1,8 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
   getLastViewedBill,
   getRecentBills,
   getTrackedBills,
 } from "@/lib/services/bills";
-import { getServerSession } from "next-auth";
 import CurrentlyTracking from "./components/CurrentlyTracking";
 import LastViewedBill from "./components/LastViewedBill";
 import RecentBills from "./components/RecentBills";
@@ -12,12 +10,11 @@ import SearchBills from "./components/SearchBills";
 import BlockA from "@/components/cb/block-a";
 
 const Page = async () => {
-  const session = await getServerSession(authOptions);
 
   const [recentBills, lastViewedBill, trackedBills] = await Promise.all([
-    getRecentBills(session?.user?.id, session?.user?.role?.name),
-    getLastViewedBill(session?.user?.id, session?.user?.role?.name),
-    getTrackedBills(session?.user?.id, session?.user?.role?.name),
+    getRecentBills(),
+    getLastViewedBill(),
+    getTrackedBills(),
   ]);
 
   return (
@@ -33,7 +30,7 @@ const Page = async () => {
             <LastViewedBill bill={lastViewedBill} />
           </div>
         </BlockA>
-        <BlockA className="p-4 flex gap-8 items-center justify-center">
+        <BlockA className="p-4 min-w-0 flex-1 items-center justify-center">
           <CurrentlyTracking bills={trackedBills} />
         </BlockA>
       </div>

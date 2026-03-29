@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "../../../auth/[...nextauth]/route";
 import { checkRateLimit, getUserRole } from "@/lib/ratelimiter";
 import { getUserRepresentativeData } from "@/lib/services/dashboard/user-personalized-dashboard";
+import { checkPermission } from "@/lib/services/permissions";
+import { checkHasPermission } from "@/lib/services/bills";
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,8 +38,14 @@ export async function GET(request: NextRequest) {
         { status: 429 }
       );
     }
+    const hasPermission = checkHasPermission("userPolicyAndRep", session?.user?.permissions)
+    if (!hasPermission) {
+      return NextResponse.json(
+        { error: "Unauthorized" }, { status: 401 }
+      )
+    }
 
-    const data = await getUserRepresentativeData(session.user.id);
+    const data = await getUserRepresentativeData();
 
     if (!data) {
       return NextResponse.json(

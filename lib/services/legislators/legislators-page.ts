@@ -1,8 +1,13 @@
 import prisma from "@/prisma/client";
 import { logUserAction } from "../user";
+import { getVerifiedSession } from "../bills";
 
-export const getCongressLegislators = async (userId, userRole) => {
-  const data = prisma.congressMember.findMany({
+export const getCongressLegislators = async () => {
+
+  const { userId, userRole } = await getVerifiedSession();
+
+
+  const data = await prisma.congressMember.findMany({
     where: {
       active: true,
     },

@@ -3,8 +3,10 @@ import {
   getLegislatorRecentHouseVotes,
   getLegislatorHouseVotePolicyAreaBreakdown,
 } from "../legislators/legislator-id";
+import { getVerifiedSession } from "../bills";
 
-export const getUserRepresentativeData = async (userId: string) => {
+export const getUserRepresentativeData = async () => {
+  const { userId } = await getVerifiedSession()
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -69,10 +71,10 @@ export interface RepresentationMetrics {
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 export async function getRepresentationMetrics(
-  userId: string
 ): Promise<RepresentationMetrics | { error: string; status: 404 | 500 }> {
+  const { userId } = await getVerifiedSession()
   try {
-    // 1. Fetch user with state + district
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { state: true, district: true },

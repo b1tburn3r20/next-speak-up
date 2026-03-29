@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
-import { getBillData } from "@/lib/services/bills";
 import { getComprehensiveBillData } from "@/lib/services/bill-voting";
 
 export async function GET(request: Request) {
@@ -11,7 +10,6 @@ export async function GET(request: Request) {
     return new NextResponse("Unauthorized, no user id", { status: 401 });
   }
 
-  const role = session?.user?.role?.name;
 
   // Get billId from URL parameters
   const { searchParams } = new URL(request.url);
@@ -27,8 +25,6 @@ export async function GET(request: Request) {
   try {
     const billData = await getComprehensiveBillData(
       parseInt(billId),
-      session.user.id,
-      session.user.role.name
     );
 
     if (!billData) {

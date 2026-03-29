@@ -1,12 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendContactEmail, sendAutoReply } from "@/lib/emailServices";
+import { getClientIP } from "../feature-suggestion/route";
+import { checkRateLimit } from "@/lib/ratelimiter";
 
 export async function POST(request: NextRequest) {
+
+
+
+
+
+
   try {
     const body = await request.json();
     const { firstName, lastName, email, phone, message } = body;
 
-    // Validation
+    const ipAddress = getClientIP(request)
+
+    const identifier = ipAddress
+    if (!ipAddress) {
+      return NextResponse.json(
+        { error: "No identifier" },
+        { status: 401 }
+
+      )
+    }
+
     if (!email || !message) {
       return NextResponse.json(
         { message: "Email and message are required fields." },
@@ -14,7 +32,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -23,7 +40,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send notification email to info@coolbills.com
+
+    const rateLimitedResult = await checkRateLimit(
+      "email",
+      "unauthenticated",
+      identifier
+    )
+    if (!rateLimitedResult.success) {
+      return NextResponse.json(
+        {
+          error: rateLimitedResult.error || "Rate limit exceeded",
+          limit: rateLimitedResult.limit,
+          remaining: rateLimitedResult.remaining,
+          reset: rateLimitedResult.reset
+        },
+        { status: 429 }
+      )
+
+    }
+
+
     const notificationResult = await sendContactEmail({
       firstName: firstName || "",
       lastName: lastName || "",
@@ -32,11 +68,9 @@ export async function POST(request: NextRequest) {
       message,
     });
 
-    // Send auto-reply to customer
     const customerName = `${firstName} ${lastName}`.trim() || "there";
     const autoReplyResult = await sendAutoReply(email, customerName);
 
-    // Check if both emails were sent successfully
     if (notificationResult.success && autoReplyResult.success) {
       return NextResponse.json(
         {
@@ -46,14 +80,12 @@ export async function POST(request: NextRequest) {
         { status: 200 }
       );
     } else if (notificationResult.success && !autoReplyResult.success) {
-      // Main email sent but auto-reply failed - still consider it success
       console.error("Auto-reply failed:", autoReplyResult.error);
       return NextResponse.json(
         { message: "Message sent successfully!" },
         { status: 200 }
       );
     } else {
-      // Main notification email failed
       console.error("Notification email failed:", notificationResult.error);
       if (!autoReplyResult.success) {
         console.error("Auto-reply also failed:", autoReplyResult.error);

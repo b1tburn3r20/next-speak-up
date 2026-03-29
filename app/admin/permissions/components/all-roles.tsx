@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,6 +9,8 @@ import { formatIsoDate } from "@/lib/utils/StringFunctions"
 import { Role } from "@prisma/client"
 import { Edit, Loader, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import CreateRole from "../[id]/components/CreateRole"
+import ManageRoles from "../[id]/components/ManageRoles"
 
 interface AllRolesProps {
   roles: Role[]
@@ -81,6 +83,37 @@ const AllRoles = ({ roles }: AllRolesProps) => {
 
   return (
     <div>
+
+      <div className="flex w-full justify-between items-center">
+        <Label className="text-2xl">All Roles</Label>
+        <div>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="w-fit self-end">Manage Roles</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Manage Roles</DialogTitle>
+                <DialogDescription>Manage Roles</DialogDescription>
+              </DialogHeader>
+              <ManageRoles />
+            </DialogContent>
+          </Dialog>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="w-fit self-end">Create Role</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Role</DialogTitle>
+                <DialogDescription>Create a Role</DialogDescription>
+              </DialogHeader>
+              <CreateRole />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>

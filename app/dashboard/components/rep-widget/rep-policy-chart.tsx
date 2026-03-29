@@ -40,7 +40,7 @@ export default function PolicyAreaWidget({ data }: Props) {
 
   return (
     <div className="bg-background-light h-full p-3 rounded-2xl shadow-md">
-      <div className="text-sm font-medium">Policy Breakdown</div>
+      <div className="text-sm font-medium">Yes Vote Breakdown</div>
       <div className="text-xs text-muted-foreground mb-2">
         {sorted.length} areas · {total} votes
       </div>

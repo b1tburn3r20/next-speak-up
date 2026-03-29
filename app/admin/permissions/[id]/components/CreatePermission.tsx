@@ -2,12 +2,11 @@
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
-import { CircleCheck, CircleX, Loader2, ShieldPlus, Smile } from "lucide-react";
+import { CircleCheck, CircleX, Loader2, Smile } from "lucide-react";
 import { useState, useCallback } from "react";
 import { debounce } from "lodash";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Permission } from "@prisma/client";
 
 const CreatePermission = () => {
   const [inputValue, setInputValue] = useState("");
@@ -159,7 +158,7 @@ const CreatePermission = () => {
             Creating...
           </>
         ) : isAvailable ? (
-          `Create Permission '${inputValue}'`
+          `Create Permission ' ${inputValue?.length > 10 ? `${inputValue?.slice(0, 10)}...` : inputValue}'`
         ) : (
           "Waiting for server 'OK'"
         )}

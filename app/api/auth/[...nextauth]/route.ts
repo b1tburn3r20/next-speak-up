@@ -2,7 +2,7 @@ import NextAuth, { DefaultSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/prisma/client";
-import { AgeRange, IncomeRange } from "@prisma/client";
+import { AgeRange, IncomeRange, Permission } from "@prisma/client";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -17,6 +17,7 @@ declare module "next-auth" {
       ageRange: AgeRange | null;
       householdIncome: IncomeRange | null;
       needsOnboarding: boolean;
+      permissions: Permission[]
       role: any;
     } & DefaultSession["user"];
   }
@@ -47,7 +48,15 @@ export const authOptions = {
             householdIncome: true,
             needsOnboarding: true,
             district: true,
-            role: true,
+            role: {
+              include: {
+                permissions: {
+                  include: {
+                    permission: true
+                  }
+                }
+              }
+            }
           },
         });
 
@@ -81,7 +90,15 @@ export const authOptions = {
           householdIncome: true,
           district: true,
           needsOnboarding: true,
-          role: true,
+          role: {
+            include: {
+              permissions: {
+                include: {
+                  permission: true
+                }
+              }
+            }
+          }
         },
       });
 
@@ -90,7 +107,8 @@ export const authOptions = {
         user: {
           ...session.user,
           ...fullUser,
-          // Ensure needsOnboarding is included and defaults to true if undefined
+
+          permissions: fullUser?.role?.permissions.map(rp => rp.permission) ?? [],
           needsOnboarding: fullUser?.needsOnboarding ?? true,
         },
       };

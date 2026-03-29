@@ -1,4 +1,4 @@
-import { BillAiSummary, BillSummary, CongressMember, PolicyArea } from "@prisma/client";
+import { BillAiSummary, BillSummary, CongressMember, Depiction, PolicyArea } from "@prisma/client";
 import { number, string } from "zod";
 
 export type LegislationUserTracks = {
@@ -8,7 +8,9 @@ export type LegislationUserTracks = {
   createdAt: Date;
   updatedAt: Date;
 };
-
+export interface CongressMemberWithDepiction extends CongressMember {
+  depiction: Depiction
+}
 export type FullLegislation = {
   id: number;
   congress: number;
@@ -71,6 +73,8 @@ export type FullUserLegislationData = {
   legislation: FullLegislation;
   userVote: LegislationUserVote;
   userTracking: LegislationUserTracking;
+  sponsors: CongressMemberWithDepiction[]
+  cosponsors: CongressMemberWithDepiction[]
   policyArea: any
 };
 

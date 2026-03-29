@@ -423,15 +423,21 @@ model FavoritedCongressMember {
 model Vote {
   id             Int          @id @default(autoincrement())
   congress       Int
+  session        Int?
   chamber        Chamber
   rollNumber     Int
   date           DateTime
   time           String?
   description    String?      @db.Text
   question       String?      @db.Text
+  voteType       String?
   result         String?
   billNumber     String?
   name_id        String?
+  identifier     String?
+  legislationUrl String?      @db.VarChar(500)
+  sourceDataUrl  String?      @db.VarChar(500)
+  sourceUpdated  DateTime?
   totalYea       Int
   totalNay       Int
   totalNotVoting Int
@@ -442,10 +448,11 @@ model Vote {
   memberVotes    MemberVote[]
   legislation    Legislation? @relation(fields: [name_id], references: [name_id])
 
-  @@unique([congress, chamber, rollNumber], map: "Vote_congress_chamber_rollNumber_key")
+  @@unique([congress, chamber, rollNumber, session], map: "Vote_congress_chamber_rollNumber_session_key")
   @@index([congress], map: "Vote_congress_idx")
   @@index([date], map: "Vote_date_idx")
   @@index([name_id], map: "Vote_name_id_idx")
+  @@index([voteType], map: "Vote_voteType_idx")
   @@map("vote")
 }
 

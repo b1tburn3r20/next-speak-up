@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,6 +9,7 @@ import { formatIsoDate } from "@/lib/utils/StringFunctions"
 import { Permission } from "@prisma/client"
 import { Edit, Loader, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
+import CreatePermission from "../[id]/components/CreatePermission"
 
 interface AllPermissionsProps {
   permissions: Permission[]
@@ -80,7 +81,22 @@ const AllPermissions = ({ permissions }: AllPermissionsProps) => {
   }
 
   return (
-    <div>
+    <div className="flex flex-col w-full justify-end gap-4">
+      <div className="flex w-full justify-between items-center">
+        <Label className="text-2xl">All Permissions</Label>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="w-fit self-end">Create Permission</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Permission</DialogTitle>
+              <DialogDescription>Create a permission</DialogDescription>
+            </DialogHeader>
+            <CreatePermission />
+          </DialogContent>
+        </Dialog>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>

@@ -9,7 +9,7 @@ interface CurrentlyTrackingProps {
 
 const CurrentlyTracking = ({ bills }: CurrentlyTrackingProps) => {
   return (
-    <div className="w-full flex flex-col justify-center items-center">
+    <div className="min-w-0 flex flex-1 flex-col justify-center items-center">
       <TextAnimate
         animation="blurInUp"
         by="word"

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import ManageRoleList from "./ManageRoleList";
 import { Permission } from "@prisma/client";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ManageRoles = () => {
   const setRoles = useRolesStore((store) => store.setRoles);
@@ -59,9 +60,7 @@ const ManageRoles = () => {
   }
 
   return (
-    <div>
-      <ManageRoleList allPermissions={fetchedPermissions} roles={roles} />
-    </div>
+    <ManageRoleList allPermissions={fetchedPermissions} roles={roles} />
   );
 };
 

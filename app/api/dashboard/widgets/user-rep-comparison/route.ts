@@ -31,9 +31,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const data = await getRepresentationMetrics(session.user.id);
+    const data = await getRepresentationMetrics();
 
-    // Service returns a typed error object for 404/500 cases
     if ("error" in data) {
       return NextResponse.json({ error: data.error }, { status: data.status });
     }

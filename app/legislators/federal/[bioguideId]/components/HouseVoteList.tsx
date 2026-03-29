@@ -8,6 +8,7 @@ import { ExternalLink } from "lucide-react"
 import { CongressMemberHouseOfRepresentativesVoteType } from "../congress-member-types"
 import { formatIsoDate } from "@/lib/utils/StringFunctions"
 import Link from "next/link"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface Props {
   votes: CongressMemberHouseOfRepresentativesVoteType[]
@@ -25,9 +26,9 @@ export default function HouseVotesList({ votes }: Props) {
   return (
     <div className="bg-background p-2 shadow-md rounded-3xl min-w-0 overflow-x-auto">
       <div className="bg-background-light p-4 shadow-md rounded-3xl min-w-0 overflow-hidden">
-        <div className="w-full overflow-x-auto">
+        <ScrollArea className="w-full relative overflow-x-auto h-[50vh]">
           <Table className="table-fixed w-full">
-            <TableHeader>
+            <TableHeader className="sticky top-0 bg-background-light">
               <TableRow>
                 <TableHead className="w-12"></TableHead>
                 <TableHead className="w-24">Position</TableHead>
@@ -110,7 +111,7 @@ export default function HouseVotesList({ votes }: Props) {
               Showing {votes.length} of {votes.length} votes
             </p>
           )}
-        </div>
+        </ScrollArea>
       </div>
     </div>
   )
