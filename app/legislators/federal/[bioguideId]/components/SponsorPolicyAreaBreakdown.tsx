@@ -1,7 +1,6 @@
 "use client"
 
 import { Cell, Pie, PieChart } from "recharts"
-import { useTheme } from "next-themes"
 import {
   ChartContainer,
   ChartTooltip,
@@ -57,7 +56,7 @@ export default function SponsorPolicyAreaBreakdown({ data }: Props) {
     })
 
   return (
-    <div className="bg-background space-y-6 p-2 rounded-3xl shadow-md h-full w-full">
+    <div className="bg-background space-y-6 p-2 rounded-3xl shadow-md flex flex-col min-w-max w-full">
       <div className="bg-background-light p-3 rounded-3xl shadow-md h-full">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
           <div>

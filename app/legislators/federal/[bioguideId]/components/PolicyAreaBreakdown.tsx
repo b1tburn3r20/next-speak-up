@@ -45,7 +45,7 @@ export default function PolicyAreaBreakdown({ data }: Props) {
   })
 
   return (
-    <div className="bg-background space-y-6 p-2 rounded-3xl shadow-md h-fit w-full">
+    <div className="bg-background  flex flex-col p-2 rounded-3xl shadow-md min-w-max w-full">
       <div className="bg-background-light p-3 rounded-3xl shadow-md h-full">
         <div className="font-normal">Yes Vote Breakdown</div>
         <div className="text-sm text-muted-foreground">
@@ -74,7 +74,7 @@ export default function PolicyAreaBreakdown({ data }: Props) {
           <ChartContainer
             config={chartConfig}
 
-            className="mx-auto aspect-square h-70"
+            className="mx-auto aspect-square  h-70"
           >
             <PieChart>
               <ChartTooltip

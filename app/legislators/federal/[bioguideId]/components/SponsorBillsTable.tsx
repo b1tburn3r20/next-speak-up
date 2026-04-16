@@ -57,10 +57,8 @@ export default function SponsorBillsTable({ bills }: Props) {
   }
 
   return (
-    <div className="bg-background p-2 shadow-md rounded-3xl min-w-0 overflow-x-auto">
+    <div className="w-full bg-background p-2 shadow-md rounded-3xl min-w-0 overflow-x-auto">
       <div className="bg-background-light p-4 shadow-md rounded-3xl min-w-0 overflow-hidden">
-
-
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
           <div className="min-w-0">
             <p className="font-normal truncate capitalize">
@@ -82,7 +80,6 @@ export default function SponsorBillsTable({ bills }: Props) {
               )}
             </div>
           </div>
-
           <Tabs
             value={activeMode}
             onValueChange={(v) =>
@@ -103,7 +100,6 @@ export default function SponsorBillsTable({ bills }: Props) {
           <Table className="w-full">
             <TableHeader className="bg-background-light sticky top-0">
               <TableRow>
-                <TableHead className="w-10" />
                 <TableHead className="w-24 sm:w-28">Type</TableHead>
                 <TableHead>Bill</TableHead>
                 <TableHead className="hidden md:table-cell w-44">Policy Area</TableHead>
@@ -128,32 +124,22 @@ export default function SponsorBillsTable({ bills }: Props) {
                       key={`${bill.nameId}-${bill.sponsorType}`}
                       className={i % 2 === 0 ? "bg-muted/30" : ""}
                     >
-                      <TableCell className="text-right align-top pt-3">
-                        <Link href={`/bills/${bill.nameId}`} target="_blank">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                            aria-label="Go to bill"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </TableCell>
-
                       <TableCell className="align-top pt-3">
                         <Badge variant={badge.variant}>{badge.label}</Badge>
                       </TableCell>
 
                       <TableCell className="align-top pt-3">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-sm font-medium wrap-break-words line-clamp-3 min-w-0">
-                            {bill.title}
-                          </span>
-                          <span className="text-xs text-muted-foreground uppercase">
-                            {bill.nameId}
-                          </span>
-                        </div>
+                        <Link href={`/bills/${bill.nameId}`} target="_blank">
+
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-sm font-medium wrap-break-words line-clamp-3 min-w-0">
+                              {bill.title}
+                            </span>
+                            <span className="text-xs text-muted-foreground uppercase">
+                              {bill.nameId}
+                            </span>
+                          </div>
+                        </Link>
                       </TableCell>
 
                       <TableCell className="hidden cursor-pointer md:table-cell align-top pt-3" onClick={() => handleRowClick(bill)}>

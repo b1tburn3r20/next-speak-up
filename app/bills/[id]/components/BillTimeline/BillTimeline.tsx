@@ -17,14 +17,14 @@ function getActionLabel(code: string, fallback?: string): string {
 
 const INTRO_CODES = new Set(["1000", "1025"]);
 
-const STAGE_LABELS = ["Introduced", "Committee", "House Floor", "Senate", "President", "Became Law"];
+const STAGE_LABELS = ["Introduced", "Committee", "Passed House", "Passed Senate", "President", "Became Law"];
 
 const STAGE_RANGES = [
-  { min: 2000, max: 5500 }, // 1 - Committee
-  { min: 7000, max: 9000 }, // 2 - House Floor
-  { min: 11000, max: 18000 }, // 3 - Senate
-  { min: 28000, max: 31000 }, // 4 - President
-  { min: 36000, max: 40000 }, // 5 - Became Law
+  { min: 2000, max: 5500 }, // 1 - committee
+  { min: 7000, max: 9000 }, // 2 - house floor
+  { min: 11000, max: 18000 }, // 3 - senate
+  { min: 28000, max: 31000 }, // 4 - president
+  { min: 36000, max: 40000 }, // 5 - became law
 ];
 
 function getStageIndex(code: string): number | null {

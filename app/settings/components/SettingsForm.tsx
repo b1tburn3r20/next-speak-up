@@ -26,6 +26,7 @@ interface SettingsFormProps {
   district: string | null;
   ageRange: AgeRange | null;
   householdIncome: IncomeRange | null;
+
 }
 
 export function SettingsForm({

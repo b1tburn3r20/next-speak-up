@@ -38,8 +38,8 @@ export async function generateMetadata({
       return { title: "Bill Not Found" };
     }
     return {
-      title: bill.title,
-      description: `${bill.type} ${bill.number} - ${bill.title}`,
+      title: `Coolbills | ${bill.title}`,
+      description: `Coolbills, View legislation bill ${bill.type} ${bill.number} - ${bill.title}`,
       openGraph: {
         title: bill.title,
         description: `${bill.type} ${bill.number} - ${bill.title}`,

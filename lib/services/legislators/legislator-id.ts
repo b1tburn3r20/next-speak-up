@@ -370,3 +370,36 @@ export const getLegislatorSponsorshipPolicyAreaBreakdown = async (
     bills,
   };
 };
+
+export const getLegislatorVoteTypes = async (bioguideId: string) => {
+  const member = await prisma.congressMember.findUnique({
+    where: { bioguideId },
+    select: { id: true },
+  });
+
+  if (!member) return [];
+
+  const memberVotes = await prisma.memberVote.findMany({
+    where: { memberId: member.id },
+    select: { voteId: true },
+  });
+
+  if (memberVotes.length === 0) return [];
+
+  const voteIds = memberVotes.map((mv) => mv.voteId);
+
+  const votes = await prisma.vote.findMany({
+    where: { id: { in: voteIds } },
+    select: { voteType: true },
+  });
+
+  const typeCounts = votes.reduce<Record<string, number>>((acc, v) => {
+    const key = v.voteType ?? "null";
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return Object.entries(typeCounts)
+    .map(([voteType, count]) => ({ voteType, count }))
+    .sort((a, b) => b.count - a.count);
+};

@@ -8,8 +8,16 @@ import LastViewedBill from "./components/LastViewedBill";
 import RecentBills from "./components/RecentBills";
 import SearchBills from "./components/SearchBills";
 import BlockA from "@/components/cb/block-a";
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Coolbills | Upcoming bills",
+  description: "View recent bills and legislation"
+};
+
 
 const Page = async () => {
+
 
   const [recentBills, lastViewedBill, trackedBills] = await Promise.all([
     getRecentBills(),

@@ -127,15 +127,15 @@ export function MemberContactList({ initialMembers, pagination }: Props) {
                   <span className="font-medium flex-1">
                     {member.name ?? member.bioguideId}
                   </span>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Missing info</span>
-                    <Switch
-                      checked={member.missingContactInfo ?? false}
-                      onCheckedChange={(checked) =>
-                        handleToggleMissingInfo(member.bioguideId, checked)
-                      }
-                    />
-                  </div>
+                  {/* <div className="flex items-center gap-2 text-sm text-muted-foreground"> */}
+                  {/*   <span>Missing info</span> */}
+                  {/*   <Switch */}
+                  {/*     checked={member.missingContactInfo ?? false} */}
+                  {/*     onCheckedChange={(checked) => */}
+                  {/*       handleToggleMissingInfo(member.bioguideId, checked) */}
+                  {/*     } */}
+                  {/*   /> */}
+                  {/* </div> */}
                 </div>
 
                 {/* Bottom row: website + contact inputs */}

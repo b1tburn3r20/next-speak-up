@@ -5,6 +5,7 @@ import NavUser from "@/components/nav-user";
 import NavItem from "../NavItem";
 import { Session } from "next-auth";
 import { X } from "lucide-react";
+import Image from "next/image";
 
 interface MobileNavbarProps {
   visibleNavItems: any[]; // Full nav items reconstructed from navItems data
@@ -35,26 +36,24 @@ const MobileNavbar = ({
       >
         <div className="w-6 h-6 flex flex-col justify-center items-center">
           <span
-            className={`bg-foreground block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm ${
-              isMenuOpen ? "rotate-45 translate-y-1" : "-translate-y-0.5"
-            }`}
+            className={`bg-foreground block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm ${isMenuOpen ? "rotate-45 translate-y-1" : "-translate-y-0.5"
+              }`}
           ></span>
           <span
-            className={`bg-foreground block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm my-0.5 ${
-              isMenuOpen ? "opacity-0" : "opacity-100"
-            }`}
+            className={`bg-foreground block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm my-0.5 ${isMenuOpen ? "opacity-0" : "opacity-100"
+              }`}
           ></span>
           <span
-            className={`bg-foreground block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm ${
-              isMenuOpen ? "-rotate-45 -translate-y-1" : "translate-y-0.5"
-            }`}
+            className={`bg-foreground block transition-all duration-300 ease-out h-0.5 w-6 rounded-sm ${isMenuOpen ? "-rotate-45 -translate-y-1" : "translate-y-0.5"
+              }`}
           ></span>
         </div>
       </button>
 
       {/* Top bar for mobile - without hamburger button */}
       <div className="bg-background border-b border-primary p-4 flex justify-between items-center">
-        <div className="font-semibold">CoolBills</div>
+
+        <Image height={50} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} />
         {/* Empty space to maintain layout balance */}
         <div className="w-10"></div>
       </div>
@@ -66,9 +65,8 @@ const MobileNavbar = ({
 
       {/* Mobile sliding menu */}
       <div
-        className={`fixed top-0 right-0 h-full w-64 bg-background border-l border-primary/50 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-64 bg-background border-l border-primary/50 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="p-4 border-b border-primary/50 shrink-0">
           <div className="flex justify-between items-center">

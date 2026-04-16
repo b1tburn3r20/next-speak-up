@@ -8,10 +8,7 @@ import StateAndDistrictSelectDialog from "../1Components/components/General/Stat
 import SearchLegislators from "./components/SearchLegislators";
 
 export const metadata: Metadata = {
-  title: {
-    default: "Congress Members And Legislators",
-    template: "%s | Coolbills",
-  },
+  title: "Coolbills | Congress Members & Legislators",
   description:
     "Browse and search through comprehensive data about the U.S. Congress",
   keywords: [
