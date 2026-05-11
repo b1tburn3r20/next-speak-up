@@ -7,6 +7,8 @@ interface RecentBillsProps {
 }
 
 const RecentBills = ({ bills }: RecentBillsProps) => {
+
+
   return (
     <div className="w-full">
       <TextAnimate
