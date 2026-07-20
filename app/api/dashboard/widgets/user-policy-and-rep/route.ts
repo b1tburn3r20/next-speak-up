@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "../../../auth/[...nextauth]/route";
 import { checkRateLimit, getUserRole } from "@/lib/ratelimiter";
 import { getUserRepresentativeData } from "@/lib/services/dashboard/user-personalized-dashboard";
-import { checkPermission } from "@/lib/services/permissions";
 import { checkHasPermission } from "@/lib/services/bills";
 
 export async function GET(request: NextRequest) {

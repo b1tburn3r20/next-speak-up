@@ -90,7 +90,6 @@ const PinForumPost = ({ userId, userRole, postId }: PinForumPostProps) => {
       <Pin className="h-8 w-8 text-muted-foreground" />
     );
   };
-  console.log(userRole);
   // Show as non-interactive icon for non-admin users
   if (!isAdmin) {
     return (

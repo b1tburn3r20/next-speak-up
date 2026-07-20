@@ -52,7 +52,6 @@ const FindMyStateAndDistrictButton = () => {
 
       setResults(result);
       updateUsersStateAndDistrict(result.state, result.district);
-      console.log(result);
     } catch (err) {
       setError(err.message);
     }
@@ -68,10 +67,8 @@ const FindMyStateAndDistrictButton = () => {
           state,
         }),
       });
-      const result = await response.json();
-      console.log(result);
+      await response.json();
       if (response.ok) {
-        console.log("We determined its good");
         setUsersState(state);
         setUsersDistrict(district);
       }

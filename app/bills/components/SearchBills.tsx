@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import { useRouter } from "next/navigation";
 import { TextAnimate } from "@/components/magicui/text-animate";
-import BlockA from "@/components/cb/block-a";
+import InnerBlock from "@/components/cb/inner-block";
 type BillSearchResult = {
   name_id: string;
   id: number;
@@ -184,7 +184,7 @@ const SearchBills = () => {
 
   return (
     <div>
-      <BlockA className="p-4">
+      <InnerBlock className="p-4">
 
         <TextAnimate
           animation="blurInUp"
@@ -195,11 +195,11 @@ const SearchBills = () => {
         </TextAnimate>
         <div className="relative">
           <Input
-            variant="primary"
+            variant="outline"
             autoFocus
             onFocus={() => handleFocus()}
             onBlur={() => handleBlur()}
-            className="h-14 rounded-3xl text-lg pl-6"
+            className="md:h-14 rounded-3xl text-lg pl-6"
             placeholder="Search bills..."
             onKeyDown={(e) => handleKeyDown(e)}
             onChange={(e) => handleSearchChange(e.target.value)}
@@ -227,7 +227,7 @@ const SearchBills = () => {
             </div>
           )}
         </div>
-      </BlockA>
+      </InnerBlock>
     </div>
   );
 };

@@ -1,5 +1,5 @@
-import { BillAiSummary, BillSummary, CongressMember, Depiction, PolicyArea } from "@prisma/client";
-import { number, string } from "zod";
+import { BillSummary, CongressMember, Depiction } from "@prisma/client";
+import { getNewBills } from "../services/bills";
 
 export type LegislationUserTracks = {
   hasViewed: boolean;
@@ -112,6 +112,8 @@ export type CongressionalVoteType = {
   totalYea: number
   updatedAt: Date
 }
+export type DashboardNewBills = Awaited<ReturnType<typeof getNewBills>>;
+export type DashboardNewBill = DashboardNewBills[number];
 
 
 

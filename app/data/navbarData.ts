@@ -2,11 +2,13 @@
 import {
   Book,
   Briefcase,
+  Building,
   Group,
   Home,
   Key,
   LayoutDashboard,
   LucideIcon,
+  MapIcon,
   Settings,
   Smile,
   Users,
@@ -24,7 +26,17 @@ export const navItems: NavItem[] = [
   {
     href: "/legislators",
     icon: Briefcase,
-    label: "Legislators",
+    label: "Federal Legislators",
+  },
+  {
+    href: "/state/legislators",
+    icon: Building,
+    label: "State Legislators",
+  },
+  {
+    href: "/federal/election-map",
+    icon: MapIcon,
+    label: "Election Map",
   },
   {
     href: "/bills",

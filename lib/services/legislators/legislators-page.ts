@@ -14,6 +14,8 @@ export const getCongressLegislators = async () => {
     select: {
       bioguideId: true,
       name: true,
+      firstName: true,
+      lastName: true,
       state: true,
       district: true,
       role: true,

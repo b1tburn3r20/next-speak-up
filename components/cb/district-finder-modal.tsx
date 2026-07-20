@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useModalStore } from "@/app/stores/useModalStore"
-import BlockB from "./block-b"
-import BlockA from "./block-a"
 import StateSelect from "@/components/cb/state-selector"
 import DistrictSelect from "@/components/cb/district-selector"
+import OuterBlock from "./outer-block"
+import InnerBlock from "./inner-block"
 
 type FoundDistrict = { state: string; district: number }
 
@@ -79,7 +79,6 @@ export function DistrictFinderModal() {
     return "th"
   }
 
-  const activeData = found ?? (manual.state || manual.district ? manual : null)
   const canSave = found
     ? true
     : !!(manual.state && manual.district)
@@ -102,8 +101,8 @@ export function DistrictFinderModal() {
             </Button>
           )}
           {(found || error) && (
-            <BlockA className="flex flex-col gap-2 bg-muted/50">
-              <BlockB>
+            <OuterBlock className="flex flex-col gap-2 bg-muted/50">
+              <InnerBlock>
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <p className="text-muted-foreground text-xs">State</p>
@@ -122,8 +121,8 @@ export function DistrictFinderModal() {
                     }}
                   />
                 </div>
-              </BlockB>
-              <BlockB>
+              </InnerBlock>
+              <OuterBlock>
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <p className="text-muted-foreground text-xs">District</p>
@@ -146,8 +145,8 @@ export function DistrictFinderModal() {
                     }}
                   />
                 </div>
-              </BlockB>
-            </BlockA>
+              </OuterBlock>
+            </OuterBlock>
           )}
 
           {error && (

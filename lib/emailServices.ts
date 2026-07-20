@@ -110,9 +110,8 @@ export const sendContactEmail = async (data: ContactEmailData) => {
           </div>
         </div>
         
-        ${
-          phone
-            ? `
+        ${phone
+      ? `
         <div class="field">
           <div class="field-label">Phone:</div>
           <div class="field-value">
@@ -120,8 +119,8 @@ export const sendContactEmail = async (data: ContactEmailData) => {
           </div>
         </div>
         `
-            : ""
-        }
+      : ""
+    }
         
         <div class="field">
           <div class="field-label">Message:</div>
@@ -162,7 +161,6 @@ Received on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeStrin
       text: textContent,
     });
 
-    console.log("Message sent: %s", info.messageId);
     return {
       success: true,
       messageId: info.messageId,
@@ -256,7 +254,6 @@ export const sendAutoReply = async (
       text: `Hi ${customerName},\n\nThank you for reaching out to Cool Bills! We've successfully received your message and will get back to you within 24 hours.\n\nBest regards,\nThe Cool Bills Team`,
     });
 
-    console.log("Auto-reply sent: %s", info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error("Error sending auto-reply:", error);

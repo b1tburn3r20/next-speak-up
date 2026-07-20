@@ -34,47 +34,41 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import LoginForm from "./login-form";
-import { useNavbarStore } from "@/app/navbar/useNavbarStore";
 
 export function LandingNavUser() {
   const { data: session, status } = useSession();
   const navCollapsed = true;
   const { isLoginDialogOpen, setIsLoginDialogOpen } = useLoginStore();
-  const startQuickstart = async () => {
-    try {
-      const response = await fetch("/api/user/onboarding", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+  // const startQuickstart = async () => {
+  //   try {
+  //     const response = await fetch("/api/user/onboarding", {
+  //       method: "PUT",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+  //
+  //     if (!response.ok) {
+  //       throw new Error("Failed to start quickstart");
+  //     }
+  //
+  //     window.location.reload();
+  //   } catch (error) {
+  //     console.error("Error starting quickstart:", error);
+  //   }
+  // };
 
-      if (!response.ok) {
-        throw new Error("Failed to start quickstart");
-      }
-
-      window.location.reload();
-    } catch (error) {
-      console.error("Error starting quickstart:", error);
-    }
-  };
-
-  // Handle loading state
   if (status === "loading") {
     return <LoadingCatch />;
   }
-
-  // Handle no session
   if (!session?.user || status === "unauthenticated") {
     return (
       <div>
         <Dialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen}>
           <DialogTrigger asChild>
-            <div className={navCollapsed ? "w-fit m-2" : "w-full m-2"}>
-              <ShinyButton className={navCollapsed ? "w-fit px-2" : "w-full"}>
-                {navCollapsed ? <User /> : "Login / Sign up"}
-              </ShinyButton>
-            </div>
+            <Button size="lg" variant="outline" className={navCollapsed ? "w-fit" : "w-full"}>
+              {navCollapsed ? <User /> : "Login / Sign up"}
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -105,7 +99,7 @@ export function LandingNavUser() {
   };
 
   return (
-    <div className={`${navCollapsed ? "p-[8px]" : "p-2"}`}>
+    <div className={`p-2`}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button

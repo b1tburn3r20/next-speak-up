@@ -6,6 +6,8 @@ import { LandingNavbarData as navItems } from "./LandingNavbarData";
 import LandingNavUser from "@/components/landing-nav-user";
 import Link from "next/link";
 import Image from "next/image";
+import { ModeToggle } from "@/components/ui/mode-toggle";
+import SideBlock from "@/components/cb/side-block";
 
 const LandingDesktopNavbar = () => {
   const pathname = usePathname();
@@ -18,15 +20,10 @@ const LandingDesktopNavbar = () => {
 
     const handleScroll = () => {
       const currentScroll = window.scrollY;
-
-      // Check if at top of page
       setIsAtTop(currentScroll === 0);
-
-      // Scrolling up - show navbar
       if (currentScroll < lastScroll) {
         setNavState("visible");
       }
-      // Scrolling down - hide the navbar
       else if (currentScroll > lastScroll) {
         setNavState("hidden");
       }
@@ -51,12 +48,13 @@ const LandingDesktopNavbar = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="shrink-0 group">
-            <Image height={50} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} />
+          <Link href={"/"}>
+            <SideBlock>
+              <Image height={25} width={25} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/icon.png"} />
+              <Image height={29} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} />
+            </SideBlock>
           </Link>
 
-          {/* Navigation Links */}
           <nav className="hidden md:flex items-center space-x-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
@@ -78,9 +76,9 @@ const LandingDesktopNavbar = () => {
             })}
           </nav>
 
-          {/* User Navigation */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <LandingNavUser />
+            <ModeToggle />
           </div>
         </div>
       </div>

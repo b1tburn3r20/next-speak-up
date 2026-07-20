@@ -3,6 +3,8 @@ import { CongressMember, CongressTerm, Depiction } from "@prisma/client";
 export type SimpleLandingPageLegislatorData = {
   bioguideId: string;
   name: string;
+  firstName: string;
+  lastName: string;
   district?: string;
   state: string;
   role: string;

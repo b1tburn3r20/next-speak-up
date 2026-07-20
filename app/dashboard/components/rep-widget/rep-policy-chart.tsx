@@ -15,8 +15,6 @@ interface Props {
 }
 
 export default function PolicyAreaWidget({ data }: Props) {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === "dark"
   const sorted = [...data].sort((a, b) => b.total - a.total)
   const total = sorted.reduce((s, d) => s + d.total, 0)
 

@@ -1,17 +1,23 @@
+import OuterBlock from "@/components/cb/outer-block"
 import PrivacyHero from "./PrivacyHero"
-import PrivacyWillSell from "./PrivacyWillSell"
-import SellableData from "./SellableData"
+// import PrivacyWillSell from "./PrivacyWillSell"
+// import SellableData from "./SellableData"
+import StackBlock from "@/components/cb/stack-block"
 
 
 const Page = () => {
   return (
-    <div className="mx-auto container">
-      <PrivacyHero />
-      <SellableData />
-      <div className="flex gap-8 flex-wrap">
-        <PrivacyWillSell />
-      </div>
-    </div>
+    <StackBlock className="mx-auto container">
+      <OuterBlock>
+        <PrivacyHero />
+      </OuterBlock>
+      {/* <OuterBlock> */}
+      {/*   <SellableData /> */}
+      {/* </OuterBlock> */}
+      {/* <OuterBlock className="flex gap-8 flex-wrap"> */}
+      {/*   <PrivacyWillSell /> */}
+      {/* </OuterBlock> */}
+    </StackBlock >
   )
 }
 

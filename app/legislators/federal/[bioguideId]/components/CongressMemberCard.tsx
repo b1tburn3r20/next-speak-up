@@ -9,6 +9,7 @@ import NumberTicker from "@/components/ui/number-ticker";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Dot } from "lucide-react";
+import Link from "next/link";
 
 interface CongressMemberCardProps {
   congressMember: ComprehensiveLegislatorData;
@@ -38,7 +39,7 @@ const CongressMemberCard = ({ congressMember }: CongressMemberCardProps) => {
     }
   };
   return (
-    <div className="w-fit h-full flex flex-col gap-4 bg-background shadow-md p-2 rounded-3xl">
+    <div className="w-full md:w-fit h-full flex flex-col gap-4 bg-background shadow-md p-2 rounded-3xl">
       <div className="flex flex-row items-center gap-4 space-y-0 p-3 rounded-3xl bg-background-light shadow-md">
         <div className="w-24 h-24 rounded-xl overflow-hidden bg-muted shrink-0">
           {congressMember.depiction?.imageUrl && (
@@ -61,6 +62,7 @@ const CongressMemberCard = ({ congressMember }: CongressMemberCardProps) => {
           </div>
         </div>
       </div>
+
       <div className="h-full flex flex-col justify-between bg-background-light p-3 rounded-3xl shadow-md ">
         <div>
           <div className="flex items-center justify-between">
@@ -102,7 +104,9 @@ const CongressMemberCard = ({ congressMember }: CongressMemberCardProps) => {
 
         </div>
 
-        <Button className="w-full mt-2">Contact</Button>
+        <Link target="_blank" href={congressMember?.contact}>
+          <Button className="w-full mt-2">Contact</Button>
+        </Link>
       </div>
     </div>
   );

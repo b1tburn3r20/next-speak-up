@@ -33,26 +33,21 @@ export async function GET(request: NextRequest) {
     }
 
     const versionsData = await versionsResponse.json();
-    console.log("Versions data:", JSON.stringify(versionsData, null, 2));
 
     const latestVersion = versionsData.textVersions[0];
-    console.log("Latest version:", JSON.stringify(latestVersion, null, 2));
 
     if (!latestVersion) {
       return NextResponse.json({ error: "No text versions found" }, { status: 404 });
     }
 
-    console.log("All formats:", JSON.stringify(latestVersion.formats, null, 2));
 
     const htmlFormat = latestVersion.formats.find((f) => f.type === "Formatted Text");
-    console.log("HTML format found:", htmlFormat);
 
     if (!htmlFormat) {
       return NextResponse.json({ error: "No HTML format available" }, { status: 404 });
     }
 
     const htmlResponse = await fetch(htmlFormat.url);
-    console.log("HTML fetch status:", htmlResponse.status, htmlResponse.ok);
 
     if (!htmlResponse.ok) {
       return NextResponse.json({ error: "Failed to fetch HTML content" }, { status: 502 });

@@ -5,6 +5,8 @@ import { ArrowLeft, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavbarStore } from "./useNavbarStore";
 import Image from "next/image";
+import SideBlock from "@/components/cb/side-block";
+import Link from "next/link";
 
 const NavToggle = () => {
   const navCollapsed = useNavbarStore((f) => f.navCollapsed);
@@ -47,7 +49,13 @@ const NavToggle = () => {
       <div className={navCollapsed ? "" : "p-2"}>
         {
           navCollapsed ? "" : (
-            <Image height={50} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} />
+            <Link href={"/"}>
+              <SideBlock>
+                <Image height={25} width={25} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/icon.png"} />
+                <Image height={25} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} />
+              </SideBlock>
+            </Link>
+
           )
         }
       </div>

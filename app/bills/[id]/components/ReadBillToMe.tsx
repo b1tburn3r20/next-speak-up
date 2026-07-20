@@ -87,7 +87,6 @@ const ReadBillToMe = () => {
   };
 
   const handleAudioEnded = () => {
-    console.log("🎵 Audio playback ended");
     cleanupAudio();
     setTtsIsPlaying(false);
     setTtsCurrentWordIndex(-1);

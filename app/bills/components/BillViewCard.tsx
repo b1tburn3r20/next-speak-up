@@ -1,4 +1,5 @@
 import { sanitizeText } from "@/app/utils/text";
+import PolicyBadge from "@/components/cb/policy-badge";
 import { Card } from "@/components/ui/card";
 import { FullLegislation } from "@/lib/types/bill-types";
 import { ArrowRight, Bell, BookOpen, CircleCheck } from "lucide-react";
@@ -9,7 +10,6 @@ interface BillViewCardProps {
   size?: "sm" | "md" | "lg";
 }
 
-// Helper function to get the most recent summary
 const getLatestSummary = (summaries: any[]) => {
   if (!summaries || summaries.length === 0) return null;
   const sorted = summaries.sort((a, b) => {
@@ -135,7 +135,6 @@ const DesktopBillCard = ({ bill, size = "lg" }: BillViewCardProps) => {
       <Card className={`${config.card} select-none group cursor-pointer hover:shadow-lg transition-all duration-300 relative overflow-hidden`}>
         <div className={`absolute ${config.gradientStart} left-0 right-0 bottom-0 bg-linear-to-b from-background-light/0 via-background-light/80 to-background-light z-10 pointer-events-none`} />
         {getIcon()}
-
         <div className={`${config.padding} h-full flex flex-col relative`}>
           <div className={config.titleMargin}>
             <h3 className={`${config.title} font-bold text-muted-foreground line-clamp-2`}>
@@ -277,7 +276,6 @@ const MobileBillCard = ({ bill, size = "sm" }: BillViewCardProps) => {
   );
 };
 
-// Main Server Component
 const BillViewCard = ({ bill, size = "lg" }: BillViewCardProps) => {
   return (
     <>

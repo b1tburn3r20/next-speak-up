@@ -1,0 +1,252 @@
+model User {
+  id                 String              @id @default(cuid())
+  name               String?
+  username           String?             @unique(map: "User_username_key")
+  email              String?             @unique(map: "User_email_key")
+  emailVerified      DateTime?
+  image              String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  ageRange           AgeRange?
+  householdIncome    IncomeRange?
+  state              String?
+  district           Int?
+  needsOnboarding    Boolean?            @default(true)
+  roleId             Int?                @default(2)
+  billTracks         UserBillTrack[]
+  userPreferences    UserPreference[]
+  bugReports         BugReport[]
+  featureSuggestions FeatureSuggestion[]
+
+  // forum
+  forumPosts            ForumPost[]
+  forumComments         ForumComment[]
+  forumPostUpvotes      ForumPostUpvote[]
+  forumPostDownvotes    ForumPostDownvote[]
+  forumPostBookmarks    ForumPostBookmark[]
+  forumCommentUpvotes   ForumCommentUpvote[]
+  forumCommentDownvotes ForumCommentDownvote[]
+
+  accounts         Account?
+  Authenticator    Authenticator[]
+  favoritedMembers FavoritedCongressMember[]
+  sessions         Session[]
+  userVotes        UserVote[]
+  userActions      UserAction[]
+  role             Role?                     @relation(fields: [roleId], references: [id])
+
+  @@index([roleId], map: "user_roleId_fkey")
+  @@map("user")
+}
+
+model GuestAction {
+  id        Int      @id @default(autoincrement())
+  sessionId String?
+  ipAddress String?
+  userAgent String?
+  action    String
+  entityId  String?
+  createdAt DateTime @default(now())
+
+  @@index([sessionId], map: "GuestAction_sessionId_idx")
+  @@index([action], map: "GuestAction_action_idx")
+  @@index([entityId], map: "GuestAction_entityId_idx")
+  @@index([createdAt], map: "GuestAction_createdAt_idx")
+  @@index([action, entityId], map: "GuestAction_action_entityId_idx")
+  @@map("guestaction")
+}
+
+model UserAction {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  userRole  String?
+  action    String
+  entityId  String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "UserAction_userId_idx")
+  @@index([userRole], map: "UserAction_userRole_idx")
+  @@index([action], map: "UserAction_action_idx")
+  @@index([entityId], map: "UserAction_entityId_idx")
+  @@index([createdAt], map: "UserAction_createdAt_idx")
+  @@index([userId, createdAt], map: "UserAction_userId_createdAt_idx")
+  @@index([action, entityId], map: "UserAction_action_entityId_idx")
+  @@map("useraction")
+}
+
+model Account {
+  id                       String   @id @default(cuid())
+  userId                   String   @unique(map: "Account_userId_key")
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String?  @db.Text
+  access_token             String?  @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String?  @db.Text
+  session_state            String?
+  refresh_token_expires_in Int?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId], map: "Account_provider_providerAccountId_key")
+  @@index([userId], map: "Account_userId_idx")
+  @@map("account")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique(map: "Session_sessionToken_key")
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "Session_userId_idx")
+  @@map("session")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token], map: "VerificationToken_identifier_token_key")
+  @@map("verificationtoken")
+}
+
+model Authenticator {
+  credentialID         String  @unique(map: "Authenticator_credentialID_key")
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+  @@map("authenticator")
+}
+
+model UserVote {
+  id            Int          @id @default(autoincrement())
+  userId        String
+  votePosition  VotePosition
+  entityType    String
+  entityId      Int
+  legislationId Int?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entityType, entityId], map: "UserVote_userId_entityType_entityId_key")
+  @@index([entityType, entityId], map: "UserVote_entityType_entityId_idx")
+  @@index([legislationId], map: "UserVote_legislationId_idx")
+  @@index([userId], map: "UserVote_userId_idx")
+  @@map("uservote")
+}
+
+model UserBillTrack {
+  userId        String
+  legislationId Int
+  hasViewed     Boolean   @default(false)
+  tracking      Boolean   @default(false)
+  viewedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  legislation Legislation @relation(fields: [legislationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, legislationId])
+  @@index([userId])
+  @@index([legislationId])
+  @@index([hasViewed])
+  @@index([tracking])
+  @@map("userbilltrack")
+}
+
+model UserPreference {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  key       String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key], map: "UserPreference_userId_key_key")
+  @@index([userId], map: "UserPreference_userId_idx")
+  @@index([key], map: "UserPreference_key_idx")
+  @@index([userId], map: "UserPreference_userId_category_idx")
+  @@map("userpreference")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roles RolePermission[]
+
+  @@map("permission")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+
+  permissions RolePermission[]
+
+  @@map("role")
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("rolepermission")
+}
+
+enum IncomeRange {
+  UNDER_25000
+  FROM_25000_TO_49999
+  FROM_50000_TO_74999
+  FROM_75000_TO_99999
+  FROM_100000_TO_149999
+  FROM_150000_TO_199999
+  OVER_200000
+  PREFER_NOT_TO_SAY
+}
+
+enum AgeRange {
+  UNDER_18
+  FROM_18_TO_24
+  FROM_25_TO_34
+  FROM_35_TO_44
+  FROM_45_TO_54
+  FROM_55_TO_64
+  FROM_65_TO_74
+  OVER_75
+  PREFER_NOT_TO_SAY
+}

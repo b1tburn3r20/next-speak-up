@@ -53,15 +53,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TTS endpoint allows guests with limited access
-    if (userRole === "unauthenticated") {
-      // Guests can use TTS but with heavy rate limiting
-      console.log(
-        `Guest user accessing TTS with rate limit from IP: ${
-          ipAddress || "authenticated user"
-        }`
-      );
-    }
+
 
     // Parse request body
     const body = await request.json();

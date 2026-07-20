@@ -1,13 +1,13 @@
 "use client"
-import BlockA from "@/components/cb/block-a"
-import BlockB from "@/components/cb/block-b"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { CircleCheck, CircleX, Eye, } from "lucide-react"
+import { CircleCheck, CircleX, } from "lucide-react"
 import { useBillPageStore } from "../../useBillPageStore"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogClose, DialogTitle } from "@/components/ui/dialog"
 import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
+import OuterBlock from "@/components/cb/outer-block"
+import InnerBlock from "@/components/cb/inner-block"
 
 interface CongressMemberVoteRowProps {
   congressMember: any
@@ -76,7 +76,7 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
 
   return (
     <div key={congressMember?.member?.bioguideId} className="relative">
-      <BlockB className="flex gap-2 items-center  relative w-full">
+      <OuterBlock className="flex gap-2 items-center  relative w-full">
         <Avatar className="w-20 h-20 md:h-16 md:w-16">
           {congressMember.member.depiction ? (
             <AvatarImage src={congressMember.member.depiction.imageUrl} alt={congressMember.name} />
@@ -88,14 +88,14 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
         </Avatar>
 
         {hidden ? (
-          <BlockB className="w-full h-full top-0 left-0 absolute z-10" >
+          <InnerBlock className="w-full h-full top-0 left-0 absolute z-10" >
             <div
               className="flex justify-center gap-2 w-full h-full items-center text-lg"
               onClick={() => handleRevealClick()}
             >
               <p className="flex gap-1 items-center">Vote to reveal how<span className="text-primary">your</span> representative voted on this legislation</p>
             </div>
-          </BlockB>
+          </InnerBlock>
         ) : (
           ""
         )}
@@ -104,7 +104,7 @@ const CongressMemberVoteRow = ({ congressMember }: CongressMemberVoteRowProps) =
         <div className="italic text-sm  md:text-lg">
           {getVoteText()}
         </div>
-      </BlockB>
+      </OuterBlock>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

@@ -1,29 +1,47 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";
+
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  " inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
         default:
           "bg-primary/80 text-white border-primary border-b-4 hover:bg-primary/90 active:border-b-0 dark:bg-primary dark:border-green-700/40 dark:hover:bg-primary/90",
+
+        ghost:
+          "hover:bg-secondary/30 text-foreground hover:text-accent-foreground",
         secondary:
-          "bg-background-light text-muted-foreground border-2 border-b-4 hover:bg-muted/40 active:border-b-2 dark:bg-muted dark:text-muted-foreground dark:border-muted-foreground/20 dark:hover:bg-muted/60",
+          "bg-background-light text-muted-foreground border-2 border-b-4 hover:bg-muted/40 active:border-b-2 ",
+        sky: "bg-sky-500 text-white border-sky-600 border-b-4 hover:bg-sky-500/90 active:border-b-0 dark:bg-sky-600 dark:border-sky-700 dark:hover:bg-sky-600/90",
+        blue: "bg-blue-500 text-white border-blue-600 border-b-4 hover:bg-blue-500/90 active:border-b-0 dark:bg-blue-600 dark:border-blue-700 dark:hover:bg-blue-600/90",
+        violet:
+          "bg-violet-500 text-white border-violet-600 border-b-4 hover:bg-violet-500/90 active:border-b-0 dark:bg-violet-600 dark:border-violet-700 dark:hover:bg-violet-600/90",
+        teal: "bg-teal-500 text-white border-teal-600 border-b-4 hover:bg-teal-500/90 active:border-b-0 dark:bg-teal-600 dark:border-teal-700 dark:hover:bg-teal-600/90",
+        emerald:
+          "bg-emerald-500 text-white border-emerald-600 border-b-4 hover:bg-emerald-500/90 active:border-b-0 dark:bg-emerald-600 dark:border-emerald-700 dark:hover:bg-emerald-600/90",
+        indigo:
+          "bg-indigo-500 text-white border-indigo-600 border-b-4 hover:bg-indigo-500/90 active:border-b-0",
+        orange:
+          "bg-orange-500 text-white border-orange-600 border-b-4 hover:bg-orange-500/90 active:border-b-0 dark:bg-orange-600 dark:border-orange-700 dark:hover:bg-orange-600/90",
+        orange_outline:
+          "bg-orange-500/10 text-orange-500 border-orange-500 border-b-4 hover:bg-orange-500/20",
+
         super:
           "bg-blue-500 text-white border-blue-600 border-b-4 hover:bg-blue-500/90 active:border-b-0 dark:bg-blue-600 dark:border-blue-700 dark:hover:bg-blue-600/90",
         outline:
-          "bg-background-light text-muted-foreground border-2 border-b-4 hover:bg-muted/40 active:border-b-2 dark:bg-transparent dark:text-muted-foreground dark:border-muted-foreground/20 dark:hover:bg-muted/20",
+          "bg-background-light text-muted-foreground border-2 border-b-6 hover:bg-muted/40 active:border-b-2 ",
         destructive:
           "bg-rose-500 text-white border-rose-600 border-b-4 hover:bg-rose-500/90 active:border-b-0 dark:bg-rose-600 dark:border-rose-700 dark:hover:bg-rose-600/90",
+
         cartoon_green_outline:
           "bg-transparent text-green-600 border-2 border-green-500 border-b-4 hover:bg-green-50 active:border-b-2 dark:text-green-400 dark:border-green-500 dark:hover:bg-green-950/40",
         cartoon_dangerOutline:
           "bg-white text-rose-500 border-2 border-rose-200 hover:bg-slate-100 dark:bg-slate-900 dark:text-rose-400 dark:border-rose-800 dark:hover:bg-slate-800",
         link: "text-primary underline-offset-4 hover:underline",
-        ghost: "text-muted-foreground bg-transparent hover:bg-muted",
       },
       size: {
         default: "h-14 md:h-9 px-4 py-2 has-[>svg]:px-3",
@@ -55,6 +73,7 @@ function Button({
     asChild?: boolean;
   }) {
   const Comp = asChild ? Slot.Root : "button";
+
   return (
     <Comp
       data-slot="button"

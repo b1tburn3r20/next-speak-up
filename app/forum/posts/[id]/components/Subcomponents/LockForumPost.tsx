@@ -90,8 +90,6 @@ const LockForumPost = ({ userId, userRole, postId }: LockForumPostProps) => {
       <Lock className="text-muted-foreground  h-8 w-8" />
     );
   };
-  console.log(userRole);
-  // Show as non-interactive icon for non-admin users
   if (!isAdmin) {
     return (
       <div

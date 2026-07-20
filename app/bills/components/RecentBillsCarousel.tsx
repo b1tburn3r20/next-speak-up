@@ -6,11 +6,11 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface RecentBillsCarouselProps {
   bills: Legislation[];
-  size?: string
+  size?: "lg" | "sm" | "md"
 }
 
 const RecentBillsCarousel = ({ bills, size = "lg" }: RecentBillsCarouselProps) => {
-  if (bills.length === 0) {
+  if (bills.length === 0 || !bills) {
     return (
       <div className="w-full flex justify-center">
         <EmptyBillCard />
@@ -23,7 +23,7 @@ const RecentBillsCarousel = ({ bills, size = "lg" }: RecentBillsCarouselProps) =
       <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-24 lg:w-72 bg-linear-to-l from-background to-transparent z-10 pointer-events-none hidden sm:block" />
       <ScrollArea>
         <div className="pb-4 max-w-full overflow-y-auto flex gap-4">
-          {bills.map((bill, index) => (
+          {bills?.map((bill, index) => (
             <BillViewCard key={index} bill={bill} size={size} />
           ))}
         </div>

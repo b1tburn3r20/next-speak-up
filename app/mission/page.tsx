@@ -1,7 +1,7 @@
-import React from "react";
 import LandingNavbar from "../landing/navbar/navbar";
 import MissionHero from "./components/MissionHero";
 import { Metadata } from "next"
+import PageSpacer from "@/components/cb/page-space";
 export const metadata: Metadata = {
   title: "Coolbills | Our mission",
   description: "Coolbills allows you to compare yourself to your representatives to see if you actually should vote for them, this mission statement goes on about what our core values are"
@@ -9,7 +9,9 @@ export const metadata: Metadata = {
 const Page = () => {
   return (
     <LandingNavbar>
-      <MissionHero />
+      <PageSpacer>
+        <MissionHero />
+      </PageSpacer>
     </LandingNavbar>
   );
 };

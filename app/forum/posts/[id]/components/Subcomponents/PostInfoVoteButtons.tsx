@@ -188,7 +188,6 @@ const PostInfoVoteButtons = ({
       }
 
       const result = await response.json();
-      console.log("Post deleted successfully:", result.message);
       if (response.ok) {
         // Update store to reflect deleted state
         setIsPostDeleted(true);
@@ -229,11 +228,10 @@ const PostInfoVoteButtons = ({
             <button
               onClick={handleUpvote}
               disabled={isVotingDisabled}
-              className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${
-                showUpvoted
+              className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${showUpvoted
                   ? "text-green-600 bg-green-50 dark:bg-green-950/50 shadow-xs"
                   : "text-muted-foreground hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950/50"
-              }`}
+                }`}
             >
               <ChevronUp
                 size={20}
@@ -250,13 +248,12 @@ const PostInfoVoteButtons = ({
         {/* Vote Count */}
         <div className="flex items-center justify-center min-w-12 px-2">
           <span
-            className={`text-sm sm:text-base font-bold text-center ${
-              localNetVotes > 0
+            className={`text-sm sm:text-base font-bold text-center ${localNetVotes > 0
                 ? "text-green-600"
                 : localNetVotes < 0
-                ? "text-red-600"
-                : "text-muted-foreground"
-            }`}
+                  ? "text-red-600"
+                  : "text-muted-foreground"
+              }`}
           >
             {localNetVotes > 0 ? `+${localNetVotes}` : localNetVotes}
           </span>
@@ -268,17 +265,15 @@ const PostInfoVoteButtons = ({
             <button
               onClick={handleDownvote}
               disabled={isVotingDisabled}
-              className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${
-                hasDownvoted && !isUserAuthor
+              className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${hasDownvoted && !isUserAuthor
                   ? "text-red-600 bg-red-50 dark:bg-red-950/50 shadow-xs"
                   : "text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
-              }`}
+                }`}
             >
               <ChevronDown
                 size={20}
-                className={`${
-                  hasDownvoted && !isUserAuthor ? "text-red-600" : ""
-                }`}
+                className={`${hasDownvoted && !isUserAuthor ? "text-red-600" : ""
+                  }`}
                 strokeWidth={2.5}
               />
             </button>

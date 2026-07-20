@@ -12,7 +12,6 @@ export default async function AddContactsPage({
     page,
     50
   );
-  console.log(members)
 
   return (
     <div className="container mx-auto py-8">

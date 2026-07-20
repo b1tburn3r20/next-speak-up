@@ -1,0 +1,25 @@
+model FeatureSuggestion {
+  id        Int      @id @default(autoincrement())
+  feature   String   @db.Text
+  userId    String
+  userRole  String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("featuresuggestion")
+}
+
+model BugReport {
+  id        Int      @id @default(autoincrement())
+  bug       String   @db.Text
+  userId    String
+  userRole  String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("bugreport")
+}

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useBillState } from "@/app/federal/bills/[billId]/useBillState";
 import { toast } from "sonner";
 import { useBillPageStore } from "../useBillPageStore";
 import DOMPurify from "dompurify";
-import BlockA from "@/components/cb/block-a";
-import BlockB from "@/components/cb/block-b";
+import OuterBlock from "@/components/cb/outer-block";
+import { ScrollArea } from "@/components/ui/scroll-area";
 const BillTextTab = () => {
   const billData = useBillPageStore((f) => f.billData);
   const congress = billData?.legislation?.congress;
@@ -103,25 +103,24 @@ const BillTextTab = () => {
 
   if (!isBillLoaded || !billText) {
     return (
-      <BlockB>
+      <OuterBlock>
         <div className="flex items-center justify-center p-8">
           <div className="text-center">
             <p className="text-muted-foreground">No official bill text yet.</p>
           </div>
         </div>
-      </BlockB>
+      </OuterBlock>
     );
   }
 
   return (
-
-    <div className="h-full p-3 bg-background-light shadow-md rounded-3xl overflow-x-hidden w-full flex justify-center">
+    <ScrollArea type="always">
       <div
-        className="font-thin p-2"
+        className="font-light p-2 h-[60vh] flex justify-center"
         dangerouslySetInnerHTML={{ __html: cleaned }}
       />
-    </div>)
-    ;
+    </ScrollArea>
+  )
 };
 
 export default BillTextTab;

@@ -1,6 +1,6 @@
 "use client";
 
-import BlockB from "@/components/cb/block-b";
+import InnerBlock from "@/components/cb/inner-block";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -220,9 +220,9 @@ const Contact = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 max-w-6xl mx-auto">
           {/* Contact Form */}
           <div className="lg:col-span-2 order-2 lg:order-1">
-            <BlockB>
+            <InnerBlock>
               <ContactForm />
-            </BlockB>
+            </InnerBlock>
           </div>
 
           {/* Contact Info */}

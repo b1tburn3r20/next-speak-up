@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import LandingNavbar from "./landing/navbar/navbar";
 import Hero from "./landing/components/Hero";
 import Contact from "./landing/components/Contact";
-import BlockA from "@/components/cb/block-a";
+import OuterBlock from '@/components/cb/outer-block';
+import LearnYourReps from './landing/components/learn-your-reps';
 
 
 export const metadata: Metadata = {
@@ -11,18 +12,17 @@ export const metadata: Metadata = {
 }
 
 const Page = () => {
-
-
   return (
     <div>
       <LandingNavbar>
-        <div className="space-y-4 container mx-auto">
-          <BlockA className="mt-24">
+        <div className="space-y-12 container mx-auto">
+          <OuterBlock className="mt-24">
             <Hero />
-          </BlockA>
-          <BlockA>
+          </OuterBlock>
+          <LearnYourReps />
+          <OuterBlock>
             <Contact />
-          </BlockA>
+          </OuterBlock>
         </div>
       </LandingNavbar>
     </div>

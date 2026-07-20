@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useAppStore } from "@/app/stores/useAppStore";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AllActiveLegislatorsProps {
   legislators: SimpleLandingPageLegislatorData[];
@@ -38,7 +39,8 @@ const AllActiveLegislators = ({ legislators, userId }: AllActiveLegislatorsProps
           <AccordionTrigger className="border-b-2 px-6 py-4 rounded-none rounded-t-2xl bg-background-light hover:bg-muted/50 hover:no-underline">
             <span className="text-lg font-semibold">House of Representatives</span>
           </AccordionTrigger>
-          <AccordionContent className="pb-0">
+
+          <AccordionContent className="pb-0 h-[40vh] overflow-y-auto">
             <Table className="bg-background-light w-full">
               <TableHeader>
                 <TableRow className="hover:bg-unset bg-accent h-14">
@@ -74,7 +76,7 @@ const AllActiveLegislators = ({ legislators, userId }: AllActiveLegislatorsProps
           <AccordionTrigger className="px-6 py-4 rounded-none rounded-t-2xl bg-background-light hover:bg-muted/50 hover:no-underline">
             <span className="text-lg font-semibold">Senate</span>
           </AccordionTrigger>
-          <AccordionContent className="pb-0">
+          <AccordionContent className="pb-0 h-[40vh] overflow-y-auto">
             <Table className="bg-background-light w-full">
               <TableHeader>
                 <TableRow className="hover:bg-unset bg-accent h-14">

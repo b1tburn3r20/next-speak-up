@@ -1,13 +1,10 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import RecentBillsCarousel from "@/app/bills/components/RecentBillsCarousel";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { getRecentBills } from "@/lib/services/bills";
-import { getServerSession } from "next-auth";
 
 
 const LatestBillsWidget = async () => {
-  const session = await getServerSession(authOptions);
-  const bills = await getRecentBills(session?.user?.id, session?.user?.role?.name)
+  const bills = await getRecentBills()
   return (
     <div>
 

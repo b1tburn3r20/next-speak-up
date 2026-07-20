@@ -30,7 +30,6 @@ const DistrictSelect = () => {
 
   useEffect(() => {
     if (selectedState) {
-      console.log(numberOfDistrictsInState);
 
       const districtList = Array.from(
         { length: numberOfDistrictsInState },
@@ -38,7 +37,6 @@ const DistrictSelect = () => {
       );
 
       setDistricts(districtList);
-      console.log(selectedState, districtList);
     }
   }, [selectedState]);
 

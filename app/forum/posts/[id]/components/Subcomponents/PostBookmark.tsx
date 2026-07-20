@@ -28,7 +28,6 @@ const PostBookmark = ({ postId, userId }: PostBookmarkProps) => {
 
   const updatePostBookmarkStatus = async () => {
     if (!userId) {
-      console.log("fo");
 
       setIsLoginDialogOpen(true);
       return;

@@ -2,7 +2,6 @@ import prisma from "@/prisma/client";
 import { logUserAction } from "../user";
 
 export const searchLegislation = async (query, userId, userRole) => {
-  console.log(query);
   const results = await prisma.legislation.findMany({
     where: {
       OR: [

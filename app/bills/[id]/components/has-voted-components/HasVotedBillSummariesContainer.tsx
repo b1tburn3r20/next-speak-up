@@ -13,7 +13,6 @@ const HasVotedBillSummariesContainer = ({
   userId,
   noOfficialSummary,
 }: HasVotedBillSummariesContainerProps) => {
-  console.log(noOfficialSummary);
   return (
     <div className="w-full">
       <Tabs defaultValue="Simplified" className="w-full">

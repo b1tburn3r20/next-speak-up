@@ -70,7 +70,6 @@ const NewFormSubmitButton = () => {
         } else {
           toast.error(responseBody.error || "Something went wrong");
         }
-        console.log("something went wrong");
       } else {
         router.push(`/forum/posts/${responseBody.created.id}`);
       }

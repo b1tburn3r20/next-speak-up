@@ -67,10 +67,6 @@ export default function UserActivityChart({
         color: `var(--chart-${colorIndex})`,
       };
     });
-
-    console.log('Chart config:', config);
-    console.log('Chart data:', chartData);
-
     return config;
   }, [favoriteActions, chartData]);
 

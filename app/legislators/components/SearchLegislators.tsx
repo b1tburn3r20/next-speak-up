@@ -62,21 +62,34 @@ const SearchLegislators = ({ legislators }: SearchLegislatorsProps) => {
 
   const handleFilter = (value: string) => {
     if (!value.trim()) {
-      setResults([]);
-      setSearching(false);
-      return;
+      setResults([])
+      setSearching(false)
+      return
     }
-    const searchTerm = value.toLowerCase().trim();
+
+    const searchWords = value.toLowerCase().trim().split(/\s+/)
+
     const filteredResults = legislators
-      .filter(({ name, state, district }) =>
-        name?.toLowerCase().includes(searchTerm) ||
-        state?.toLowerCase().includes(searchTerm) ||
-        district?.includes(searchTerm)
-      )
-      .slice(0, 10);
-    setResults(filteredResults);
-    setSearching(false);
-  };
+      .filter(({ firstName, lastName, state, district }) => {
+        const searchableValues = [
+          firstName,
+          lastName,
+          state,
+          district?.toString(),
+        ]
+          .filter(Boolean)
+          .map((item) => item!.toLowerCase())
+
+        return searchWords.every((word) =>
+          searchableValues.some((item) => item.includes(word))
+        )
+      })
+      .slice(0, 10)
+
+    setResults(filteredResults)
+    setSearching(false)
+  }
+
 
   const getResultsState = () => {
     if (searching) return "searching";
@@ -171,8 +184,8 @@ const SearchLegislators = ({ legislators }: SearchLegislatorsProps) => {
             autoFocus
             onFocus={handleFocus}
             onBlur={handleBlur}
-            variant="primary"
-            className="text-muted-foreground rounded-full h-14 text-lg px-8"
+            variant="outline"
+            className="text-muted-foreground rounded-full md:h-14 text-lg px-8"
             placeholder="Search legislators..."
             onKeyDown={handleKeyDown}
             onChange={(e) => handleSearchChange(e.target.value)}

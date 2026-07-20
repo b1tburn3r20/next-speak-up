@@ -250,20 +250,6 @@ function getSenatorClassFromBioguideId(bioguideId: string): 1 | 2 | 3 | null {
   return senatorClassMap[bioguideId] || null;
 }
 
-// Usage examples:
-/*
-// For a specific congress member
-const reelectionInfo = getCongressMemberReelectionInfo(congressMember);
-console.log(`Up for re-election in: ${reelectionInfo.years} years, ${reelectionInfo.months} months, ${reelectionInfo.days} days`);
-console.log(`Next election date: ${reelectionInfo.nextElectionDate.toDateString()}`);
-
-// For a Class 2 Senator specifically (next election 2026)
-const senatorReelection = getSenateTimeUntilReelection(2);
-
-// For a House Representative specifically
-const houseReelection = getHouseTimeUntilReelection();
-*/
-
 export function getCurrentYear() {
   return new Date().getFullYear();
 }

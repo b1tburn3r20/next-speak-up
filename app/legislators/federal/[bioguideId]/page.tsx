@@ -3,7 +3,6 @@ import {
   getLegislatorHouseVotePolicyAreaBreakdown,
   getLegislatorRecentHouseVotes,
   getLegislatorSponsorshipPolicyAreaBreakdown,
-  getLegislatorVoteTypes,
 } from "@/lib/services/legislators/legislator-id";
 import CongressMemberCard from "./components/CongressMemberCard";
 import PolicyAreaBreakdown from "./components/PolicyAreaBreakdown";
@@ -11,6 +10,9 @@ import SponsorPolicyAreaBreakdown from "./components/SponsorPolicyAreaBreakdown"
 import SponsorBillsTable from "./components/SponsorBillsTable";
 import HouseVotesList from "./components/HouseVoteList";
 import { Metadata } from "next";
+import CongressMemberNetWorthChart from "./components/congress-member-net-worth-chart";
+import CongressMemberPromiseKeptRatio from "./components/congress-member-promise-kept-ratio";
+import CongressMemberThroughputRatio from "./components/congress-member-legislation-throughput-ratio";
 
 interface PageProps {
   params: Promise<{ bioguideId: string }>;
@@ -34,8 +36,6 @@ const Page = async ({ params }: PageProps) => {
       getLegislatorHouseVotePolicyAreaBreakdown(bioguideId),
       getLegislatorSponsorshipPolicyAreaBreakdown(bioguideId),
     ]);
-  const voteTypes = await getLegislatorVoteTypes(bioguideId);
-  console.log(voteTypes);
   return (
     <div className="p-4 flex justify-center items-start w-full">
       <div className="w-full flex flex-col gap-4">
@@ -46,7 +46,12 @@ const Page = async ({ params }: PageProps) => {
             <SponsorPolicyAreaBreakdown data={breakdown} />
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <CongressMemberNetWorthChart />
+          <CongressMemberPromiseKeptRatio />
+          <CongressMemberThroughputRatio />
+        </div>
+        <div className="flex flex-col md:flex-row gap-2">
           <div className="w-full">
             <HouseVotesList votes={houseVoteData} />
           </div>

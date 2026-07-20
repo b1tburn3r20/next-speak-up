@@ -1,14 +1,13 @@
 import { useLoginStore } from "@/app/navbar/useLoginStore"
-import BlockB from "@/components/cb/block-b"
 import { Button } from "@/components/ui/button"
-import { UserSession } from "@/lib/types/user-types"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useBillPageStore } from "../useBillPageStore"
 import { Loader } from "lucide-react"
+import InnerBlock from "@/components/cb/inner-block"
 
 
 interface FederalLegislationVoteButtonsProps {
-  session: UserSession
+  session: any
 }
 const FederalLegislationVoteButtons = ({ session }: FederalLegislationVoteButtonsProps) => {
   const bill = useBillPageStore((f) => f.billData)
@@ -19,7 +18,6 @@ const FederalLegislationVoteButtons = ({ session }: FederalLegislationVoteButton
   const apiVote = async (yea: boolean) => {
     if (submitting) return
     if (!session?.id) {
-      console.log(session)
       handleNeedLogin()
     }
     setSubmitting(true)
@@ -54,7 +52,7 @@ const FederalLegislationVoteButtons = ({ session }: FederalLegislationVoteButton
   const votedYes = bill?.userVote?.votePosition === "YEA"
 
   return (
-    <BlockB className="gap-2 items-center grid grid-cols-2">
+    <InnerBlock className="gap-2 items-center grid grid-cols-2">
       <Button disabled={votedNo || submitting} onClick={() => apiVote(false)} variant="destructive" size="huge">
         {submitting ? (<div className="flex gap-2 items-center">
           <Loader className="animate-spin" />
@@ -75,7 +73,7 @@ const FederalLegislationVoteButtons = ({ session }: FederalLegislationVoteButton
           "Yes"
         )}
       </Button>
-    </BlockB>
+    </InnerBlock>
 
   )
 }

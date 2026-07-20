@@ -1,0 +1,161 @@
+model ForumPost {
+  id        Int      @id @default(autoincrement())
+  type      String // "feature_request", "bill_discussion", "bug_report", "general"
+  title     String
+  isDeleted Boolean  @default(false) // Add this
+  body      String   @db.Text
+  authorId  String
+  isLocked  Boolean  @default(false)
+  isPinned  Boolean  @default(false)
+  isEdited  Boolean  @default(false)
+  views     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  author    User                @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  tags      ForumPostTag[]
+  comments  ForumComment[]
+  upvotes   ForumPostUpvote[]
+  downvotes ForumPostDownvote[]
+  bookmarks ForumPostBookmark[]
+
+  @@index([authorId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([views])
+  @@index([isPinned, createdAt])
+  @@map("forumpost")
+}
+
+model ForumComment {
+  id        Int      @id @default(autoincrement())
+  body      String   @db.Text
+  authorId  String
+  postId    Int
+  parentId  Int? // For nested comments - null means top-level comment
+  depth     Int      @default(0) // Track nesting depth for display
+  isDeleted Boolean  @default(false)
+  isEdited  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  author    User                   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      ForumPost              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent    ForumComment?          @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   ForumComment[]         @relation("CommentReplies")
+  upvotes   ForumCommentUpvote[]
+  downvotes ForumCommentDownvote[]
+
+  @@index([authorId])
+  @@index([postId])
+  @@index([parentId])
+  @@index([postId, parentId])
+  @@index([createdAt])
+  @@map("forumcomment")
+}
+
+model ForumTag {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  color       String?
+  isOfficial  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  posts ForumPostTag[]
+
+  @@index([name])
+  @@map("forumtag")
+}
+
+model ForumPostTag {
+  postId Int
+  tagId  Int
+
+  post ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  ForumTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([postId])
+  @@index([tagId])
+  @@map("forumposttag")
+}
+
+model ForumPostUpvote {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  postId    Int
+  createdAt DateTime @default(now())
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@map("forumpostupvote")
+}
+
+model ForumPostDownvote {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  postId    Int
+  createdAt DateTime @default(now())
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@map("forumpostdownvote")
+}
+
+model ForumPostBookmark {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  postId    Int
+  createdAt DateTime @default(now())
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@map("forumpostbookmark")
+}
+
+model ForumCommentUpvote {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  commentId Int
+  createdAt DateTime @default(now())
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment ForumComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([userId])
+  @@index([commentId])
+  @@map("forumcommentupvote")
+}
+
+model ForumCommentDownvote {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  commentId Int
+  createdAt DateTime @default(now())
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment ForumComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([userId])
+  @@index([commentId])
+  @@map("forumcommentdownvote")
+}

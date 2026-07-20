@@ -1,0 +1,67 @@
+model CongressSession {
+  congress   Int
+  bioguideId String
+  member     CongressMember @relation(fields: [bioguideId], references: [bioguideId])
+
+  @@id([congress, bioguideId])
+  @@index([bioguideId], map: "CongressSession_bioguideId_idx")
+  @@index([congress], map: "CongressSession_congress_idx")
+  @@map("congresssession")
+}
+
+model CongressMember {
+  id                          Int                       @id @default(autoincrement())
+  bioguideId                  String                    @unique(map: "CongressMember_bioguideId_key")
+  name                        String?
+  role                        String?
+  state                       String?
+  party                       String?
+  createdAt                   DateTime                  @default(now())
+  updatedAt                   DateTime                  @updatedAt
+  birthYear                   String?
+  cosponsoredLegislationCount Int?
+  firstName                   String?
+  active                      Boolean
+  honorificName               String?
+  lastName                    String?
+  sponsoredLegislationCount   Int?
+  updateDate                  DateTime?
+  contact                     String?
+  website                     String?
+  missingContactInfo          Boolean?
+  district                    String?
+  sessions                    CongressSession[]
+  favoritedBy                 FavoritedCongressMember[]
+  depiction                   Depiction?
+  terms                       CongressTerm[]
+
+  @@map("congressmember")
+}
+
+model CongressTerm {
+  id        Int            @id @default(autoincrement())
+  chamber   String?
+  startYear Int?
+  endYear   Int?
+  memberId  Int
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  member    CongressMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, chamber, startYear], map: "CongressTerm_memberId_chamber_startYear_key")
+  @@index([memberId], map: "CongressTerm_memberId_idx")
+  @@map("congressterm")
+}
+
+model FavoritedCongressMember {
+  userId      String
+  memberId    Int
+  favoritedAt DateTime       @default(now())
+  member      CongressMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, memberId])
+  @@index([memberId], map: "FavoritedCongressMember_memberId_idx")
+  @@index([userId], map: "FavoritedCongressMember_userId_idx")
+  @@map("favoritedcongressmember")
+}

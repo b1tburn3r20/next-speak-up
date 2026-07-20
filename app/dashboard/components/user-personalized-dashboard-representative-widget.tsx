@@ -48,7 +48,6 @@ const UserPersonalizedDashboardRepresentativeWidget = () => {
         const json = await response.json()
         setData(json.data)
       } catch (error) {
-        console.error("Error fetching representative data:", error)
       } finally {
         setFetching(false)
       }
@@ -64,8 +63,6 @@ const UserPersonalizedDashboardRepresentativeWidget = () => {
     switch (error) {
       case "404":
         return <MissingDistrictModal />
-        break;
-
       default:
         break;
     }

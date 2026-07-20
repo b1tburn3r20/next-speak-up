@@ -25,7 +25,7 @@ const NoUserDashboard = () => {
 
 
   return (
-    <div className="bg-accent text-primary border-2 text-center border-primary border-dashed p-4 rounded-3xl">
+    <div className="bg-accent/10 text-primary border-2 text-center border-primary border-dashed p-4 rounded-3xl">
       <p className="text-sm md:text-md">Hey, no pressure but without an account we can't give you a personalized dashboard. If its not important to you no worries, but if you want one you click below </p>
       <div className="flex gap-2 items-center font-normal text-center w-full  justify-center">
         <p className="text-sm md:text-md underline cursor-pointer" onClick={() => handleActionClick("Login")}>

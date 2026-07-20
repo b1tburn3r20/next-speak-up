@@ -11,25 +11,25 @@ interface BillMoreInfoProps {
   bill: FullUserLegislationData
 }
 const BillMoreInfo = ({ bill }: BillMoreInfoProps) => {
-
+  if (!bill?.sponsors?.length) return null
   const MemberCard = ({ member }: { member: CongressMemberWithDepiction }) => {
     return (
       <div className="flex py-2 gap-2 items-center">
         <Avatar className="w-16 h-16">
-          {member.depiction ? (
-            <AvatarImage src={member.depiction.imageUrl} alt={member.name} />
+          {member?.depiction ? (
+            <AvatarImage src={member?.depiction?.imageUrl} alt={member?.name} />
           ) : null}
           <AvatarFallback>
-            {member.firstName[0]}
-            {member.lastName[0]}
+            {member?.firstName[0]}
+            {member?.lastName[0]}
           </AvatarFallback>
         </Avatar>
 
 
         <div className="flex flex-col">
-          <p>{member.firstName} {member.lastName}</p>
-          <p className="text-muted-foreground">{member.state} {member?.district}, {member.role} </p>
-          <Link className="text-muted-foreground underline" href={`/legislators/federal/${member.bioguideId}`} target="_blank">View <ExternalLink className="inline-flex" size={15} /> </Link>
+          <p>{member?.firstName} {member?.lastName}</p>
+          <p className="text-muted-foreground">{member?.state} {member?.district}, {member?.role} </p>
+          <Link className="text-muted-foreground underline" href={`/legislators/federal/${member?.bioguideId}`} target="_blank">View <ExternalLink className="inline-flex" size={15} /> </Link>
         </div>
       </div>
     )

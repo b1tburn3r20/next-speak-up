@@ -1,5 +1,4 @@
 import { TextAnimate } from "@/components/magicui/text-animate"
-import { Highlighter } from "@/components/ui/highlighter"
 
 const PrivacyHero = () => {
   return (
@@ -16,23 +15,15 @@ const PrivacyHero = () => {
           </TextAnimate>
           <p className="text-muted-foreground text-base sm:text-lg max-w-prose mx-auto lg:mx-0">
             All personal identifiable information is kept private and
-
-            <Highlighter action="underline" color="#FF9800">
-              <span className="font-semibold">
-                will not be sold to 3rd party vendors
-
-              </span>
-            </Highlighter>
+            <span className="font-semibold">
+              will not be sold to 3rd party vendors
+            </span>
             , you can rest assured your data is yours and yours alone.
-          </p>{" "}
-        </div>
-        <div className="w-full flex justify-center lg:justify-end">
-          <div className="relative w-full max-w-md lg:max-w-none aspect-video">
-          </div>
+          </p>
         </div>
       </div>
 
-    </div>
+    </div >
   )
 }
 
