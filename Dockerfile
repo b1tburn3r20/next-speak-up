@@ -1,5 +1,4 @@
-# Use the official Node.js 18 image as base
-FROM node:18-alpine AS base
+FROM node:22-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -16,8 +15,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma client (safe - just creates code)
-RUN npx prisma generate
+RUN npx prisma generate --schema=./prisma
 
 # Build the application
 RUN npm run build

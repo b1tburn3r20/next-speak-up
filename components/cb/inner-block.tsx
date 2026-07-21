@@ -14,7 +14,7 @@ const InnerBlock = ({ className, children, ...rest }: InnerBlockProps) => {
         ease: [0.16, 1, 0.3, 1],
       }}
       className={twMerge(
-        clsx("bg-backgroundlight shadow-md rounded-lg p-4", className),
+        clsx("bg-background-light shadow-md rounded-lg p-4", className),
       )}
       {...rest}
     >

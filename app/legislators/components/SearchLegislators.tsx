@@ -153,8 +153,16 @@ const SearchLegislators = ({ legislators }: SearchLegislatorsProps) => {
         `}
       >
         <div className="flex items-center gap-3 min-w-0">
+          <img
+            alt={`A depiction of the congress member ${result?.name}`}
+            src={result?.depiction?.imageUrl ?? ""}
+            className="rounded-lg h-12 w-12"
+          />
+
           <p className="font-semibold truncate">
-            {result.name}
+            {result.firstName}
+            &nbsp;
+            {result.lastName}
           </p>
           <span className={`text-xs shrink-0 ${isActive ? "text-white/70" : "text-muted-foreground"}`}>
             {result.state}

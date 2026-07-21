@@ -68,9 +68,6 @@ const LandingDesktopNavbar = () => {
                     }`}
                 >
                   {item.label}
-                  {isActive && (
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
-                  )}
                 </Link>
               );
             })}

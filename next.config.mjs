@@ -1,7 +1,6 @@
 import mdx from '@next/mdx';
 import removeImports from 'next-remove-imports';
 
-// Configure the MDX plugin
 const withMDX = mdx({
   extension: /\.(md|mdx)$/,
   options: {
@@ -48,6 +47,9 @@ const nextConfig = {
 
     return config;
   },
+
+  allowedDevOrigins: ['127.0.0.1'],
+
   output: 'standalone',
 };
 

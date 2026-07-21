@@ -5,6 +5,7 @@ export type SimpleLandingPageLegislatorData = {
   name: string;
   firstName: string;
   lastName: string;
+  depiction: Depiction;
   district?: string;
   state: string;
   role: string;

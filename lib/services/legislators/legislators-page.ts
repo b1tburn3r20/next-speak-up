@@ -19,6 +19,7 @@ export const getCongressLegislators = async () => {
       state: true,
       district: true,
       role: true,
+      depiction: true,
     },
   });
 

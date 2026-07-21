@@ -44,6 +44,7 @@
     "@radix-ui/react-tooltip": "1.2.8",
     "@radix-ui/react-visually-hidden": "^1.2.3",
     "@tailwindcss/typography": "^0.5.16",
+    "@tanstack/react-virtual": "^3.14.7",
     "@types/canvas-confetti": "^1.9.0",
     "@types/mdx": "^2.0.13",
     "@uiw/react-markdown-editor": "^6.1.4",
