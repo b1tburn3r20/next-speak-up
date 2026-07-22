@@ -76,7 +76,7 @@ export const getNewBills = async () => {
   const bills = await prisma.legislation.findMany({
     take: 10,
     orderBy: {
-      id: "desc",
+      id: "asc",
     },
     include: {
       policyArea: true,

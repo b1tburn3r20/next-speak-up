@@ -6,7 +6,7 @@ import SideBlock from "./side-block"
 import DayBadge from "./day-badge"
 const BillCard = ({ bill }: { bill: DashboardNewBill }) => {
   return (
-    <InnerBlock className="w-70 hover:bg-secondary/50">
+    <InnerBlock className="w-70 hover:bg-secondary/50 h-full">
       <SideBlock className="justify-between">
         <PolicyBadge policyArea={bill?.policyArea} />
         <DayBadge time={new Date()} />

@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { Label } from "../ui/label";
 
-const pillLabelVariants = cva("rounded-md p-2 w-fit shadow-sm", {
+const pillLabelVariants = cva("rounded-full p-2 w-fit shadow-sm font-semibold", {
   variants: {
     variant: {
       default: "bg-transparent text-muted-foreground",

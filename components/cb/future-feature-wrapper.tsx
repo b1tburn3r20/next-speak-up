@@ -8,10 +8,11 @@ import { Button } from "../ui/button"
 
 interface FutureFeatureWrapperProps {
   children: React.ReactNode
+  className?: string
 }
 const MobileVersion = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="relative">
+    <div className="relative w-full h-full">
       <div className="absolute top-1 right-1">
         <Dialog>
           <DialogTrigger>
@@ -38,7 +39,7 @@ const MobileVersion = ({ children }: { children: React.ReactNode }) => {
 
 const DesktopVersion = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="relative">
+    <div className="relative w-full h-full">
       <div className="absolute top-1 right-1">
         <Popover>
           <PopoverTrigger>
@@ -61,7 +62,7 @@ const DesktopVersion = ({ children }: { children: React.ReactNode }) => {
 
 
 
-const FutureFeatureWrapper = ({ children }: FutureFeatureWrapperProps) => {
+const FutureFeatureWrapper = ({ children, className }: FutureFeatureWrapperProps) => {
   const mobile = useAppStore((f) => f.isMobile)
   return (
     mobile ? (
