@@ -35,6 +35,14 @@ model User {
   userActions      UserAction[]
   role             Role?                     @relation(fields: [roleId], references: [id])
 
+  // Schema v2
+  locations       UserLocation[]
+  billVotes       UserBillVote[]
+  billFollows     UserBillFollow[]
+  personFavorites UserPersonFavorite[]
+  repAlignments   UserRepAlignment[]
+  password        UserPassword?
+
   @@index([roleId], map: "user_roleId_fkey")
   @@map("user")
 }

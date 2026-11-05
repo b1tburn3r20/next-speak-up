@@ -1,0 +1,542 @@
+// Schema v2: models any level of government, not just the U.S. Congress.
+// civic-pipeline writes these tables, and the app reads them. Prisma owns the migrations.
+//
+// Old federal-only tables still exist alongside these while services move across, so a few
+// names differ to avoid clashes (BillActionEvent, BillSummaryVersion).
+
+enum GovernmentLevel {
+  FEDERAL
+  STATE
+  TERRITORY
+  LOCAL
+}
+
+enum ChamberKind {
+  UPPER
+  LOWER
+  UNICAMERAL
+}
+
+enum OfficeRole {
+  SENATOR
+  REPRESENTATIVE
+  DELEGATE
+  RESIDENT_COMMISSIONER
+  LEGISLATOR
+}
+
+enum BillStatus {
+  INTRODUCED
+  IN_COMMITTEE
+  REPORTED
+  PASSED_ORIGIN_CHAMBER
+  PASSED_BOTH_CHAMBERS
+  AGREED_TO
+  RESOLVING_DIFFERENCES
+  TO_EXECUTIVE
+  SIGNED
+  VETOED
+  VETO_OVERRIDDEN
+  BECAME_LAW
+  FAILED
+}
+
+enum SponsorshipKind {
+  SPONSOR
+  COSPONSOR
+}
+
+enum SummarySource {
+  CRS
+  AI
+}
+
+enum DataSource {
+  CONGRESS_GOV
+  HOUSE_CLERK
+  VOTEVIEW
+}
+
+enum LocationSource {
+  BROWSER
+  ADDRESS
+  MANUAL
+}
+
+model Jurisdiction {
+  id        Int             @id @default(autoincrement())
+  // ISO-style code: "US", "US-TX"
+  code      String          @unique @db.VarChar(16)
+  // Open Civic Data ID, which keeps state data sources easy to match later
+  ocdId     String?         @unique @db.VarChar(191)
+  name      String          @db.VarChar(120)
+  level     GovernmentLevel
+  parentId  Int?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  parent    Jurisdiction?        @relation("JurisdictionTree", fields: [parentId], references: [id])
+  children  Jurisdiction[]       @relation("JurisdictionTree")
+  chambers  LegislativeChamber[]
+  sessions  LegislativeSession[]
+  bills     Bill[]
+  rollCalls RollCall[]
+  locations UserLocation[]
+
+  @@index([level])
+  @@index([parentId])
+  @@map("jurisdiction")
+}
+
+model LegislativeChamber {
+  id             Int         @id @default(autoincrement())
+  jurisdictionId Int
+  kind           ChamberKind
+  name           String      @db.VarChar(120)
+  // Short label used in the UI: "House", "Senate"
+  shortName      String      @db.VarChar(40)
+  seatCount      Int?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  jurisdiction Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
+  districts    District[]
+  terms        OfficeTerm[]
+  rollCalls    RollCall[]
+  originBills  Bill[]
+
+  @@unique([jurisdictionId, kind])
+  @@map("legislative_chamber")
+}
+
+model LegislativeSession {
+  id             Int       @id @default(autoincrement())
+  jurisdictionId Int
+  // "119" for Congress. States use their own labels, such as "2025R".
+  identifier     String    @db.VarChar(40)
+  name           String    @db.VarChar(120)
+  startDate      DateTime? @db.Date
+  endDate        DateTime? @db.Date
+  isCurrent      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  jurisdiction Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
+  bills        Bill[]
+  rollCalls    RollCall[]
+
+  @@unique([jurisdictionId, identifier])
+  @@index([jurisdictionId, isCurrent])
+  @@map("legislative_session")
+}
+
+model District {
+  id         Int      @id @default(autoincrement())
+  chamberId  Int
+  // The state or area the district sits in: "TX"
+  regionCode String   @db.VarChar(8)
+  // "2", "AL" for at-large, "STATE" for a whole-state Senate seat
+  code       String   @db.VarChar(16)
+  name       String?  @db.VarChar(120)
+  ocdId      String?  @db.VarChar(191)
+  // Redistricting version, because the same number can cover different areas over time
+  vintage    String   @default("119") @db.VarChar(16)
+  seats      Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  chamber   LegislativeChamber @relation(fields: [chamberId], references: [id], onDelete: Restrict)
+  terms     OfficeTerm[]
+  locations UserLocation[]
+
+  @@unique([chamberId, regionCode, code, vintage])
+  @@index([regionCode])
+  @@map("district")
+}
+
+model Person {
+  id               Int       @id @default(autoincrement())
+  fullName         String    @db.VarChar(160)
+  // "Thompson, Bennie G."
+  sortName         String    @db.VarChar(160)
+  firstName        String?   @db.VarChar(80)
+  middleName       String?   @db.VarChar(80)
+  lastName         String?   @db.VarChar(80)
+  honorific        String?   @db.VarChar(20)
+  birthYear        Int?
+  imageUrl         String?   @db.VarChar(500)
+  imageAttribution String?   @db.Text
+  websiteUrl       String?   @db.VarChar(500)
+  phone            String?   @db.VarChar(40)
+  officeAddress    String?   @db.VarChar(255)
+  sourceUpdatedAt  DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  identifiers  PersonIdentifier[]
+  terms        OfficeTerm[]
+  sponsorships BillSponsorship[]
+  positions    RollCallPosition[]
+  favoritedBy  UserPersonFavorite[]
+  alignments   UserRepAlignment[]
+
+  @@index([lastName])
+  @@index([sortName])
+  @@map("person")
+}
+
+model PersonIdentifier {
+  personId Int
+  // "bioguide", "icpsr"; state sources add their own
+  scheme   String @db.VarChar(40)
+  value    String @db.VarChar(80)
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@id([personId, scheme, value])
+  @@unique([scheme, value])
+  @@map("person_identifier")
+}
+
+model OfficeTerm {
+  id         Int        @id @default(autoincrement())
+  personId   Int
+  chamberId  Int
+  districtId Int?
+  regionCode String     @db.VarChar(8)
+  role       OfficeRole
+  party      String?    @db.VarChar(8)
+  partyName  String?    @db.VarChar(60)
+  startYear  Int
+  endYear    Int?
+  isCurrent  Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  person   Person             @relation(fields: [personId], references: [id], onDelete: Cascade)
+  chamber  LegislativeChamber @relation(fields: [chamberId], references: [id], onDelete: Restrict)
+  district District?          @relation(fields: [districtId], references: [id], onDelete: SetNull)
+
+  @@unique([personId, chamberId, startYear])
+  @@index([chamberId, regionCode, isCurrent])
+  @@index([districtId, isCurrent])
+  @@index([isCurrent, party])
+  @@map("office_term")
+}
+
+model Bill {
+  id               Int        @id @default(autoincrement())
+  jurisdictionId   Int
+  sessionId        Int
+  originChamberId  Int?
+  // Stored lowercase and without punctuation: "hr", "s", "hjres"
+  billType         String     @db.VarChar(16)
+  number           Int
+  // Stable URL id: "us-119-hr-1"
+  slug             String     @unique @db.VarChar(80)
+  title            String     @db.Text
+  policyArea       String?    @db.VarChar(120)
+  introducedDate   DateTime?  @db.Date
+  currentStatus    BillStatus @default(INTRODUCED)
+  statusDate       DateTime?  @db.Date
+  latestActionDate DateTime?  @db.Date
+  latestActionText String?    @db.Text
+  lawNumber        String?    @db.VarChar(40)
+  sourceUrl        String?    @db.VarChar(500)
+  sourceUpdatedAt  DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  jurisdiction  Jurisdiction         @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
+  session       LegislativeSession   @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  originChamber LegislativeChamber?  @relation(fields: [originChamberId], references: [id], onDelete: SetNull)
+  actions       BillActionEvent[]
+  sponsorships  BillSponsorship[]
+  titles        BillTitle[]
+  subjects      BillSubject[]
+  relations     BillRelation[]       @relation("BillRelations")
+  relatedTo     BillRelation[]       @relation("BillRelatedTarget")
+  textVersions  BillTextVersion[]
+  summaries     BillSummaryVersion[]
+  rollCalls     RollCall[]
+  userVotes     UserBillVote[]
+  follows       UserBillFollow[]
+
+  @@unique([sessionId, billType, number])
+  // Keyset pagination for "recent bills" lists
+  @@index([jurisdictionId, latestActionDate, id])
+  @@index([currentStatus, latestActionDate])
+  @@index([policyArea, latestActionDate])
+  @@map("bill")
+}
+
+model BillActionEvent {
+  id           Int      @id @default(autoincrement())
+  billId       Int
+  actionDate   DateTime @db.Date
+  actionTime   String?  @db.VarChar(16)
+  actionCode   String?  @db.VarChar(20)
+  type         String?  @db.VarChar(40)
+  text         String   @db.Text
+  sourceSystem String?  @db.VarChar(60)
+  rollCallId   Int?
+  // The API gives actions no id, so a hash of their content is what identifies them
+  contentHash  String   @db.Char(64)
+  createdAt    DateTime @default(now())
+
+  bill     Bill      @relation(fields: [billId], references: [id], onDelete: Cascade)
+  rollCall RollCall? @relation(fields: [rollCallId], references: [id], onDelete: SetNull)
+
+  @@unique([billId, contentHash])
+  @@index([billId, actionDate])
+  @@index([actionCode])
+  @@index([rollCallId])
+  @@map("bill_action_event")
+}
+
+model BillSponsorship {
+  billId      Int
+  personId    Int
+  kind        SponsorshipKind
+  isOriginal  Boolean         @default(false)
+  sponsoredAt DateTime?       @db.Date
+  withdrawnAt DateTime?       @db.Date
+
+  bill   Bill   @relation(fields: [billId], references: [id], onDelete: Cascade)
+  person Person @relation(fields: [personId], references: [id], onDelete: Restrict)
+
+  @@id([billId, personId, kind])
+  @@index([personId, kind])
+  @@map("bill_sponsorship")
+}
+
+model BillTitle {
+  id          Int     @id @default(autoincrement())
+  billId      Int
+  titleType   String  @db.VarChar(191)
+  title       String  @db.Text
+  versionCode String? @db.VarChar(20)
+  contentHash String  @db.Char(64)
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@unique([billId, contentHash])
+  @@map("bill_title")
+}
+
+model BillSubject {
+  billId Int
+  name   String @db.VarChar(191)
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@id([billId, name])
+  @@index([name])
+  @@map("bill_subject")
+}
+
+model BillRelation {
+  id            Int     @id @default(autoincrement())
+  billId        Int
+  // Set once the related bill has been imported. The slug always works.
+  relatedBillId Int?
+  relatedSlug   String  @db.VarChar(80)
+  relatedTitle  String? @db.Text
+  relationType  String  @db.VarChar(120)
+  identifiedBy  String  @db.VarChar(60)
+
+  bill        Bill  @relation("BillRelations", fields: [billId], references: [id], onDelete: Cascade)
+  relatedBill Bill? @relation("BillRelatedTarget", fields: [relatedBillId], references: [id], onDelete: SetNull)
+
+  @@unique([billId, relatedSlug, relationType, identifiedBy])
+  @@index([relatedSlug])
+  @@index([relatedBillId])
+  @@map("bill_relation")
+}
+
+model BillTextVersion {
+  id          Int       @id @default(autoincrement())
+  billId      Int
+  versionType String    @db.VarChar(120)
+  issuedOn    DateTime?
+  htmlUrl     String?   @db.VarChar(500)
+  pdfUrl      String?   @db.VarChar(500)
+  xmlUrl      String?   @db.VarChar(500)
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@unique([billId, versionType])
+  @@map("bill_text_version")
+}
+
+// Every version is kept, so a new CRS summary adds a row instead of replacing the old one.
+model BillSummaryVersion {
+  id              Int           @id @default(autoincrement())
+  billId          Int
+  source          SummarySource @default(CRS)
+  versionCode     String?       @db.VarChar(20)
+  actionDate      DateTime?     @db.Date
+  actionDesc      String?       @db.VarChar(255)
+  // HTML from the source. Sanitize before rendering.
+  text            String        @db.MediumText
+  contentHash     String        @db.Char(64)
+  sourceUpdatedAt DateTime?
+  createdAt       DateTime      @default(now())
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@unique([billId, source, contentHash])
+  @@index([billId, actionDate])
+  @@map("bill_summary_version")
+}
+
+model RollCall {
+  id             Int        @id @default(autoincrement())
+  jurisdictionId Int
+  chamberId      Int
+  sessionId      Int
+  // Congress has sessions 1 and 2 inside each numbered Congress
+  subSession     Int        @default(1)
+  number         Int
+  // Null for procedural votes, such as quorum calls and nominations
+  billId         Int?
+  // As the source labels it: "H RES 780", "PN1129"
+  legislationRef String?    @db.VarChar(80)
+  question       String?    @db.Text
+  description    String?    @db.Text
+  voteType       String?    @db.VarChar(80)
+  result         String?    @db.VarChar(120)
+  occurredAt     DateTime?
+  totalYea       Int        @default(0)
+  totalNay       Int        @default(0)
+  totalPresent   Int        @default(0)
+  totalNotVoting Int        @default(0)
+  source         DataSource
+  sourceUrl      String?    @db.VarChar(500)
+  // When the source data was last fetched. The UI shows this as "as of".
+  asOf           DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  jurisdiction Jurisdiction       @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
+  chamber      LegislativeChamber @relation(fields: [chamberId], references: [id], onDelete: Restrict)
+  session      LegislativeSession @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  bill         Bill?              @relation(fields: [billId], references: [id], onDelete: SetNull)
+  positions    RollCallPosition[]
+  actions      BillActionEvent[]
+
+  @@unique([chamberId, sessionId, subSession, number])
+  @@index([billId])
+  @@index([chamberId, occurredAt])
+  @@map("roll_call")
+}
+
+model RollCallPosition {
+  rollCallId Int
+  personId   Int
+  position   VotePosition
+  // Captured at vote time, because a member can switch parties later
+  party      String?      @db.VarChar(8)
+  regionCode String?      @db.VarChar(8)
+
+  rollCall RollCall @relation(fields: [rollCallId], references: [id], onDelete: Cascade)
+  person   Person   @relation(fields: [personId], references: [id], onDelete: Restrict)
+
+  @@id([rollCallId, personId])
+  @@index([personId, rollCallId])
+  @@map("roll_call_position")
+}
+
+// One row per user per level of government, so state districts can be added later.
+model UserLocation {
+  userId         String
+  jurisdictionId Int
+  regionCode     String         @db.VarChar(8)
+  districtId     Int?
+  source         LocationSource
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jurisdiction Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
+  district     District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
+
+  @@id([userId, jurisdictionId])
+  @@index([districtId])
+  @@map("user_location")
+}
+
+model UserBillVote {
+  userId    String
+  billId    Int
+  position  VotePosition
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@id([userId, billId])
+  @@index([billId, position])
+  @@index([userId, createdAt])
+  @@map("user_bill_vote")
+}
+
+model UserBillFollow {
+  userId    String
+  billId    Int
+  following Boolean   @default(false)
+  viewedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@id([userId, billId])
+  @@index([userId, following])
+  @@index([userId, viewedAt])
+  @@map("user_bill_follow")
+}
+
+model UserPersonFavorite {
+  userId    String
+  personId  Int
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@id([userId, personId])
+  @@index([personId])
+  @@map("user_person_favorite")
+}
+
+// Precomputed so dashboards stay fast. policyArea "" holds the overall figure.
+model UserRepAlignment {
+  userId        String
+  personId      Int
+  policyArea    String   @default("") @db.VarChar(120)
+  comparedVotes Int      @default(0)
+  matchedVotes  Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@id([userId, personId, policyArea])
+  @@index([personId])
+  @@map("user_rep_alignment")
+}
+
+// A separate table, so password hashes can't leak through ordinary user queries.
+model UserPassword {
+  userId       String   @id
+  passwordHash String   @db.VarChar(255)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_password")
+}
