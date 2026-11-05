@@ -30,9 +30,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -49,6 +46,15 @@ const nextConfig = {
   },
 
   allowedDevOrigins: ['127.0.0.1'],
+
+  // The old second bill section. Bills all live under /bills now.
+  async redirects() {
+    return [
+      { source: '/federal/bills', destination: '/bills', permanent: false },
+      { source: '/congress', destination: '/legislators', permanent: false },
+      { source: '/federal/bills/:slug', destination: '/bills/:slug', permanent: false },
+    ];
+  },
 
   output: 'standalone',
 };

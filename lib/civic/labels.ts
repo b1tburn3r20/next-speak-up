@@ -100,7 +100,7 @@ export function positionLabel(position: string): string {
 export function seatLabel(
   stateName: string,
   districtCode: string | null | undefined,
-  chamberKind: "UPPER" | "LOWER",
+  chamberKind: "UPPER" | "LOWER" | "UNICAMERAL",
 ): string {
   if (chamberKind === "UPPER" || !districtCode || districtCode === "STATE") return stateName;
   return districtCode === "AL"

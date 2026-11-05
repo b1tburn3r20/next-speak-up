@@ -7,6 +7,9 @@ import Navbar from "./navbar/navbar";
 import { Instrument_Sans } from "next/font/google";
 import { cn } from "@/lib/utils";
 import Modals from "@/components/cb/modals";
+import { TopProgressBar } from "@/components/app/top-progress-bar";
+import { OnboardingGate } from "@/components/onboarding/onboarding-gate";
+import { THEME_VALUES } from "@/components/app/theme-values";
 
 const InstrumentSans = Instrument_Sans({ subsets: ['latin'], variable: '--font-geist' });
 
@@ -67,14 +70,16 @@ export default function RootLayout({
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
+            themes={THEME_VALUES}
           >
+            <TopProgressBar />
             <Navbar>
               <main className="">
                 {children}
               </main>
             </Navbar>
             <Toaster />
-            {/* <OnboardingModal /> */}
+            <OnboardingGate />
           </ThemeProvider>
           <Modals />
         </AuthProvider>

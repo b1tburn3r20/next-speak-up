@@ -51,9 +51,11 @@ export async function POST(request: NextRequest) {
     } else if ("address" in input) {
       resolved = await districtFromAddress(input.address);
       source = "ADDRESS";
-    } else {
-      resolved = input;
+    } else if ("regionCode" in input) {
+      resolved = { regionCode: input.regionCode, districtCode: input.districtCode };
       source = "MANUAL";
+    } else {
+      return NextResponse.json({ error: "Invalid location." }, { status: 400 });
     }
   } catch (error) {
     console.error("Location lookup failed:", error instanceof Error ? error.message : "unknown");

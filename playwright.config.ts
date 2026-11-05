@@ -25,7 +25,7 @@ export default defineConfig({
   })),
   webServer: {
     command: "npm run dev",
-    url: "http://localhost:3000",
+    url: "http://localhost:3000/api/auth/providers",
     reuseExistingServer: true,
     timeout: 180_000,
     // Blank, so a stray click can't reach a paid service during tests.

@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark *, .midnight *));
 
 @theme inline {
   --color-background: var(--background);
@@ -306,4 +306,80 @@
 *::selection {
   background-color: var(--selection-background);
   color: var(--selection-color);
+}
+
+/* Additional themes. Each one only overrides colors. Midnight also counts as dark for the
+   dark: variant, which is set up at the top of this file. */
+.sepia {
+  --background-dark: oklch(0.90 0.03 85);
+  --background: oklch(0.93 0.03 85);
+  --background-light: oklch(0.955 0.025 85);
+  --background-very-light: oklch(0.975 0.015 85);
+  --foreground: oklch(0.30 0.04 60);
+  --card: oklch(0.975 0.02 85);
+  --card-foreground: oklch(0.30 0.04 60);
+  --popover: oklch(0.975 0.02 85);
+  --popover-foreground: oklch(0.30 0.04 60);
+  --primary: oklch(0.48 0.11 50);
+  --primary-foreground: oklch(0.98 0.01 85);
+  --secondary: oklch(0.89 0.04 80);
+  --secondary-foreground: oklch(0.34 0.05 60);
+  --muted: oklch(0.91 0.03 85);
+  --muted-foreground: oklch(0.46 0.04 60);
+  --accent: oklch(0.88 0.05 80);
+  --accent-foreground: oklch(0.30 0.04 60);
+  --border: oklch(0.84 0.03 80);
+  --input: oklch(0.84 0.03 80);
+  --ring: oklch(0.48 0.11 50);
+  --chart-1: oklch(0.48 0.11 50);
+  --sidebar: oklch(0.91 0.03 85);
+  --sidebar-foreground: oklch(0.30 0.04 60);
+  --sidebar-primary: oklch(0.48 0.11 50);
+  --sidebar-primary-foreground: oklch(0.98 0.01 85);
+  --sidebar-accent: oklch(0.88 0.05 80);
+  --sidebar-accent-foreground: oklch(0.30 0.04 60);
+  --sidebar-border: oklch(0.84 0.03 80);
+  --sidebar-ring: oklch(0.48 0.11 50);
+}
+
+.midnight {
+  color-scheme: dark;
+  --background-dark: oklch(0.13 0.02 250);
+  --background: oklch(0.17 0.025 250);
+  --background-light: oklch(0.21 0.03 250);
+  --background-very-light: oklch(0.26 0.03 250);
+  --foreground: oklch(0.93 0.015 250);
+  --card: oklch(0.19 0.03 250);
+  --card-foreground: oklch(0.93 0.015 250);
+  --popover: oklch(0.19 0.03 250);
+  --popover-foreground: oklch(0.93 0.015 250);
+  --primary: oklch(0.74 0.13 230);
+  --primary-foreground: oklch(0.15 0.03 250);
+  --secondary: oklch(0.28 0.04 250);
+  --secondary-foreground: oklch(0.88 0.02 250);
+  --muted: oklch(0.25 0.03 250);
+  --muted-foreground: oklch(0.73 0.03 250);
+  --accent: oklch(0.30 0.05 240);
+  --accent-foreground: oklch(0.93 0.015 250);
+  --border: oklch(0.30 0.03 250);
+  --input: oklch(0.30 0.03 250);
+  --ring: oklch(0.74 0.13 230);
+  --chart-1: oklch(0.74 0.13 230);
+  --sidebar: oklch(0.19 0.03 250);
+  --sidebar-foreground: oklch(0.93 0.015 250);
+  --sidebar-primary: oklch(0.74 0.13 230);
+  --sidebar-primary-foreground: oklch(0.15 0.03 250);
+  --sidebar-accent: oklch(0.30 0.05 240);
+  --sidebar-accent-foreground: oklch(0.93 0.015 250);
+  --sidebar-border: oklch(0.30 0.03 250);
+  --sidebar-ring: oklch(0.74 0.13 230);
+}
+
+@keyframes progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
 }

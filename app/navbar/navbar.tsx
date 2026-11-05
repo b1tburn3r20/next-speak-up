@@ -2,12 +2,11 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
 import { navItems } from "../data/navbarData";
-import { UserSession } from "@/lib/types/user-types";
-import ClientNavbar from "./varients/ClientNavbar";
+import ClientNavbar from "./varients/client-navbar";
 
 const Navbar = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession(authOptions);
-  const userRole = (session?.user as UserSession)?.role.name;
+  const userRole = session?.user?.role?.name;
 
   const visibleNavHrefs = navItems
     .filter((item) => {

@@ -1,5 +1,5 @@
 "use client"
-import { ModeToggle } from "@/components/ui/mode-toggle";
+import { ThemePicker } from "@/components/app/theme-picker";
 import SiteSearch from "./site-search";
 import Image from "next/image";
 import { useNavbarStore } from "./useNavbarStore";
@@ -25,7 +25,7 @@ const NavbarTop = () => {
         }
       </div>
       <div className="flex gap-2 items-center ">
-        <ModeToggle />
+        <ThemePicker />
         <SiteSearch />
       </div>
     </div>

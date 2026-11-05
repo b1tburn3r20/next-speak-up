@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   }
 
   const result = await signUp(parsed.data);
-  if (!result.ok) {
+  if ("error" in result) {
     return NextResponse.json({ error: result.error }, { status: 409 });
   }
 
