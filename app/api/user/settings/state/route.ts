@@ -2,6 +2,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { userService } from "@/lib/services/user";
+import { syncLocationFromProfile } from "@/lib/civic/users";
 import { NextResponse } from "next/server";
 import { US_STATES } from "@/lib/constants/states";
 
@@ -28,6 +29,7 @@ export async function PATCH(request: Request) {
       state,
     });
 
+    await syncLocationFromProfile(session.user.id);
     return NextResponse.json(updatedUser);
   } catch (error) {
     console.error("Error updating state:", error);

@@ -184,6 +184,37 @@ test("phones get a working menu", async ({ page, isMobile }, testInfo) => {
   void isMobile;
 });
 
+test("site search finds members and bills, and goes to them", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name.startsWith("phone"), "The search box is in the wide layout.");
+  await page.goto("/bills");
+  await page.locator('[data-testid="site-search"]:visible').click();
+  await page.getByTestId("site-search-input").fill("Barrasso");
+  await expect(page.getByTestId("search-result").first()).toContainText("Barrasso");
+  await page.getByTestId("site-search-input").fill("H.R. 2388");
+  await expect(page.getByTestId("search-result").first()).toContainText("H.R. 2388");
+  await page.getByTestId("search-result").first().click();
+  await expect(page).toHaveURL(/us-119-hr-2388/);
+});
+
+test("changing state in the older settings form updates your reps", async ({ page }) => {
+  const username = `e2e_st_${Date.now()}`;
+  await page.request.post("/api/account/signup", {
+    headers: { origin: "http://localhost:3000" },
+    data: { username, email: `${username}@coolbills.test`, password: "a good password" },
+  });
+  const response = await page.request.patch("/api/user/settings/state", {
+    data: { state: "Wyoming" },
+  });
+  expect(response.ok()).toBeTruthy();
+  await page.goto("/dashboard");
+  // Onboarding picks up from the saved location, and shows the right people.
+  await expect(page.getByTestId("onboarding-reps")).toContainText("Barrasso");
+  await page.getByTestId("onboarding-skip").click();
+  await expect(page.getByTestId("dashboard-reps")).toContainText("Barrasso");
+  // With only a state, you see your senators, not somebody else's House member.
+  await expect(page.getByTestId("dashboard-reps").getByTestId("member-card")).toHaveCount(2);
+});
+
 test("the old bill section redirects to the new one", async ({ page }) => {
   await page.goto("/federal/bills");
   await expect(page).toHaveURL(/\/bills$/);

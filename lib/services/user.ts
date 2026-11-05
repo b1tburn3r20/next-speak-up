@@ -13,6 +13,8 @@ import { AuthSession } from "../types/user-types";
 import { getServerSession } from "next-auth";
 
 // Use Prisma's generated type and extend it if needed
+import { syncLocationFromProfile } from "@/lib/civic/users";
+
 export type User = PrismaUser;
 
 export type UserUpdateData = {
@@ -475,6 +477,7 @@ export const saveUserStateAndDistrict = async (
     },
   });
 
+  await syncLocationFromProfile(userId);
   await logUserAction(userId, "Update User State And District", null, userRole);
   return Response.json({ success: true }, { status: 200 });
 };

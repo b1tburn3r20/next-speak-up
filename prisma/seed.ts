@@ -3,6 +3,13 @@
 import { PrismaClient, VotePosition } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
+const STATE_NAMES: Record<string, string> = {
+  TX: "Texas",
+  CA: "California",
+  NY: "New York",
+  WY: "Wyoming",
+};
+
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 
 export function assertLocalDatabase(databaseUrl: string | undefined) {
@@ -68,7 +75,9 @@ async function main() {
     const us = await prisma.jurisdiction.findUnique({ where: { code: "US" } });
     const users = [];
     for (const account of TEST_USERS) {
-      const { username, ...fields } = account;
+      const { username, ...rest } = account;
+      // Older tables and forms store full state names.
+      const fields = { ...rest, state: account.state ? STATE_NAMES[account.state] : null };
       const user = await prisma.user.upsert({
         where: { username },
         update: fields,

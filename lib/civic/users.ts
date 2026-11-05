@@ -7,8 +7,22 @@ import {
   type Position,
 } from "./alignment";
 import { repsForLocation } from "./people";
+import { normalizeDistrict } from "./location";
+import { STATE_NAMES } from "@/lib/constants/state-names";
 
 const FEDERAL_CODE = "US";
+const NAMES = STATE_NAMES as Record<string, string>;
+
+/** "Texas" or "TX" becomes "TX". The older tables and forms store full state names. */
+export function toStateCode(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const text = value.trim();
+  if (NAMES[text.toUpperCase()]) return text.toUpperCase();
+  const match = Object.entries(NAMES).find(
+    ([, name]) => name.toLowerCase() === text.toLowerCase(),
+  );
+  return match ? match[0] : null;
+}
 
 async function federalJurisdictionId(): Promise<number> {
   const us = await prisma.jurisdiction.findUniqueOrThrow({
@@ -62,13 +76,49 @@ export async function saveUserLocation(
     prisma.user.update({
       where: { id: userId },
       data: {
-        state: regionCode,
+        state: NAMES[regionCode] ?? regionCode,
         district: districtCode === "AL" ? 0 : Number.parseInt(districtCode, 10),
       },
     }),
   ]);
   await refreshUserAlignment(userId);
   return true;
+}
+
+/**
+ * Keeps the location table in step when older forms change a user's state and district. If a
+ * form only has the state, the user still gets their senators.
+ */
+export async function syncLocationFromProfile(userId: string): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { state: true, district: true },
+  });
+  const regionCode = toStateCode(user?.state);
+  const jurisdictionId = await federalJurisdictionId();
+  if (!regionCode) {
+    await prisma.userLocation.deleteMany({ where: { userId, jurisdictionId } });
+    await refreshUserAlignment(userId);
+    return;
+  }
+  const district =
+    user?.district === null || user?.district === undefined
+      ? null
+      : await prisma.district.findFirst({
+          where: {
+            regionCode,
+            code: normalizeDistrict(user.district),
+            chamber: { kind: "LOWER" },
+          },
+          select: { id: true },
+        });
+  const values = { regionCode, districtId: district?.id ?? null, source: "MANUAL" as const };
+  await prisma.userLocation.upsert({
+    where: { userId_jurisdictionId: { userId, jurisdictionId } },
+    update: values,
+    create: { userId, jurisdictionId, ...values },
+  });
+  await refreshUserAlignment(userId);
 }
 
 export async function listDistricts(regionCode: string): Promise<string[]> {

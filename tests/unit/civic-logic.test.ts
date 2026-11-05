@@ -98,6 +98,16 @@ describe("computeMemberStats", () => {
     expect(stats.partyLoyaltyPercent).toBe(50);
   });
 
+  it("never rounds missed votes up to a perfect record", () => {
+    const records = Array.from({ length: 915 }, (_, index) => ({
+      position: (index < 4 ? "NOT_VOTING" : "YEA") as Position,
+      partyMajority: null,
+    }));
+    expect(computeMemberStats(records).attendancePercent).toBe(99);
+    const perfect = records.map((record) => ({ ...record, position: "YEA" as Position }));
+    expect(computeMemberStats(perfect).attendancePercent).toBe(100);
+  });
+
   it("leaves tied party votes out of loyalty", () => {
     const stats = computeMemberStats([
       { position: "YEA", partyMajority: null },

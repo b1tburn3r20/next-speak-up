@@ -64,6 +64,10 @@ export type MemberVotingStats = {
 
 export function computeMemberStats(records: MemberVoteRecord[]): MemberVotingStats {
   const missed = records.filter((record) => record.position === "NOT_VOTING").length;
+  // Rounding must never show someone with missed votes as having a perfect record.
+  const rawAttendance = percentOf(records.length - missed, records.length);
+  const attendancePercent =
+    rawAttendance === 100 && missed > 0 ? 99 : rawAttendance;
   const withMajority = records.filter(
     (record) =>
       record.partyMajority !== null &&
@@ -72,7 +76,7 @@ export function computeMemberStats(records: MemberVoteRecord[]): MemberVotingSta
   const loyal = withMajority.filter((record) => record.position === record.partyMajority).length;
   return {
     totalVotes: records.length,
-    attendancePercent: percentOf(records.length - missed, records.length),
+    attendancePercent,
     missedVotes: missed,
     partyLoyaltyPercent: percentOf(loyal, withMajority.length),
   };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -27,10 +27,28 @@ export function OnboardingGate() {
 
   const needsOnboarding = Boolean(session?.user?.needsOnboarding);
 
+  const hasSavedState = Boolean(session?.user?.state);
+
+  const loadReps = useCallback(async (query: string) => {
+    setLoadError(false);
+    try {
+      const response = await fetch(`/api/civic/reps${query}`);
+      if (!response.ok) throw new Error();
+      const data = await response.json();
+      setReps(data.reps);
+      setBills(data.suggestedBills);
+    } catch {
+      setLoadError(true);
+    }
+  }, []);
+
   // Someone who already has a location only needs the remaining steps.
   useEffect(() => {
-    if (needsOnboarding && session?.user?.state) setStep("reps");
-  }, [needsOnboarding, session?.user?.state]);
+    if (needsOnboarding && hasSavedState) {
+      setStep("reps");
+      loadReps("");
+    }
+  }, [needsOnboarding, hasSavedState, loadReps]);
 
   const complete = async () => {
     setDismissed(true);
@@ -41,18 +59,7 @@ export function OnboardingGate() {
 
   const onResolved = async (location: ResolvedLocation) => {
     setStep("reps");
-    setLoadError(false);
-    try {
-      const response = await fetch(
-        `/api/civic/reps?state=${location.regionCode}&district=${location.districtCode}`,
-      );
-      if (!response.ok) throw new Error();
-      const data = await response.json();
-      setReps(data.reps);
-      setBills(data.suggestedBills);
-    } catch {
-      setLoadError(true);
-    }
+    await loadReps(`?state=${location.regionCode}&district=${location.districtCode}`);
   };
 
   if (!needsOnboarding || dismissed) return null;
@@ -129,7 +136,7 @@ export function OnboardingGate() {
           </>
         ) : null}
 
-        {step === "location" ? (
+        {step !== "vote" ? (
           <button
             type="button"
             className="text-sm underline"
