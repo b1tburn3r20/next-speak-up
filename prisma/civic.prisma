@@ -282,6 +282,8 @@ model BillActionEvent {
   rollCallId   Int?
   // The API gives actions no id, so a hash of their content is what identifies them
   contentHash  String   @db.Char(64)
+  // Order within the bill, oldest first. Times can't order a day: only House actions have them
+  position     Int      @default(0)
   createdAt    DateTime @default(now())
 
   bill     Bill      @relation(fields: [billId], references: [id], onDelete: Cascade)

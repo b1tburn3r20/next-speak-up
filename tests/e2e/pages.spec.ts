@@ -33,6 +33,17 @@ test("a bill shows its real status and history", async ({ page }) => {
   await expect(page.getByTestId("bill-timeline")).toContainText("Became Public Law");
 });
 
+test("a bill passed and signed in one day shows as law, newest action first", async ({ page }) => {
+  await page.goto("/bills/us-119-s-4465");
+  await expect(page.getByTestId("bill-timeline").locator("li").first()).toContainText(
+    "Became Public Law"
+  );
+  await expect(page.getByTestId("bill-timeline").locator("li").last()).toContainText(
+    "Introduced in Senate"
+  );
+  await expect(page.getByRole("main")).toContainText(/became law/i);
+});
+
 test("an unknown bill or member is a clean 404", async ({ page }) => {
   expect((await page.goto("/bills/us-119-hr-999999"))?.status()).toBe(404);
   expect((await page.goto("/legislators/federal/Z999999"))?.status()).toBe(404);

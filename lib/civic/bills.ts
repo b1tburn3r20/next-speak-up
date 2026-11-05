@@ -114,7 +114,7 @@ export const getBill = cache(async (slug: string) => {
       session: { select: { identifier: true } },
       originChamber: { select: { shortName: true } },
       actions: {
-        orderBy: [{ actionDate: "desc" }, { id: "desc" }],
+        orderBy: [{ actionDate: "desc" }, { position: "desc" }],
         select: {
           id: true,
           actionDate: true,
