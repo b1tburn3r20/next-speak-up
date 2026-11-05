@@ -1,4 +1,4 @@
-import PageLoader from "@/app/GeneralComponents/Onboarding/components/componentsA/PageLoader";
+import PageLoader from "@/app/GeneralComponents/Onboarding/components/componentsA/page-loader";
 
 const Page = () => {
   return <PageLoader />;

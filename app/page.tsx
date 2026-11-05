@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import LandingNavbar from "./landing/navbar/navbar";
-import Hero from "./landing/components/Hero";
-import Contact from "./landing/components/Contact";
+import Hero from "./landing/components/hero";
+import Contact from "./landing/components/contact";
 import OuterBlock from '@/components/cb/outer-block';
 import LearnYourReps from './landing/components/learn-your-reps';
 

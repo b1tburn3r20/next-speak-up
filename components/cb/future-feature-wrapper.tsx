@@ -1,6 +1,6 @@
 "use client"
 
-import { useAppStore } from "@/app/stores/useAppStore"
+import { useAppStore } from "@/app/stores/use-app-store"
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogHeader, DialogDescription, DialogClose } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger, PopoverHeader, PopoverDescription } from "@/components/ui/popover"
 import { Info } from "lucide-react"

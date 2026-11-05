@@ -1,5 +1,5 @@
 import { Check, Search } from "lucide-react";
-import { usStateToDistrictMap } from "@/lib/constants/StateToDistictMap";
+import { usStateToDistrictMap } from "@/lib/constants/state-to-distict-map";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 

@@ -1,7 +1,7 @@
 // components/Navbar.tsx (Server Component)
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
-import { navItems } from "../data/navbarData";
+import { navItems } from "../data/navbar-data";
 import ClientNavbar from "./varients/client-navbar";
 
 const Navbar = async ({ children }: { children: React.ReactNode }) => {

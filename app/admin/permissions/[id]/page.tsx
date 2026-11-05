@@ -1,8 +1,8 @@
 import { getUserById } from "@/lib/services/user";
-import UserAccountInformation from "./components/UserAccountInformation";
+import UserAccountInformation from "./components/user-account-information";
 
-import CreatePermission from "./components/CreatePermission";
-import ManagePermissions from "./components/ManagePermissions";
+import CreatePermission from "./components/create-permission";
+import ManagePermissions from "./components/manage-permissions";
 interface PageProps {
   params: Promise<{
     id: number;

@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import LoginForm from "@/components/login-form";
-import { useLoginStore } from "@/app/navbar/useLoginStore";
+import { useLoginStore } from "@/app/navbar/use-login-store";
 
 
 export const LoginSignupModal = () => {

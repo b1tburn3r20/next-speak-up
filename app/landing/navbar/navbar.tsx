@@ -1,5 +1,5 @@
-import LandingDesktopNavbar from "./LandingDesktopNavbar";
-import LandingMobileNavbar from "./LandingMobileNavbar";
+import LandingDesktopNavbar from "./landing-desktop-navbar";
+import LandingMobileNavbar from "./landing-mobile-navbar";
 
 const LandingNavbar = ({ children }) => {
   return (

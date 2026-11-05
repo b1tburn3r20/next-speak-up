@@ -5,11 +5,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import { formatIsoDate } from "@/lib/utils/StringFunctions"
+import { formatIsoDate } from "@/lib/utils/string-functions"
 import { Permission } from "@prisma/client"
 import { Edit, Loader, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import CreatePermission from "../[id]/components/CreatePermission"
+import CreatePermission from "../[id]/components/create-permission"
 
 interface AllPermissionsProps {
   permissions: Permission[]

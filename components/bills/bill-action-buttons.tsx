@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Bell, BellOff, ThumbsDown, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useLoginStore } from "@/app/navbar/useLoginStore";
+import { useLoginStore } from "@/app/navbar/use-login-store";
 
 type Position = "YEA" | "NAY" | null;
 

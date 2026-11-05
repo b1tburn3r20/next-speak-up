@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import AuthProvider from "./auth/Provider";
+import AuthProvider from "./auth/provider";
 import { Toaster } from "sonner";
 import Navbar from "./navbar/navbar";
 import { Instrument_Sans } from "next/font/google";

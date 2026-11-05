@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { legislationVotesService } from "@/lib/services/legislation_two";
+import { legislationVotesService } from "@/lib/services/legislation-two";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

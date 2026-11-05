@@ -7,8 +7,8 @@ import { Menu, X } from "lucide-react";
 import { ThemePicker } from "@/components/app/theme-picker";
 import NavUser from "@/components/nav-user";
 import { Button } from "@/components/ui/button";
-import type { NavItem as NavItemData } from "../../data/navbarData";
-import NavItem from "../NavItem";
+import type { NavItem as NavItemData } from "../../data/navbar-data";
+import NavItem from "../nav-item";
 
 /** The top bar and slide-out menu, shown only below the medium breakpoint. */
 export function MobileNavbar({ items }: { items: NavItemData[] }) {

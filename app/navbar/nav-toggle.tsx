@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { ArrowLeft, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavbarStore } from "./useNavbarStore";
+import { useNavbarStore } from "./use-navbar-store";
 import Image from "next/image";
 import SideBlock from "@/components/cb/side-block";
 import Link from "next/link";

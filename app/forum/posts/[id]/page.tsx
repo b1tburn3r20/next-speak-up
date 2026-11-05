@@ -2,8 +2,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getPostById } from "@/lib/services/forum-service";
 import { Metadata } from "next";
-import ViewPostContent from "./components/ViewPostContent";
-import ViewPostInfo from "./components/ViewPostInfo";
+import ViewPostContent from "./components/view-post-content";
+import ViewPostInfo from "./components/view-post-info";
 import { incrementPostViews } from "@/lib/services/forum-service";
 import { AuthSession, UserSession } from "@/lib/types/user-types";
 

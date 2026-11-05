@@ -1,4 +1,4 @@
-import { devService } from "@/lib/services/devService";
+import { devService } from "@/lib/services/dev-service";
 import { MemberContactList } from "./components/member-contact-list";
 
 export default async function AddContactsPage({

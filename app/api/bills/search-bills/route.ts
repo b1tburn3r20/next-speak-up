@@ -3,7 +3,7 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/ratelimiter";
-import SearchBills from "@/app/bills/components/SearchBills";
+import SearchBills from "@/app/bills/components/search-bills";
 import { searchLegislation } from "@/lib/services/bills/bill-searching";
 
 export async function GET(req: Request) {

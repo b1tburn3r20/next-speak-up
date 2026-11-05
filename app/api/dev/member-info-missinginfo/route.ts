@@ -1,5 +1,5 @@
 // app/api/dev/member-info-missinginfo/route.ts
-import { devService } from "@/lib/services/devService";
+import { devService } from "@/lib/services/dev-service";
 import { NextRequest } from "next/server";
 
 export async function PATCH(request: NextRequest) {

@@ -2,7 +2,7 @@
 import { ThemePicker } from "@/components/app/theme-picker";
 import SiteSearch from "./site-search";
 import Image from "next/image";
-import { useNavbarStore } from "./useNavbarStore";
+import { useNavbarStore } from "./use-navbar-store";
 import SideBlock from "@/components/cb/side-block";
 import Link from "next/link";
 

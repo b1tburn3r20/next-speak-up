@@ -1,5 +1,5 @@
 import LandingNavbar from "../landing/navbar/navbar";
-import MissionHero from "./components/MissionHero";
+import MissionHero from "./components/mission-hero";
 import { Metadata } from "next"
 import PageSpacer from "@/components/cb/page-space";
 export const metadata: Metadata = {

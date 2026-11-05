@@ -5,12 +5,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import { formatIsoDate } from "@/lib/utils/StringFunctions"
+import { formatIsoDate } from "@/lib/utils/string-functions"
 import { Role } from "@prisma/client"
 import { Edit, Loader, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import CreateRole from "../[id]/components/CreateRole"
-import ManageRoles from "../[id]/components/ManageRoles"
+import CreateRole from "../[id]/components/create-role"
+import ManageRoles from "../[id]/components/manage-roles"
 
 interface AllRolesProps {
   roles: Role[]

@@ -4,13 +4,13 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import type { Session } from "next-auth";
 import NavUser from "@/components/nav-user";
-import { useUserStore } from "@/app/admin/stores/useUserStore";
-import { useAppStore } from "@/app/stores/useAppStore";
-import { navItems } from "../../data/navbarData";
-import NavItem from "../NavItem";
+import { useUserStore } from "@/app/admin/stores/use-user-store";
+import { useAppStore } from "@/app/stores/use-app-store";
+import { navItems } from "../../data/navbar-data";
+import NavItem from "../nav-item";
 import NavToggle from "../nav-toggle";
 import NavbarTop from "../navbar-top";
-import { useNavbarStore } from "../useNavbarStore";
+import { useNavbarStore } from "../use-navbar-store";
 import { MobileNavbar } from "./mobile-navbar";
 
 interface ClientNavbarProps {

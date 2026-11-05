@@ -1,6 +1,6 @@
-import NewFormSubmitButton from "./components/NewFormSubmitButton";
-import NewForumPostForm from "./components/NewForumPostForm";
-import NewForumPostMessage from "./components/NewForumPostMessage";
+import NewFormSubmitButton from "./components/new-form-submit-button";
+import NewForumPostForm from "./components/new-forum-post-form";
+import NewForumPostMessage from "./components/new-forum-post-message";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

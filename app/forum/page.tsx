@@ -2,8 +2,8 @@ import { TextAnimate } from "@/components/magicui/text-animate";
 import { AuthSession } from "@/lib/types/user-types";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
-import CreateForumPostLink from "./components/CreateForumPostLink";
-import ForumPosts from "./components/ForumPosts";
+import CreateForumPostLink from "./components/create-forum-post-link";
+import ForumPosts from "./components/forum-posts";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 export const metadata: Metadata = {
   title: "Coolbills Forum",

@@ -1,5 +1,5 @@
 import { getAllUsers } from "@/lib/services/user";
-import SelectUsers from "./components/SelectUsers"
+import SelectUsers from "./components/select-users"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { AuthSession } from "@/lib/types/user-types";

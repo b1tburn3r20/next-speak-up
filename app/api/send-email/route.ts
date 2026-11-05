@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendContactEmail, sendAutoReply } from "@/lib/emailServices";
+import { sendContactEmail, sendAutoReply } from "@/lib/email-services";
 import { getClientIP } from "../feature-suggestion/route";
 import { checkRateLimit } from "@/lib/ratelimiter";
 

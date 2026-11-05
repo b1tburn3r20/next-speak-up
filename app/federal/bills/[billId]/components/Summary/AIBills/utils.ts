@@ -1,4 +1,4 @@
-import { Term } from "./AiBillKeyTerms";
+import { Term } from "./ai-bill-key-terms";
 
 export const parseKeyTerms = (keyTerms: string): Term[] => {
   const entries = keyTerms.split(/\n\n+/);

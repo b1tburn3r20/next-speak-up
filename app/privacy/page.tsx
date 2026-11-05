@@ -1,7 +1,7 @@
 import OuterBlock from "@/components/cb/outer-block"
-import PrivacyHero from "./PrivacyHero"
-// import PrivacyWillSell from "./PrivacyWillSell"
-// import SellableData from "./SellableData"
+import PrivacyHero from "./privacy-hero"
+// import PrivacyWillSell from "./privacy-will-sell"
+// import SellableData from "./sellable-data"
 import StackBlock from "@/components/cb/stack-block"
 
 
