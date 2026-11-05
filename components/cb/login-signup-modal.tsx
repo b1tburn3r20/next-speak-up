@@ -17,7 +17,7 @@ export const LoginSignupModal = () => {
     <Dialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Login/Signup with Google</DialogTitle>
+          <DialogTitle>Log in or sign up</DialogTitle>
         </DialogHeader>
         <LoginForm />
       </DialogContent>

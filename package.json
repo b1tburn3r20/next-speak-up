@@ -6,7 +6,14 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "db:up": "docker compose -f ../civic-pipeline/docker-compose.yaml --env-file ../civic-pipeline/.env up -d",
+    "db:migrate:dev": "prisma migrate dev --schema=./prisma",
+    "db:deploy": "prisma migrate deploy --schema=./prisma",
+    "db:seed": "tsx --env-file=.env prisma/seed.ts"
   },
   "dependencies": {
     "@eslint/js": "^9.38.0",
@@ -50,6 +57,7 @@
     "@uiw/react-markdown-editor": "^6.1.4",
     "@upstash/ratelimit": "^1.1.1",
     "@upstash/redis": "^1.35.0",
+    "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -88,16 +96,24 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.1.14",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.3",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "eslint": "^10.3.0",
     "eslint-config-next": "^16.2.6",
+    "jsdom": "^31.0.0",
     "postcss": "^8",
     "prisma": "^6.8.2",
     "tailwindcss": "^4.1.14",
-    "typescript": "^5"
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }

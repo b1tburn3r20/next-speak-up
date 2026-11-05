@@ -10,6 +10,7 @@ Coolbills is a civic app for browsing U.S. federal legislation and members of Co
 
 - **Never test or call AI or paid services unless the user specifically says to.** That covers Gemini, Lemonfox, SMTP email, and Upstash. Stub them in tests.
 - **Local database only.** Never run migrations, seeds, or pipelines against Railway or any other production database.
+- **Kebab-case file names.** Name all TypeScript files in kebab-case, such as `bill-text-tab.tsx`. Some older files don't follow this yet; rename them when you rework them.
 
 ## Commands
 

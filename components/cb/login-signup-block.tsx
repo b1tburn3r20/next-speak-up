@@ -43,7 +43,7 @@ const LoginSignupBlock = ({ pText }: LoginSignupBlockProps) => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{mode} with Google</DialogTitle>
+            <DialogTitle>{mode}</DialogTitle>
           </DialogHeader>
           <LoginForm mode={mode} />
         </DialogContent>

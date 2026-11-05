@@ -5,7 +5,6 @@ import { STATE_NAMES } from "@/lib/constants/state-names";
 import { useState } from "react";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/LoadingCatch";
 import { toast } from "sonner";
-import { _ } from "@upstash/redis/zmscore-DzNHSWxc";
 import { useUserStore } from "@/app/admin/stores/useUserStore";
 
 const FindMyStateAndDistrictButton = () => {
@@ -35,7 +34,7 @@ const FindMyStateAndDistrictButton = () => {
       const response = await fetch("/api/district/find-by-coordinates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ latitude, longitude }),
+        body: JSON.stringify({ lat: latitude, lng: longitude }),
       });
 
       const data = await response.json();

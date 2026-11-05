@@ -32,7 +32,7 @@ export function DistrictFinder({ onDistrictFound }) {
       const response = await fetch("/api/district/find-by-coordinates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ latitude, longitude }),
+        body: JSON.stringify({ lat: latitude, lng: longitude }),
       });
 
       const data = await response.json();

@@ -1,0 +1,37 @@
+import { readFileSync } from "node:fs";
+import { expect, type Page } from "@playwright/test";
+
+// These routes call paid services. No test may ever reach them.
+const PAID_ROUTES = /\/api\/(bills\/ai|bills\/tts|send-email|bug-report|feature-suggestion)/;
+
+export async function blockPaidServices(page: Page) {
+  await page.route(PAID_ROUTES, (route) =>
+    route.fulfill({ status: 503, json: { error: "Blocked in tests" } }),
+  );
+}
+
+export function seedPassword(): string {
+  const line = readFileSync(".env", "utf8")
+    .split(/\r?\n/)
+    .find((entry) => entry.startsWith("SEED_USER_PASSWORD="));
+  if (!line) throw new Error("SEED_USER_PASSWORD is missing. Run npm run db:seed first.");
+  return line.split("=").slice(1).join("=").replace(/^"|"$/g, "");
+}
+
+/** Logs in through the real API, so tests that aren't about login stay fast. */
+export async function loginAs(page: Page, username: string) {
+  const response = await page.request.post("/api/account/login", {
+    headers: { origin: "http://localhost:3000" },
+    data: { identifier: username, password: seedPassword() },
+  });
+  expect(response.ok()).toBeTruthy();
+}
+
+/** The page must fit its width. Sideways scrolling is the most common mobile layout bug. */
+export async function expectNoHorizontalOverflow(page: Page) {
+  const overflow = await page.evaluate(() => {
+    const root = document.documentElement;
+    return root.scrollWidth - root.clientWidth;
+  });
+  expect(overflow, "page should not scroll sideways").toBeLessThanOrEqual(1);
+}

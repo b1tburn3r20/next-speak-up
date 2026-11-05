@@ -2,7 +2,18 @@
 import { Redis } from "@upstash/redis";
 import { Ratelimit } from "@upstash/ratelimit";
 
-const redis = Redis.fromEnv();
+// Created on first use, so importing this file never needs Upstash credentials.
+let redis: Redis | null = null;
+function getRedis(): Redis {
+  redis ??= Redis.fromEnv();
+  return redis;
+}
+
+// Set RATE_LIMITING_DISABLED=true in local .env only. If unset, limits stay on, so a
+// deployment can't lose protection on its paid AI and TTS routes by accident.
+export function isRateLimitingDisabled(): boolean {
+  return process.env.RATE_LIMITING_DISABLED === "true";
+}
 
 // Define rate limits for different endpoints and roles
 export const RATE_LIMITS = {
@@ -46,7 +57,7 @@ function createRateLimiter(requests: number, window: string): Ratelimit {
     rateLimiterCache.set(
       cacheKey,
       new Ratelimit({
-        redis,
+        redis: getRedis(),
         limiter: Ratelimit.slidingWindow(requests, window as any),
         analytics: true,
         timeout: 10000,
@@ -71,6 +82,10 @@ export async function checkRateLimit(
   reset?: number;
   error?: string;
 }> {
+  if (isRateLimitingDisabled()) {
+    return { success: true };
+  }
+
   const limits = RATE_LIMITS[endpoint];
   if (!userRole) {
     userRole = "unauthenticated";
