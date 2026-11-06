@@ -3,6 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -108,9 +109,10 @@ export function SettingsForm({
     <form onSubmit={onSubmit} className="space-y-6">
       {/* Identity */}
       <div className="space-y-2">
-        <label className="text-sm font-bold">Name</label>
+        <Label htmlFor="settings-name">Name</Label>
         <div className="flex gap-2">
           <Input
+            id="settings-name"
             placeholder="Your name"
             value={formValues.name || ""}
             onChange={(e) => handleChange("name", e.target.value)}
@@ -130,9 +132,10 @@ export function SettingsForm({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-bold">Username</label>
+        <Label htmlFor="settings-username">Username</Label>
         <div className="flex gap-2">
           <Input
+            id="settings-username"
             placeholder="Username"
             value={formValues.username || ""}
             onChange={(e) => handleChange("username", e.target.value)}
@@ -153,13 +156,13 @@ export function SettingsForm({
 
       {/* Location */}
       <div className="space-y-2">
-        <label className="text-sm font-bold">State</label>
+        <Label htmlFor="settings-state">State</Label>
         <div className="flex gap-2">
           <Select
             value={formValues.state || ""}
             onValueChange={(val) => handleChange("state", val)}
           >
-            <SelectTrigger className="h-11 w-full min-w-0 flex-1">
+            <SelectTrigger id="settings-state" className="w-full min-w-0 flex-1">
               <SelectValue placeholder="Select a state" />
             </SelectTrigger>
             <SelectContent>
@@ -185,7 +188,7 @@ export function SettingsForm({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-bold">District</label>
+        <Label>District</Label>
         <div className="flex gap-2">
           <DistrictSelect
             state={formValues.state}
@@ -208,13 +211,13 @@ export function SettingsForm({
 
       {/* Demographics */}
       <div className="space-y-2">
-        <label className="text-sm font-bold">Age range</label>
+        <Label htmlFor="settings-age">Age range</Label>
         <div className="flex gap-2">
           <Select
             value={formValues.ageRange || ""}
             onValueChange={(val) => handleChange("ageRange", val as AgeRange)}
           >
-            <SelectTrigger className="h-11 w-full min-w-0 flex-1">
+            <SelectTrigger id="settings-age" className="w-full min-w-0 flex-1">
               <SelectValue placeholder="Select age range" />
             </SelectTrigger>
             <SelectContent>
@@ -240,13 +243,13 @@ export function SettingsForm({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-bold">Household income</label>
+        <Label htmlFor="settings-income">Household income</Label>
         <div className="flex gap-2">
           <Select
             value={formValues.householdIncome || ""}
             onValueChange={(val) => handleChange("householdIncome", val as IncomeRange)}
           >
-            <SelectTrigger className="h-11 w-full min-w-0 flex-1">
+            <SelectTrigger id="settings-income" className="w-full min-w-0 flex-1">
               <SelectValue placeholder="Select household income" />
             </SelectTrigger>
             <SelectContent>

@@ -78,6 +78,23 @@ People relate to relative times. Show every date with `RelativeDate` from `compo
 
 A role has many permissions. **Code asks about a permission, never a role's name**: `can(session, "users.manage")` in a page or component, and `requirePermission("users.manage")` in an API route. Hiding a button protects nothing, so a route must always check. The catalog is `PERMISSIONS` in `lib/auth/permissions.ts`. Rate limits are the one exception: they're tiers, set by role.
 
+## Components
+
+Build every control from `components/ui`, and customize it there, so a change reaches everywhere at once. ESLint rejects a native `select`, `textarea`, `input`, `button`, `label`, `table`, `progress`, `details`, or `kbd` outside that folder.
+
+| Need | Use |
+| --- | --- |
+| A dropdown, in a form or in client code | `OptionSelect`. Use `Select` only for custom item content |
+| A choice like a lesson answer | `Button variant="choice"` with `aria-pressed` |
+| Show more in place | `Disclosure`. Put other controls in `aside`, because a button can't hold a control |
+| Progress through steps | `Progress`, which is chunky with a highlight. `TopProgressBar` is the page loading bar |
+
+`OptionSelect` works in a plain GET form on a server-rendered page: give it a `name`, and the option with an empty value means "any". Its label is in the server's HTML, so nothing flashes.
+
+The look: 2px borders with a thicker bottom edge, big corners, extra-bold text, and controls that sink when pressed. Inputs use 16px text on phones, because iPhones zoom in on anything smaller.
+
+**The one exception:** `RelativeDate` keeps a native `button`, because it's inline text in a sentence, and `Button`'s layout would break the line.
+
 ## One theme
 
 There's one theme, and it's light. Don't add `dark:` classes, theme pickers, or hard-coded colors. Use the tokens in `app/globals.css`. Themes may come back later, and tokens keep that possible.

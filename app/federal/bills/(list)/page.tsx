@@ -5,6 +5,7 @@ import { ArrowRight, Compass } from "lucide-react";
 import { BillCard } from "@/components/bills/bill-card";
 import { PageHeader } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
+import { OptionSelect } from "@/components/ui/option-select";
 import { Input } from "@/components/ui/input";
 import { EmptyState, PageContainer } from "@/components/app/page-states";
 import { listBills, listPolicyAreas } from "@/lib/civic/bills";
@@ -17,9 +18,6 @@ export const metadata: Metadata = {
 };
 
 type SearchParams = { q?: string; status?: string; policyArea?: string; cursor?: string };
-
-const SELECT_CLASS =
-  "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 text-sm";
 
 export default async function BillsPage({
   searchParams,
@@ -71,27 +69,24 @@ export default async function BillsPage({
           placeholder="Search by title or number, like H.R. 1"
           aria-label="Search bills"
         />
-        <select name="status" defaultValue={status ?? ""} aria-label="Status" className={SELECT_CLASS}>
-          <option value="">Any status</option>
-          {Object.entries(BILL_STATUS_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <select
+        <OptionSelect
+          name="status"
+          defaultValue={status ?? ""}
+          aria-label="Status"
+          options={[
+            { value: "", label: "Any status" },
+            ...Object.entries(BILL_STATUS_LABELS).map(([value, label]) => ({ value, label })),
+          ]}
+        />
+        <OptionSelect
           name="policyArea"
           defaultValue={params.policyArea ?? ""}
           aria-label="Policy area"
-          className={SELECT_CLASS}
-        >
-          <option value="">Any topic</option>
-          {policyAreas.map((area) => (
-            <option key={area} value={area}>
-              {area}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: "", label: "Any topic" },
+            ...policyAreas.map((area) => ({ value: area, label: area })),
+          ]}
+        />
         <Button className="col-span-2 sm:col-span-1" type="submit">Search</Button>
       </form>
 

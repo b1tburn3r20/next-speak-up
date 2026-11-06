@@ -108,16 +108,17 @@ const PasswordLoginForm = ({ initialMode = "login" }: { initialMode?: Mode }) =>
       <Button type="submit" className="w-full" disabled={submitting}>
         {submitting ? "One moment…" : isSignup ? "Create account" : "Log in"}
       </Button>
-      <button
+      <Button
         type="button"
-        className="w-full text-sm underline"
+        variant="link"
+        className="w-full font-bold whitespace-normal underline"
         onClick={() => {
           setMode(isSignup ? "login" : "signup");
           setError(null);
         }}
       >
         {isSignup ? "Already have an account? Log in" : "New here? Create an account"}
-      </button>
+      </Button>
     </form>
   );
 };

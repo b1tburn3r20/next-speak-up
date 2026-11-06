@@ -6,6 +6,7 @@ import { EmptyState, PageContainer } from "@/components/app/page-states";
 import { Grid, PageHeader } from "@/components/blocks";
 import { MemberCard, stateName } from "@/components/people/member-card";
 import { Button } from "@/components/ui/button";
+import { OptionSelect } from "@/components/ui/option-select";
 import { Input } from "@/components/ui/input";
 import {
   countCurrentMembers,
@@ -25,9 +26,6 @@ export const metadata: Metadata = {
 type SearchParams = { q?: string; chamber?: string; state?: string; party?: string; page?: string };
 
 const MEMBERS_PER_PAGE = 48;
-
-const SELECT_CLASS =
-  "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 text-sm";
 
 export default async function LegislatorsPage({
   searchParams,
@@ -82,25 +80,36 @@ export default async function LegislatorsPage({
 
       <form className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_auto_auto_auto_auto]" role="search">
         <Input className="col-span-2 sm:col-span-1" name="q" defaultValue={params.q} placeholder="Search by name" aria-label="Search by name" />
-        <select name="chamber" defaultValue={chamber ?? ""} aria-label="Chamber" className={SELECT_CLASS}>
-          <option value="">Both chambers</option>
-          <option value="UPPER">Senate</option>
-          <option value="LOWER">House</option>
-        </select>
-        <select name="state" defaultValue={params.state ?? ""} aria-label="State" className={SELECT_CLASS}>
-          <option value="">All states</option>
-          {states.map((code) => (
-            <option key={code} value={code}>
-              {stateName(code)}
-            </option>
-          ))}
-        </select>
-        <select name="party" defaultValue={params.party ?? ""} aria-label="Party" className={SELECT_CLASS}>
-          <option value="">All parties</option>
-          <option value="D">Democrat</option>
-          <option value="R">Republican</option>
-          <option value="I">Independent</option>
-        </select>
+        <OptionSelect
+          name="chamber"
+          defaultValue={chamber ?? ""}
+          aria-label="Chamber"
+          options={[
+            { value: "", label: "Both chambers" },
+            { value: "UPPER", label: "Senate" },
+            { value: "LOWER", label: "House" },
+          ]}
+        />
+        <OptionSelect
+          name="state"
+          defaultValue={params.state ?? ""}
+          aria-label="State"
+          options={[
+            { value: "", label: "All states" },
+            ...states.map((code) => ({ value: code, label: stateName(code) })),
+          ]}
+        />
+        <OptionSelect
+          name="party"
+          defaultValue={params.party ?? ""}
+          aria-label="Party"
+          options={[
+            { value: "", label: "All parties" },
+            { value: "D", label: "Democrat" },
+            { value: "R", label: "Republican" },
+            { value: "I", label: "Independent" },
+          ]}
+        />
         <Button type="submit">Search</Button>
       </form>
 

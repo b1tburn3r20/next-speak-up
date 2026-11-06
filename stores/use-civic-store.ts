@@ -67,6 +67,7 @@ async function postJson(url: string, body: unknown): Promise<void> {
   }
 }
 
+let pulseRequest: Promise<void> | null = null;
 let rewardId = 0;
 
 export const useCivicStore = create<CivicState>((set, get) => ({
@@ -81,14 +82,22 @@ export const useCivicStore = create<CivicState>((set, get) => ({
 
   loadPulseCount: async (force = false) => {
     if (get().pulseCount !== null && !force) return;
-    try {
-      const response = await fetch("/api/civic/pulse");
-      if (!response.ok) return;
-      const data = await response.json();
-      set({ pulseCount: data.count });
-    } catch {
-      // Only a badge, so it can stay hidden.
-    }
+    // The badge is in both the sidebar and the bottom nav, and they load at the same moment.
+    if (pulseRequest && !force) return pulseRequest;
+    const request = (async () => {
+      try {
+        const response = await fetch("/api/civic/pulse");
+        if (!response.ok) return;
+        const data = await response.json();
+        set({ pulseCount: data.count });
+      } catch {
+        // Only a badge, so it can stay hidden.
+      } finally {
+        if (pulseRequest === request) pulseRequest = null;
+      }
+    })();
+    pulseRequest = request;
+    return request;
   },
 
   castVote: async (slug, choice, previous) => {

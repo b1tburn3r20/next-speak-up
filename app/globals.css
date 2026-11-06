@@ -287,3 +287,12 @@
   height: 44px;
   transform: translateY(-50%);
 }
+
+/* The page keeps its scrollbar's space, so opening a dropdown or dialog doesn't shift it sideways. */
+html {
+  scrollbar-gutter: stable;
+}
+
+html body[data-scroll-locked] {
+  margin-right: 0 !important;
+}

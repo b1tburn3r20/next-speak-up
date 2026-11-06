@@ -36,3 +36,7 @@ All [acceptance criteria](acceptance-criteria.md) are met on the data loaded so 
 - **The store only holds changes.** The server's first paint comes from the database, and is passed as `initial...` props, because a module-level store is shared between users on the server.
 - **Job measures compare within a chamber,** and never judge a party. Only the user's votes decide whether someone represents them.
 - **Net worth and "promise kept" stayed out.** On `main` they were placeholders with no real data behind them.
+
+## Controls moved to the kit (2026-11-06)
+
+Native selects, inputs, buttons, details, and tables moved to `components/ui`, which is now restyled to match the app. Added `OptionSelect`, `Disclosure`, `Progress`, `Kbd`, and a `choice` button. ESLint now rejects native controls outside the kit. The roll call page's state filter became a dropdown, so it can't take an invalid state.

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Disclosure } from "@/components/ui/disclosure";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { Eye, Globe, Phone } from "lucide-react";
@@ -230,11 +231,16 @@ export default async function MemberPage({ params, searchParams }: PageProps) {
 
       <Section title={`See how ${firstName} voted`}>
         <OuterBlock>
-          <details data-testid="member-votes-reveal" open={pageNumber > 1}>
-            <summary className="flex items-center gap-2 font-extrabold text-primary">
-              <Eye className="size-4" aria-hidden />
-              Show their votes
-            </summary>
+          <Disclosure
+            data-testid="member-votes-reveal"
+            defaultOpen={pageNumber > 1}
+            title={
+              <>
+                <Eye className="size-4" aria-hidden />
+                Show their votes
+              </>
+            }
+          >
             <p className="mt-1 text-sm text-muted-foreground">
               Spoiler: this shows how they voted, which makes it harder to vote without knowing.
             </p>
@@ -314,7 +320,7 @@ export default async function MemberPage({ params, searchParams }: PageProps) {
                 </div>
               ) : null}
             </div>
-          </details>
+          </Disclosure>
         </OuterBlock>
       </Section>
 

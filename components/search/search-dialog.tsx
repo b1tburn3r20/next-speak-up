@@ -13,6 +13,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { policyStyle } from "@/lib/civic/policy-areas";
 import type { SearchProviderInfo, SearchResult } from "@/lib/search/types";
@@ -266,27 +268,30 @@ export function SearchButton({ compact = false }: { compact?: boolean }) {
   const setOpen = useSearchStore((state) => state.setOpen);
   if (compact) {
     return (
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
         aria-label="Search"
         onClick={() => setOpen(true)}
-        className="flex size-11 items-center justify-center rounded-lg hover:bg-muted"
         data-testid="site-search-mobile"
       >
         <Search className="size-5" aria-hidden />
-      </button>
+      </Button>
     );
   }
   return (
-    <button
+    <Button
       type="button"
+      variant="secondary"
+      size="sm"
+      className="w-72 justify-start font-bold"
       onClick={() => setOpen(true)}
-      className="flex h-9 w-72 items-center gap-2 rounded-lg border-2 bg-card px-3 text-sm text-muted-foreground transition-colors hover:bg-muted"
       data-testid="site-search"
     >
       <Search className="size-4 shrink-0" aria-hidden />
       <span className="flex-1 text-left">Search anything…</span>
-      <kbd className="rounded border bg-muted px-1.5 text-xs font-bold">Ctrl K</kbd>
-    </button>
+      <Kbd className="h-5 border-b-2">Ctrl K</Kbd>
+    </Button>
   );
 }

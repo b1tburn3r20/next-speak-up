@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "./ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -30,10 +31,13 @@ const LoginForm = ({ mode }: LoginFormProps) => {
         <PasswordLoginForm initialMode={mode === "Sign up" ? "signup" : "login"} />
       </TabsContent>
       <TabsContent className="space-y-2" value="providers">
-        <button
+        <Button
+          type="button"
+          variant="secondary"
+          size="lg"
+          className="w-full text-foreground"
           aria-label="Sign in with Google"
           onClick={handleGoogleSignin}
-          className="px-4 py-2 bg-background-light shadow-md flex gap-2 rounded-lg text-slate-700 hover:border-slate-400 hover:text-slate-900 hover:shadow transition duration-150 w-full items-center"
         >
           <img
             className="w-6 h-6"
@@ -42,7 +46,7 @@ const LoginForm = ({ mode }: LoginFormProps) => {
             alt=""
           />
           <span>{mode ? mode : "Sign in"} with Google</span>
-        </button>
+        </Button>
       </TabsContent>
     </Tabs>
   );

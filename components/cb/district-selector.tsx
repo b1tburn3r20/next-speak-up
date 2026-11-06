@@ -1,4 +1,4 @@
-import { Check, Search } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { usStateToDistrictMap } from "@/lib/constants/state-to-distict-map";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -45,10 +45,10 @@ const DistrictSelect = ({ state, value, onValueChange }: DistrictSelectProps) =>
     <Popover modal={false} open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
+          variant="secondary"
           role="combobox"
           aria-expanded={open}
-          className="w-50 justify-between"
+          className="h-11 min-w-0 flex-1 justify-between text-base font-bold md:text-sm"
           disabled={!districts.length || !state}
         >
           {value ? (
@@ -58,7 +58,7 @@ const DistrictSelect = ({ state, value, onValueChange }: DistrictSelectProps) =>
               {state ? "Select District..." : "Select State First..."}
             </p>
           )}
-          <Search />
+          <ChevronDown className="text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-50">

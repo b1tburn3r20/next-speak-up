@@ -19,6 +19,10 @@ const buttonVariants = cva(
           "bg-streak text-foreground border-b-4 border-amber-600 hover:brightness-105 active:translate-y-0.5 active:border-b-2",
         xp: "bg-xp text-white border-b-4 border-violet-800 hover:brightness-110 active:translate-y-0.5 active:border-b-2",
 
+        // A tile you choose, like an answer in a lesson. aria-pressed marks the chosen one.
+        choice:
+          "bg-card text-foreground border-2 border-b-4 hover:bg-muted active:translate-y-0.5 active:border-b-2 aria-pressed:border-primary aria-pressed:bg-primary-tint",
+
         ghost:
           "hover:bg-secondary/30 text-foreground hover:text-accent-foreground",
         secondary:

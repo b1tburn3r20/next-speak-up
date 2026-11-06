@@ -2,6 +2,7 @@
 
 import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -227,10 +228,14 @@ const PostInfoVoteButtons = ({
         {/* Upvote Button */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              aria-label="Upvote"
               onClick={handleUpvote}
               disabled={isVotingDisabled}
-              className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${showUpvoted
+              className={`disabled:pointer-events-auto disabled:cursor-not-allowed ${showUpvoted
                   ? "text-green-600 bg-green-50 shadow-xs"
                   : "text-muted-foreground hover:text-green-600 hover:bg-green-50"
                 }`}
@@ -240,7 +245,7 @@ const PostInfoVoteButtons = ({
                 className={`${showUpvoted ? "text-green-600" : ""}`}
                 strokeWidth={2.5}
               />
-            </button>
+            </Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>{getVoteTooltipText() || "Upvote"}</p>
@@ -264,10 +269,14 @@ const PostInfoVoteButtons = ({
         {/* Downvote Button */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              aria-label="Downvote"
               onClick={handleDownvote}
               disabled={isVotingDisabled}
-              className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${hasDownvoted && !isUserAuthor
+              className={`disabled:pointer-events-auto disabled:cursor-not-allowed ${hasDownvoted && !isUserAuthor
                   ? "text-red-600 bg-red-50 shadow-xs"
                   : "text-muted-foreground hover:text-red-600 hover:bg-red-50"
                 }`}
@@ -278,7 +287,7 @@ const PostInfoVoteButtons = ({
                   }`}
                 strokeWidth={2.5}
               />
-            </button>
+            </Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>{getVoteTooltipText() || "Downvote"}</p>
@@ -291,16 +300,20 @@ const PostInfoVoteButtons = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <AlertDialogTrigger asChild>
-                  <button
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-lg"
+                    aria-label="Delete post"
                     disabled={isDeleting}
-                    className="flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 text-muted-foreground hover:text-red-600 hover:bg-red-50 ml-1"
+                    className="text-muted-foreground hover:text-red-600 hover:bg-red-50 ml-1"
                   >
                     <Trash2
                       size={18}
                       strokeWidth={2.5}
                       className={isDeleting ? "animate-pulse" : ""}
                     />
-                  </button>
+                  </Button>
                 </AlertDialogTrigger>
               </TooltipTrigger>
               <TooltipContent>

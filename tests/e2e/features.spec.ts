@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { blockPaidServices, expectNoHorizontalOverflow, loginAs } from "./helpers";
+import { blockPaidServices, chooseOption, expectNoHorizontalOverflow, loginAs } from "./helpers";
 
 // A real bill with votes, text, and a summary, once the pipeline has run.
 const LAW = "/federal/bills/us-119-s-4465";
@@ -68,7 +68,7 @@ test.describe("bill details", () => {
     const members = page.getByTestId("roll-call-members").locator("li");
     const everyone = await members.count();
     expect(everyone).toBeGreaterThan(400);
-    await page.getByLabel("Party").selectOption("R");
+    await chooseOption(page, "Party", "Republican");
     await page.getByRole("button", { name: "Filter" }).click();
     await expect(page).toHaveURL(/party=R/);
     await expect(members.first()).toContainText("Republican");
@@ -100,7 +100,7 @@ test.describe("bill details", () => {
     await page.goto("/federal/bills/us-119-hr-2388");
     const cosponsors = page.getByTestId("cosponsors");
     if (await cosponsors.count()) {
-      await cosponsors.locator("summary").click();
+      await page.getByTestId("cosponsors-trigger").click();
       await expect(cosponsors.locator("li").first()).toBeVisible();
     }
   });
@@ -213,7 +213,7 @@ test.describe("members", () => {
 
   test("have pages of votes", async ({ page }) => {
     await page.goto(MEMBER);
-    await page.getByTestId("member-votes-reveal").locator("summary").click();
+    await page.getByTestId("member-votes-reveal-trigger").click();
     await page.getByRole("link", { name: "Older votes" }).click();
     await expect(page).toHaveURL(/page=2/);
     await expect(page.getByRole("link", { name: "Newer votes" })).toBeVisible();

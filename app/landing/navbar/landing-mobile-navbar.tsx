@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { LandingNavbarData as navItems } from "./landing-navbar-data";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 const LandingMobileNavbar = ({ children }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,9 +14,12 @@ const LandingMobileNavbar = ({ children }) => {
   return (
     <div className="flex flex-col h-screen relative">
       {/* Absolutely positioned hamburger menu button */}
-      <button
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
         onClick={toggleMenu}
-        className="fixed top-2 right-2 z-60 p-2 rounded-md"
+        className="fixed top-2 right-2 z-60"
         aria-label="Toggle menu"
       >
         <div className="w-6 h-6 flex flex-col justify-center items-center">
@@ -32,7 +36,7 @@ const LandingMobileNavbar = ({ children }) => {
               }`}
           ></span>
         </div>
-      </button>
+      </Button>
 
       {/* Top bar for mobile */}
       <div className="bg-background border-b border-primary p-4 flex justify-between items-center">

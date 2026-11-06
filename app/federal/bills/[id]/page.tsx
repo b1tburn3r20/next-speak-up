@@ -1,3 +1,4 @@
+import { Disclosure } from "@/components/ui/disclosure";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -247,10 +248,11 @@ export default async function BillPage({ params }: PageProps) {
             <p className="text-sm text-muted-foreground">Not listed yet.</p>
           )}
           {cosponsors.length > 0 ? (
-            <details data-testid="cosponsors">
-              <summary className="font-bold text-primary">
-                {cosponsors.length} <Term id="cosponsor">cosponsor{cosponsors.length === 1 ? "" : "s"}</Term>
-              </summary>
+            <Disclosure
+              data-testid="cosponsors"
+              title={`${cosponsors.length} cosponsor${cosponsors.length === 1 ? "" : "s"}`}
+              aside={<Term id="cosponsor">What&apos;s a cosponsor?</Term>}
+            >
               <ul className="mt-3 max-h-96 space-y-2 overflow-y-auto">
                 {cosponsors.map((sponsorship) => (
                   <li key={sponsorship.person.fullName}>
@@ -258,7 +260,7 @@ export default async function BillPage({ params }: PageProps) {
                   </li>
                 ))}
               </ul>
-            </details>
+            </Disclosure>
           ) : (
             <p className="text-sm text-muted-foreground">No cosponsors yet.</p>
           )}
@@ -358,8 +360,7 @@ export default async function BillPage({ params }: PageProps) {
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.text, SUMMARY_SANITIZE) }}
             />
             {olderSummaries.length > 0 ? (
-              <details data-testid="older-summaries">
-                <summary className="font-bold text-primary">Earlier versions ({olderSummaries.length})</summary>
+              <Disclosure data-testid="older-summaries" title={`Earlier versions (${olderSummaries.length})`}>
                 <div className="mt-3 space-y-3">
                   {olderSummaries.map((older) => (
                     <div key={older.id} className="border-l-4 pl-3">
@@ -374,7 +375,7 @@ export default async function BillPage({ params }: PageProps) {
                     </div>
                   ))}
                 </div>
-              </details>
+              </Disclosure>
             ) : null}
           </OuterBlock>
         </Section>

@@ -124,3 +124,11 @@ Work isn't done until each line is proven by a test or by looking at it. `[ ]` m
 ## Plain words
 
 - [x] No developer words on main pages: loaded, imported, pipeline, database (test)
+
+## Controls
+
+- [x] Every dropdown, input, button, table, and progress bar comes from `components/ui`, with one exception that's documented
+- [x] ESLint rejects a native control outside the kit
+- [x] Filter forms still work as plain forms on server-rendered pages, and show their values in the server's HTML
+- [x] Dropdown options are at least 44px tall and stay on screen at all four widths
+- [x] Opening a dropdown doesn't shift the page sideways

@@ -129,8 +129,9 @@ Both paid routes need a signed-in user, and use text from the database, never te
 - **Blocks:** build pages from `components/blocks`. See `docs/ui-guidelines.md`.
 - **State:** `stores/use-civic-store.ts` is global client state, read with narrow selectors. Components take the server's value as `initial...`, and the store only holds what's changed since.
 - **Reveal:** a rep's vote must stay out of a page's HTML until the user votes or asks. Only `getBillReveal` selects it for a bill page.
+- **Controls:** use `components/ui`, customized there. ESLint rejects native controls elsewhere. See `docs/ui-guidelines.md`.
 - **Shared pieces:** `components/app` has the progress bar and page states. `components/civic` has the core loop, charts, and next steps. `components/bills`, `components/people`, and `components/onboarding` hold feature components.
-- **UI kits:** `components/ui` is shadcn/ui and `components/magicui` is Magic UI.
+- **UI kits:** `components/ui` is shadcn/ui, restyled by hand for this app, and `components/magicui` is Magic UI.
 - **Progress bar:** `TopProgressBar` wraps `window.fetch`, so any request shows in it automatically. Prefetches are ignored.
 - **Theme:** there's one, in `app/globals.css`, and it's light. Use its tokens, not raw colors.
 - **Loading skeletons:** `loading.tsx` also applies to child routes, and it makes a missing page return 200 instead of 404. That's why the list pages sit in `(list)` route groups. Don't add a `loading.tsx` above a detail page.

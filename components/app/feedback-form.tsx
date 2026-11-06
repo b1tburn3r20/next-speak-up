@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLoginStore } from "@/app/navbar/use-login-store";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 type Kind = "bug" | "feature";
 
@@ -82,7 +83,7 @@ export function FeedbackForm({ signedIn }: { signedIn: boolean }) {
           </Button>
         ))}
       </fieldset>
-      <textarea
+      <Textarea
         required
         rows={5}
         maxLength={5000}
@@ -91,7 +92,6 @@ export function FeedbackForm({ signedIn }: { signedIn: boolean }) {
         placeholder={details.placeholder}
         aria-label="Your feedback"
         data-testid="feedback-text"
-        className="w-full rounded-md border border-input bg-transparent p-3 text-sm font-normal"
       />
       {error ? (
         <p role="alert" className="text-sm text-destructive">

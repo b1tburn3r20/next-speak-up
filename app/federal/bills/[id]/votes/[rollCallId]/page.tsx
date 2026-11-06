@@ -4,10 +4,19 @@ import { notFound } from "next/navigation";
 import { AsOfNote, EmptyState, PageContainer, Panel } from "@/components/app/page-states";
 import { formatDate } from "@/components/bills/bill-card";
 import { Button } from "@/components/ui/button";
+import { OptionSelect } from "@/components/ui/option-select";
+import { STATE_NAMES } from "@/lib/constants/state-names";
 import { getRollCallDetail } from "@/lib/civic/bills";
 import { billLabel, partyLabel, positionLabel } from "@/lib/civic/labels";
 import { bioguideOf } from "@/lib/civic/people";
 import { billPath, memberPath } from "@/lib/routes";
+
+const STATE_OPTIONS = [
+  { value: "", label: "Any state" },
+  ...Object.entries(STATE_NAMES as Record<string, string>)
+    .sort((a, b) => a[1].localeCompare(b[1]))
+    .map(([value, label]) => ({ value, label })),
+];
 
 type PageProps = {
   params: Promise<{ id: string; rollCallId: string }>;
@@ -15,8 +24,6 @@ type PageProps = {
 };
 
 export const metadata: Metadata = { title: "How members voted" };
-
-const SELECT_CLASS = "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 text-sm";
 
 export default async function RollCallPage({ params, searchParams }: PageProps) {
   const { id, rollCallId } = await params;
@@ -49,27 +56,35 @@ export default async function RollCallPage({ params, searchParams }: PageProps) 
         </p>
       </header>
 
-      <form className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]" aria-label="Filter members">
-        <select name="position" defaultValue={filters.position ?? ""} aria-label="Vote" className={SELECT_CLASS}>
-          <option value="">Any vote</option>
-          <option value="YEA">Yes</option>
-          <option value="NAY">No</option>
-          <option value="PRESENT">Present</option>
-          <option value="NOT_VOTING">Not voting</option>
-        </select>
-        <select name="party" defaultValue={filters.party ?? ""} aria-label="Party" className={SELECT_CLASS}>
-          <option value="">Any party</option>
-          <option value="D">Democratic</option>
-          <option value="R">Republican</option>
-          <option value="I">Independent</option>
-        </select>
-        <input
+      <form className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]" aria-label="Filter members">
+        <OptionSelect
+          name="position"
+          defaultValue={filters.position ?? ""}
+          aria-label="Vote"
+          options={[
+            { value: "", label: "Any vote" },
+            { value: "YEA", label: "Yes" },
+            { value: "NAY", label: "No" },
+            { value: "PRESENT", label: "Present" },
+            { value: "NOT_VOTING", label: "Not voting" },
+          ]}
+        />
+        <OptionSelect
+          name="party"
+          defaultValue={filters.party ?? ""}
+          aria-label="Party"
+          options={[
+            { value: "", label: "Any party" },
+            { value: "D", label: "Democratic" },
+            { value: "R", label: "Republican" },
+            { value: "I", label: "Independent" },
+          ]}
+        />
+        <OptionSelect
           name="state"
           defaultValue={filters.state ?? ""}
-          maxLength={2}
-          placeholder="State, like TX"
           aria-label="State"
-          className={`${SELECT_CLASS} uppercase placeholder:normal-case`}
+          options={STATE_OPTIONS}
         />
         <Button type="submit">Filter</Button>
       </form>

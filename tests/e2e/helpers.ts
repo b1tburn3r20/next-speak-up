@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { PAID_ROUTES } from "./paid-routes";
 
 
@@ -7,6 +7,12 @@ export async function blockPaidServices(page: Page) {
   await page.route(PAID_ROUTES, (route) =>
     route.fulfill({ status: 503, json: { error: "Blocked in tests" } }),
   );
+}
+
+/** Picks from one of our dropdowns. `scope` narrows which one, but its options open in a portal. */
+export async function chooseOption(page: Page, label: string, option: string, scope: Page | Locator = page) {
+  await scope.getByRole("combobox", { name: label }).click();
+  await page.getByRole("option", { name: option, exact: true }).click();
 }
 
 export function seedPassword(): string {

@@ -54,6 +54,8 @@ export function RelativeDate({
     <>
       <HoverCard openDelay={HOVER_DELAY_MS} closeDelay={100}>
         <HoverCardTrigger asChild>
+          {/* Inline text in a sentence, which the Button component's layout would break. */}
+          {/* eslint-disable-next-line no-restricted-syntax */}
           <button
             type="button"
             onClick={onClick}

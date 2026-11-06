@@ -1,6 +1,6 @@
 // The product's promises, from docs/acceptance-criteria.md.
 import { expect, test, type Page } from "@playwright/test";
-import { blockPaidServices, expectNoHorizontalOverflow, loginAs } from "./helpers";
+import { blockPaidServices, chooseOption, expectNoHorizontalOverflow, loginAs } from "./helpers";
 
 const main = (page: Page) => page.getByRole("main");
 
@@ -153,7 +153,7 @@ test.describe("the dashboard", () => {
     await page.waitForLoadState("networkidle");
     const finder = main(page).getByTestId("find-reps");
     await expect(finder).toBeVisible();
-    await finder.getByLabel("Or choose your state").selectOption("WY");
+    await chooseOption(page, "Or choose your state", "Wyoming", finder);
     await finder.getByTestId("save-location").click();
     await expect(main(page).getByTestId("rep-report-card")).toHaveCount(3, { timeout: 15000 });
   });
@@ -300,7 +300,7 @@ test.describe("members", () => {
   test("hide how they voted until you open it", async ({ page }) => {
     await page.goto(MEMBER);
     await expect(main(page).getByTestId("member-votes")).toBeHidden();
-    await main(page).getByTestId("member-votes-reveal").locator("summary").click();
+    await main(page).getByTestId("member-votes-reveal-trigger").click();
     await expect(main(page).getByTestId("member-votes")).toBeVisible();
   });
 });

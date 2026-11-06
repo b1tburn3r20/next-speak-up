@@ -5,13 +5,14 @@ import { LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OptionSelect } from "@/components/ui/option-select";
 import { STATE_NAMES } from "@/lib/constants/state-names";
 
 export type ResolvedLocation = { regionCode: string; districtCode: string | null };
 
-const STATES = Object.entries(STATE_NAMES as Record<string, string>).sort((a, b) =>
-  a[1].localeCompare(b[1]),
-);
+const STATES = Object.entries(STATE_NAMES as Record<string, string>)
+  .sort((a, b) => a[1].localeCompare(b[1]))
+  .map(([value, label]) => ({ value, label }));
 
 async function submit(body: unknown): Promise<ResolvedLocation> {
   const response = await fetch("/api/civic/location", {
@@ -110,8 +111,6 @@ export function LocationPicker({
     }
   };
 
-  const selectClass = "h-11 w-full rounded-md border border-input bg-transparent px-3 text-base";
-
   return (
     <div className="space-y-4 font-normal">
       <Button
@@ -141,33 +140,23 @@ export function LocationPicker({
         }}
       >
         <Label htmlFor="location-state">Or choose your state</Label>
-        <select
+        <OptionSelect
           id="location-state"
-          className={selectClass}
           value={state}
-          onChange={(event) => chooseState(event.target.value)}
-        >
-          <option value="">State</option>
-          {STATES.map(([code, name]) => (
-            <option key={code} value={code}>
-              {name}
-            </option>
-          ))}
-        </select>
+          placeholder="State"
+          options={STATES}
+          onValueChange={chooseState}
+        />
         {state && districts.length > 1 ? (
-          <select
+          <OptionSelect
             aria-label="District"
-            className={selectClass}
             value={district}
-            onChange={(event) => setDistrict(event.target.value)}
-          >
-            <option value="">I don&apos;t know my district</option>
-            {districts.map((code) => (
-              <option key={code} value={code}>
-                District {code}
-              </option>
-            ))}
-          </select>
+            onValueChange={setDistrict}
+            options={[
+              { value: "", label: "I don't know my district" },
+              ...districts.map((code) => ({ value: code, label: `District ${code}` })),
+            ]}
+          />
         ) : null}
         {state ? (
           <Button type="submit" size="lg" className="w-full" disabled={busy || loadingDistricts} data-testid="save-location">
@@ -193,13 +182,12 @@ export function LocationPicker({
         <div className="flex gap-2">
           <Input
             id="location-address"
-            className="h-11"
             value={address}
             autoComplete="street-address"
             placeholder="123 Main St, Austin, TX"
             onChange={(event) => setAddress(event.target.value)}
           />
-          <Button type="submit" variant="outline" className="h-11" disabled={busy || address.trim().length < 5}>
+          <Button type="submit" variant="secondary" disabled={busy || address.trim().length < 5}>
             Find
           </Button>
         </div>

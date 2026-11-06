@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PolicyIcon } from "@/components/civic/policy-chip";
 import { MemberPhoto } from "@/components/people/member-photo";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { partyLabel } from "@/lib/civic/labels";
 import { AGE_OPTIONS, suggestTopics } from "@/lib/civic/onboarding-logic";
 import { POLICY_AREAS, policyStyle } from "@/lib/civic/policy-areas";
@@ -34,20 +35,12 @@ function ProgressBar({ step }: { step: number }) {
       <p className="text-sm font-extrabold text-muted-foreground">
         Step {step + 1} of {TOTAL_STEPS}
       </p>
-      <div
-        role="progressbar"
+      <Progress
         aria-label="Setup progress"
-        aria-valuemin={1}
-        aria-valuemax={TOTAL_STEPS}
-        aria-valuenow={step + 1}
+        value={step + 1}
+        max={TOTAL_STEPS}
         data-testid="onboarding-progress"
-        className="h-3 overflow-hidden rounded-full bg-muted"
-      >
-        <div
-          className="h-full rounded-full bg-support transition-[width] duration-300 ease-out motion-reduce:transition-none"
-          style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
-        />
-      </div>
+      />
     </div>
   );
 }
@@ -90,19 +83,19 @@ function AgeStep({ value, onChoose }: { value: string | null; onChoose: (age: st
       </div>
       <div className="grid grid-cols-2 gap-2" data-testid="age-options">
         {AGE_OPTIONS.map((option) => (
-          <button
+          <Button
             key={option.value}
             type="button"
+            variant="choice"
             onClick={() => onChoose(option.value)}
             aria-pressed={value === option.value}
             className={cn(
-              "min-h-12 rounded-xl border-2 border-b-4 px-3 py-2 text-left font-bold transition-colors active:translate-y-px active:border-b-2",
+              "h-auto min-h-12 justify-start px-3 py-2 text-left text-base font-bold whitespace-normal",
               option.value === "PREFER_NOT_TO_SAY" && "col-span-2",
-              value === option.value ? "border-primary bg-primary-tint" : "bg-card hover:bg-muted",
             )}
           >
             {option.label}
-          </button>
+          </Button>
         ))}
       </div>
     </div>
@@ -172,15 +165,13 @@ function TopicsStep({
           const { color, tint } = policyStyle(name);
           return (
             <li key={name}>
-              <button
+              <Button
                 type="button"
+                variant="choice"
                 onClick={() => onToggle(name)}
                 aria-pressed={on}
                 style={on ? { backgroundColor: tint, borderColor: color } : undefined}
-                className={cn(
-                  "flex min-h-11 items-center gap-1.5 rounded-full border-2 border-b-4 px-3 py-1.5 text-left text-sm font-bold transition-colors active:translate-y-px active:border-b-2",
-                  !on && "bg-card hover:bg-muted",
-                )}
+                className="h-auto min-h-11 justify-start gap-1.5 rounded-full px-3 py-1.5 text-left font-bold whitespace-normal"
               >
                 {on ? (
                   <Check className="size-4 shrink-0" style={{ color }} aria-hidden />
@@ -188,20 +179,15 @@ function TopicsStep({
                   <PolicyIcon name={name} className="size-4 shrink-0" style={{ color }} aria-hidden />
                 )}
                 {name}
-              </button>
+              </Button>
             </li>
           );
         })}
       </ul>
       {!showAll ? (
-        <button
-          type="button"
-          className="min-h-11 text-sm font-extrabold text-primary hover:underline"
-          onClick={() => setShowAll(true)}
-          data-testid="show-all-topics"
-        >
+        <Button type="button" variant="link" className="px-0" onClick={() => setShowAll(true)} data-testid="show-all-topics">
           See all {POLICY_AREAS.length} topics
-        </button>
+        </Button>
       ) : null}
       <Button size="lg" className="w-full" onClick={onFinish} disabled={saving} data-testid="onboarding-finish">
         {saving ? "Saving…" : chosen.size > 0 ? "Take me to my dashboard" : "Skip topics for now"}
@@ -306,27 +292,29 @@ export function OnboardingFlow({
 
       <div className="flex items-center justify-between gap-3">
         {step > 0 ? (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            className="gap-1 px-2 text-muted-foreground"
             onClick={() => setStep(step - 1)}
-            className="flex min-h-11 items-center gap-1 text-sm font-extrabold text-muted-foreground hover:text-foreground"
             data-testid="onboarding-back"
           >
             <ArrowLeft className="size-4" aria-hidden />
             Back
-          </button>
+          </Button>
         ) : (
           <span />
         )}
-        <button
+        <Button
           type="button"
+          variant="link"
+          className="px-0 font-bold text-muted-foreground underline"
           onClick={() => finish(null)}
           disabled={saving}
-          className="min-h-11 text-sm font-bold text-muted-foreground underline"
           data-testid="onboarding-skip"
         >
           Skip for now
-        </button>
+        </Button>
       </div>
     </div>
   );

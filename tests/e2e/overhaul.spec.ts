@@ -1,6 +1,6 @@
 // Federal routes, relative dates, onboarding, the tailored dashboard, search, and permissions.
 import { expect, test, type Page } from "@playwright/test";
-import { blockPaidServices, loginAs } from "./helpers";
+import { blockPaidServices, chooseOption, loginAs } from "./helpers";
 
 const ORIGIN = { origin: "http://localhost:3000" };
 
@@ -220,7 +220,7 @@ test.describe("onboarding", () => {
     await page.getByRole("button", { name: "25 to 34" }).click();
 
     await expect(progress).toHaveAttribute("aria-valuenow", "2");
-    await page.getByTestId("onboarding-card").getByLabel("Or choose your state").selectOption("WY");
+    await chooseOption(page, "Or choose your state", "Wyoming", page.getByTestId("onboarding-card"));
     await expect(page.getByTestId("save-location")).toBeVisible();
     await page.getByTestId("save-location").click();
     await expect(page.getByTestId("onboarding-reps")).toContainText("Barrasso");
@@ -284,7 +284,7 @@ test.describe("onboarding", () => {
     await signUp(page, "os");
     await page.goto("/onboarding");
     await page.getByRole("button", { name: "I'd rather not say" }).click();
-    await page.getByTestId("onboarding-card").getByLabel("Or choose your state").selectOption("TX");
+    await chooseOption(page, "Or choose your state", "Texas", page.getByTestId("onboarding-card"));
     await expect(page.getByLabel("District")).toBeVisible();
     await page.getByTestId("save-location").click();
     await expect(page.getByTestId("onboarding-reps").locator("li")).toHaveCount(2);

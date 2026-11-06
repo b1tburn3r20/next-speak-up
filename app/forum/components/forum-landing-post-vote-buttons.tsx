@@ -2,6 +2,7 @@
 
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface UserVoteStatus {
   hasUpvoted: boolean;
@@ -134,10 +135,14 @@ const ForumLandingPostVoteButtons = ({
 
   return (
     <div className="flex flex-col items-center justify-between p-2 bg-secondary/50 rounded-l-lg">
-      <button
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        aria-label="Upvote"
         onClick={handleUpvote}
         disabled={!userId || isVoting || isUserAuthor} // Disable if user is author
-        className={`p-1 hover:bg-accent rounded transition-colors disabled:opacity-50 ${
+        className={`tap disabled:pointer-events-auto disabled:cursor-not-allowed ${
           showUpvoted
             ? "text-green-600 bg-green-500/10"
             : "text-muted-foreground hover:text-primary"
@@ -145,14 +150,18 @@ const ForumLandingPostVoteButtons = ({
         title={isUserAuthor ? "You cannot vote on your own post" : undefined} // Tooltip for clarity
       >
         <ChevronUp size={16} className={showUpvoted ? "text-green-600" : ""} />
-      </button>
+      </Button>
       <span className="text-sm font-extrabold py-1">
         {localNetVotes > 0 ? `+${localNetVotes}` : localNetVotes}
       </span>
-      <button
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        aria-label="Downvote"
         onClick={handleDownvote}
         disabled={!userId || isVoting || isUserAuthor} // Disable if user is author
-        className={`p-1 hover:bg-accent rounded transition-colors disabled:opacity-50 ${
+        className={`tap disabled:pointer-events-auto disabled:cursor-not-allowed ${
           hasDownvoted && !isUserAuthor
             ? "text-red-600 bg-red-500/10"
             : "text-muted-foreground hover:text-primary"
@@ -163,7 +172,7 @@ const ForumLandingPostVoteButtons = ({
           size={16}
           className={hasDownvoted && !isUserAuthor ? "text-red-600" : ""}
         />
-      </button>
+      </Button>
     </div>
   );
 };

@@ -17,7 +17,7 @@ export function Term({ id, children }: { id: string; children: React.ReactNode }
       >
         {children}
       </PopoverTrigger>
-      <PopoverContent className="w-72 max-w-[85vw] space-y-1 rounded-xl text-sm" data-testid="term-explanation">
+      <PopoverContent className="w-72 max-w-[85vw] space-y-1 text-sm" data-testid="term-explanation">
         <p className="font-extrabold">{entry.term}</p>
         <p>{entry.short}</p>
         <Link href="/learn" className="text-xs font-bold text-primary hover:underline">

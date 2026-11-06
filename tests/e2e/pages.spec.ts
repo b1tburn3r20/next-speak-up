@@ -60,7 +60,7 @@ test("a member page shows attendance and party voting", async ({ page }) => {
   await page.goto("/federal/legislators/B001261");
   await expect(page.getByTestId("member-stats")).toContainText("Attendance");
   await expect(page.getByTestId("member-stats")).toContainText("%");
-  await page.getByTestId("member-votes-reveal").locator("summary").click();
+  await page.getByTestId("member-votes-reveal-trigger").click();
   await expect(page.getByTestId("member-votes")).toBeVisible();
 });
 

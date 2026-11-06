@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { partyLabel, positionLabel } from "@/lib/civic/labels";
 import type { PartyBreakdown } from "@/lib/civic/bills";
 import { AsOfNote } from "@/components/app/page-states";
@@ -60,28 +61,28 @@ export function RollCallCard(props: RollCallCardProps) {
       </p>
       {props.parties.length > 0 ? (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[320px] text-sm">
-            <thead className="text-left text-muted-foreground">
-              <tr>
-                <th className="py-1 font-medium">Party</th>
-                <th className="py-1 font-medium">Yes</th>
-                <th className="py-1 font-medium">No</th>
-                <th className="py-1 font-medium">Present</th>
-                <th className="py-1 font-medium">Didn&apos;t vote</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="min-w-[320px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Party</TableHead>
+                <TableHead>Yes</TableHead>
+                <TableHead>No</TableHead>
+                <TableHead>Present</TableHead>
+                <TableHead>Didn&apos;t vote</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {props.parties.map((party) => (
-                <tr key={party.party} className="border-t">
-                  <td className="py-1">{partyLabel(party.party)}</td>
-                  <td className="py-1">{party.yea}</td>
-                  <td className="py-1">{party.nay}</td>
-                  <td className="py-1">{party.present}</td>
-                  <td className="py-1">{party.notVoting}</td>
-                </tr>
+                <TableRow key={party.party}>
+                  <TableCell>{partyLabel(party.party)}</TableCell>
+                  <TableCell>{party.yea}</TableCell>
+                  <TableCell>{party.nay}</TableCell>
+                  <TableCell>{party.present}</TableCell>
+                  <TableCell>{party.notVoting}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       ) : null}
       {props.source === "VOTEVIEW" ? (

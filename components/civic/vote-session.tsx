@@ -4,31 +4,24 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, PartyPopper, SkipForward, X } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useCivicStore } from "@/stores/use-civic-store";
 import { routes } from "@/lib/routes";
 
 export function SessionProgress({ current, total }: { current: number; total: number }) {
-  const percent = total === 0 ? 0 : Math.round((current / total) * 100);
   return (
     <div className="flex items-center gap-3">
       <Link href="/dashboard" aria-label="Leave this session" className="text-muted-foreground hover:text-foreground">
         <X className="size-6" aria-hidden />
       </Link>
-      <div
-        className="h-4 flex-1 overflow-hidden rounded-full bg-background-dark"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={total}
-        aria-valuenow={current}
+      <Progress
+        className="flex-1"
+        value={current}
+        max={total}
         aria-label={`${current} of ${total} done`}
         data-testid="session-progress"
-      >
-        <div
-          className="h-full rounded-full bg-support transition-[width] duration-300"
-          style={{ width: `${percent}%` }}
-        />
-      </div>
+      />
       <span className="text-sm font-extrabold tabular-nums">
         {current}/{total}
       </span>
