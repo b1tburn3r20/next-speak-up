@@ -1,18 +1,15 @@
+import { PageShell } from "@/components/blocks";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export function PageContainer({ className, children }: React.ComponentProps<"div">) {
-  return (
-    <div className={cn("mx-auto w-full max-w-5xl space-y-6 p-4 font-normal", className)}>
-      {children}
-    </div>
-  );
+  return <PageShell className={className}>{children}</PageShell>;
 }
 
 export function Panel({ className, children, ...rest }: React.ComponentProps<"section">) {
   return (
     <section
-      className={cn("rounded-lg border bg-card p-4 text-card-foreground shadow-sm", className)}
+      className={cn("rounded-2xl border-2 border-b-4 bg-card p-4 text-card-foreground sm:p-5", className)}
       {...rest}
     >
       {children}
@@ -30,8 +27,8 @@ export function EmptyState({
   action?: { href: string; label: string };
 }) {
   return (
-    <div className="rounded-lg border border-dashed p-8 text-center">
-      <p className="font-semibold">{title}</p>
+    <div className="rounded-2xl border-2 border-dashed bg-card p-6 text-center sm:p-8">
+      <p className="text-lg font-extrabold">{title}</p>
       {children ? <p className="mt-1 text-sm text-muted-foreground">{children}</p> : null}
       {action ? (
         <Link href={action.href} className="mt-3 inline-block text-sm underline">

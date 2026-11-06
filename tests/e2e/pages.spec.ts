@@ -60,6 +60,7 @@ test("a member page shows attendance and party voting", async ({ page }) => {
   await page.goto("/legislators/federal/B001261");
   await expect(page.getByTestId("member-stats")).toContainText("Attendance");
   await expect(page.getByTestId("member-stats")).toContainText("%");
+  await page.getByTestId("member-votes-reveal").locator("summary").click();
   await expect(page.getByTestId("member-votes")).toBeVisible();
 });
 
@@ -67,7 +68,7 @@ test("signed-in users see their reps, including an at-large seat", async ({ page
   await loginAs(page, "test_member");
   await page.goto("/dashboard");
   const reps = page.getByRole("main").getByTestId("dashboard-reps");
-  await expect(reps.getByTestId("member-card")).toHaveCount(3);
+  await expect(reps.getByTestId("rep-report-card")).toHaveCount(3);
   await expect(reps).toContainText("Hageman");
   await expect(reps).toContainText("Barrasso");
   await expect(page.getByRole("main").getByTestId("user-metrics")).toBeVisible();
@@ -231,18 +232,6 @@ test("the old bill section redirects to the new one", async ({ page }) => {
   await expect(page).toHaveURL(/\/bills$/);
 });
 
-for (const theme of ["light", "dark", "sepia", "midnight"]) {
-  test(`the ${theme} theme applies and survives a reload`, async ({ page }) => {
-    await page.goto("/bills");
-    await page.locator('[data-testid="theme-picker"]:visible').click();
-    await page.locator(`[data-theme-option="${theme}"]`).click();
-    await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`));
-    await page.reload();
-    await expect(page.locator("html")).toHaveClass(new RegExp(`\\b${theme}\\b`));
-    await expectNoHorizontalOverflow(page);
-  });
-}
-
 test("the progress bar shows during a slow navigation, then clears", async ({ page }) => {
   await page.goto("/dashboard");
   await page.waitForLoadState("networkidle");
@@ -252,7 +241,7 @@ test("the progress bar shows during a slow navigation, then clears", async ({ pa
     await new Promise((resolve) => setTimeout(resolve, 800));
     await route.continue();
   });
-  await page.getByRole("link", { name: "All bills" }).click();
+  await page.getByRole("link", { name: "Bills", exact: true }).first().click();
   await expect(bar).toHaveAttribute("data-active", "true");
   await expect(page).toHaveURL(/\/bills/, { timeout: 20000 });
   await expect(bar).toHaveAttribute("data-active", "false", { timeout: 20000 });

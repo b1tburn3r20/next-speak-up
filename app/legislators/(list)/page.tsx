@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { EmptyState, PageContainer } from "@/components/app/page-states";
+import { PageHeader } from "@/components/blocks";
 import { MemberCard, stateName } from "@/components/people/member-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,12 +41,10 @@ export default async function LegislatorsPage({
 
   return (
     <PageContainer>
-      <div>
-        <h1 className="text-2xl font-semibold">Federal Legislators</h1>
-        <p className="text-sm text-muted-foreground">
-          {members.length} {filtering ? "matching" : "current"} members of Congress
-        </p>
-      </div>
+      <PageHeader
+        title="Federal Legislators"
+        description={`${members.length} ${filtering ? "matching" : "current"} members of Congress`}
+      />
 
       {yourReps.length > 0 && !filtering ? (
         <section aria-labelledby="your-reps" className="space-y-2">

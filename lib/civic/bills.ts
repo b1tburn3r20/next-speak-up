@@ -30,7 +30,8 @@ export function decodeCursor(cursor: string | undefined): { date: Date | null; i
   return Number.isNaN(date.getTime()) ? null : { date, id };
 }
 
-const LIST_SELECT = {
+/** What a bill card shows: what it's about, who's behind it, and a summary to shorten. */
+export const BILL_CARD_SELECT = {
   id: true,
   slug: true,
   billType: true,
@@ -41,7 +42,32 @@ const LIST_SELECT = {
   latestActionDate: true,
   latestActionText: true,
   introducedDate: true,
+  summaries: {
+    orderBy: [{ actionDate: "desc" }, { id: "desc" }],
+    take: 1,
+    select: { text: true },
+  },
+  sponsorships: {
+    where: { kind: "SPONSOR" },
+    take: 1,
+    select: {
+      person: {
+        select: {
+          fullName: true,
+          imageUrl: true,
+          terms: {
+            orderBy: { startYear: "desc" },
+            take: 1,
+            select: { party: true, regionCode: true },
+          },
+        },
+      },
+    },
+  },
+  _count: { select: { sponsorships: { where: { kind: "COSPONSOR", withdrawnAt: null } } } },
 } satisfies Prisma.BillSelect;
+
+const LIST_SELECT = BILL_CARD_SELECT;
 
 export type BillListItem = Prisma.BillGetPayload<{ select: typeof LIST_SELECT }>;
 

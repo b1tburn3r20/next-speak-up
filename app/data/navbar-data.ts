@@ -3,12 +3,14 @@ import {
   Book,
   Briefcase,
   CalendarClock,
-  Group,
+  Compass,
+  GraduationCap,
   Home,
   Key,
-  LayoutDashboard,
   LucideIcon,
+  Scale,
   Settings,
+  Vote,
 } from "lucide-react";
 
 export type NavItem = {
@@ -20,21 +22,13 @@ export type NavItem = {
 
 export const navItems: NavItem[] = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
-  {
-    href: "/legislators",
-    icon: Briefcase,
-    label: "Federal Legislators",
-  },
-  {
-    href: "/bills",
-    icon: Book,
-    label: "Bills",
-  },
-  {
-    href: "/bills/upcoming",
-    icon: CalendarClock,
-    label: "Upcoming Votes",
-  },
+  { href: "/vote", icon: Vote, label: "Vote" },
+  { href: "/reps", icon: Scale, label: "My Reps" },
+  { href: "/bills/upcoming", icon: CalendarClock, label: "Upcoming Votes" },
+  { href: "/bills", icon: Book, label: "Bills" },
+  { href: "/legislators", icon: Briefcase, label: "Federal Legislators" },
+  { href: "/topics", icon: Compass, label: "Topics" },
+  { href: "/learn", icon: GraduationCap, label: "Learn the Lingo" },
   // {
   //   href: "/forum",
   //   icon: Users,

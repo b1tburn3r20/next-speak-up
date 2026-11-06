@@ -1,0 +1,44 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { CalendarClock, Home, Scale, Users, Vote } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const TABS = [
+  { href: "/dashboard", label: "Home", icon: Home },
+  { href: "/vote", label: "Vote", icon: Vote },
+  { href: "/bills/upcoming", label: "Upcoming", icon: CalendarClock },
+  { href: "/reps", label: "My reps", icon: Scale },
+  { href: "/legislators", label: "Congress", icon: Users },
+];
+
+/** The main places, in reach of a thumb. Phones only. */
+export function BottomNav() {
+  const pathname = usePathname();
+  return (
+    <nav
+      aria-label="Primary"
+      className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t-2 bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
+      data-testid="bottom-nav"
+    >
+      {TABS.map(({ href, label, icon: Icon }) => {
+        const active = pathname === href || pathname.startsWith(`${href}/`);
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "flex min-h-14 flex-col items-center justify-center gap-0.5 text-[0.7rem] font-extrabold",
+              active ? "text-primary" : "text-muted-foreground",
+            )}
+          >
+            <Icon className="size-5" aria-hidden />
+            {label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}

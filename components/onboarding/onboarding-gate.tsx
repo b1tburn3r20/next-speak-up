@@ -174,9 +174,9 @@ export function OnboardingGate() {
         {step === "vote" ? (
           <>
             <DialogHeader>
-              <DialogTitle>Weigh in on a bill</DialogTitle>
+              <DialogTitle>Do they represent you?</DialogTitle>
               <DialogDescription>
-                Each bill you vote on shows how closely your reps match you.
+                Vote on bills they voted on. You won&apos;t see how they voted until you do.
               </DialogDescription>
             </DialogHeader>
             <ul className="space-y-2 font-normal">
@@ -193,9 +193,14 @@ export function OnboardingGate() {
                 </li>
               ))}
             </ul>
-            <Button onClick={complete} data-testid="onboarding-finish">
-              Go to my dashboard
+            <Button asChild data-testid="onboarding-finish">
+              <Link href="/vote" onClick={complete}>
+                Start voting
+              </Link>
             </Button>
+            <button type="button" className="w-fit text-sm font-bold underline" onClick={complete} data-testid="onboarding-dashboard">
+              Take me to my dashboard
+            </button>
           </>
         ) : null}
 

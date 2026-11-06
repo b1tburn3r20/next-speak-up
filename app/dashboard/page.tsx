@@ -1,35 +1,32 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
+import { Award, Lock } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { EmptyState, PageContainer, Panel } from "@/components/app/page-states";
-import { BillCard, BillStatusBadge, formatDate } from "@/components/bills/bill-card";
+import { BillCard, BillStatusBadge } from "@/components/bills/bill-card";
 import { UpcomingBillCard } from "@/components/bills/upcoming-bill-card";
+import { Grid, OuterBlock, PageHeader, PageShell, Section, Stack } from "@/components/blocks";
+import { BlindVoteCard } from "@/components/civic/blind-vote-card";
+import { MoreSteps, NextStepCard } from "@/components/civic/next-step-card";
+import { ProgressStrip } from "@/components/civic/progress-strip";
+import { RepReportCard } from "@/components/civic/rep-report-card";
 import { MemberCard } from "@/components/people/member-card";
 import { listBills } from "@/lib/civic/bills";
+import { getEngagementFacts, getMemberStats, getPulseItems, getRepRecaps } from "@/lib/civic/engage";
 import { getUpcomingFloorItems } from "@/lib/civic/floor";
 import { groupFloorWeeks } from "@/lib/civic/floor-logic";
-import { billLabel, positionLabel } from "@/lib/civic/labels";
-import { getRepsRecentVotes, listFavoriteMembers } from "@/lib/civic/people";
+import { billLabel } from "@/lib/civic/labels";
+import { computeNextSteps } from "@/lib/civic/next-steps";
+import { listFavoriteMembers } from "@/lib/civic/people";
+import { computeProgress } from "@/lib/civic/progress";
 import { getUserBillStates, getUserDashboardLists, getUserMetrics } from "@/lib/civic/users";
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "See what your representatives are up to, and how often you agree.",
+  description: "See what your representatives are up to, and whether they represent you.",
 };
 
-const FLOOR_PREVIEW = 4;
-
-function Metric({ label, value, testId }: { label: string; value: number; testId?: string }) {
-  return (
-    <div className="rounded-lg border bg-card p-3 text-card-foreground shadow-sm">
-      <p className="text-2xl font-semibold" data-testid={testId}>
-        {value}
-      </p>
-      <p className="text-sm text-muted-foreground">{label}</p>
-    </div>
-  );
-}
+const FLOOR_PREVIEW = 3;
 
 function ActivityChart({ weeks }: { weeks: { weekStart: Date; votes: number }[] }) {
   const highest = Math.max(1, ...weeks.map((week) => week.votes));
@@ -38,48 +35,297 @@ function ActivityChart({ weeks }: { weeks: { weekStart: Date; votes: number }[] 
     <div
       role="img"
       aria-label={`${total} votes over the last ${weeks.length} weeks`}
-      className="flex h-20 items-end gap-1"
+      className="flex h-16 items-end gap-1"
     >
       {weeks.map((week) => (
         <div
           key={week.weekStart.toISOString()}
           title={`${week.votes} votes`}
-          className="flex-1 rounded-t bg-chart-1"
-          style={{ height: `${Math.max(4, (week.votes / highest) * 100)}%`, opacity: week.votes ? 1 : 0.2 }}
+          className="flex-1 rounded-t bg-primary"
+          style={{ height: `${Math.max(6, (week.votes / highest) * 100)}%`, opacity: week.votes ? 1 : 0.2 }}
         />
       ))}
     </div>
   );
 }
 
-function PolicyAlignment({
-  areas,
+function FloorPreview({
+  items,
+  states,
+  signedIn,
+  now,
 }: {
-  areas: { policyArea: string; compared: number; percent: number }[];
+  items: Awaited<ReturnType<typeof getUpcomingFloorItems>>;
+  states: Map<number, { position: string | null; following: boolean }>;
+  signedIn: boolean;
+  now: Date;
 }) {
-  if (areas.length === 0) return null;
+  const week = groupFloorWeeks(items, now)[0];
+  if (!week) {
+    return (
+      <Section title="On the House floor" data-testid="dashboard-floor">
+        <OuterBlock className="text-sm text-muted-foreground">
+          Nothing is scheduled right now, so the House may be out of session. New schedules show up
+          here as soon as they&apos;re published.
+        </OuterBlock>
+      </Section>
+    );
+  }
   return (
-    <ul className="mt-2 space-y-1" data-testid="policy-alignment">
-      {areas.slice(0, 4).map((area) => (
-        <li key={area.policyArea} className="text-xs">
-          <div className="flex justify-between gap-2">
-            <span className="min-w-0 truncate">{area.policyArea}</span>
-            <span className="shrink-0">{area.percent}%</span>
-          </div>
-          <div
-            className="h-1.5 overflow-hidden rounded-full bg-muted"
-            role="img"
-            aria-label={`${area.percent}% agreement on ${area.compared} bills`}
-          >
-            <div className="h-full bg-chart-1" style={{ width: `${area.percent}%` }} />
-          </div>
-        </li>
-      ))}
-    </ul>
+    <Section
+      title={`Coming up: ${week.label}`}
+      description="Weigh in before your representative votes."
+      action={{ href: "/bills/upcoming", label: `All ${items.length}` }}
+      data-testid="dashboard-floor"
+    >
+      <Stack>
+        {week.items.slice(0, FLOOR_PREVIEW).map((item) => (
+          <UpcomingBillCard
+            key={item.id}
+            item={item}
+            signedIn={signedIn}
+            state={item.bill ? states.get(item.bill.id) : undefined}
+          />
+        ))}
+      </Stack>
+    </Section>
   );
 }
 
-function BillLinkList({
+async function SignedOutDashboard() {
+  const now = new Date();
+  const [{ bills }, floorItems] = await Promise.all([listBills({ limit: 3 }), getUpcomingFloorItems(now)]);
+  const steps = computeNextSteps({
+    signedIn: false,
+    hasLocation: false,
+    pulseCount: 0,
+    floorCount: floorItems.length,
+    fewestComparedWithRep: 0,
+    votedToday: 0,
+    dailyGoal: 3,
+    streak: 0,
+    votesCast: 0,
+    followingCount: 0,
+  });
+  return (
+    <PageShell>
+      <PageHeader
+        title="Does your representative represent you?"
+        description="Vote on the same bills Congress does, then find out if you match. No jargon, and no party telling you what to think."
+      />
+      <NextStepCard step={steps[0]} label="Start here" />
+      <FloorPreview items={floorItems} states={new Map()} signedIn={false} now={now} />
+      <Section title="Latest in Congress" action={{ href: "/bills", label: "All bills" }}>
+        <Stack>
+          {bills.map((bill) => (
+            <BillCard key={bill.id} bill={bill} />
+          ))}
+        </Stack>
+      </Section>
+      <MoreSteps steps={steps.slice(1)} />
+    </PageShell>
+  );
+}
+
+export default async function DashboardPage() {
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+  if (!userId) return <SignedOutDashboard />;
+
+  const now = new Date();
+  const [metrics, floorItems, lists, favorites] = await Promise.all([
+    getUserMetrics(userId),
+    getUpcomingFloorItems(now),
+    getUserDashboardLists(userId),
+    listFavoriteMembers(userId),
+  ]);
+  const reps = metrics.reps.map(({ rep }) => rep);
+  const repIds = reps.map((rep) => rep.id);
+  const floorBillIds = floorItems.flatMap((item) => (item.bill ? [item.bill.id] : []));
+  const [facts, pulse, recaps, stats, floorStates] = await Promise.all([
+    getEngagementFacts(userId, repIds),
+    getPulseItems(userId, repIds, 2),
+    getRepRecaps(reps, now),
+    getMemberStats(repIds),
+    getUserBillStates(userId, floorBillIds),
+  ]);
+  const progress = computeProgress({
+    voteDates: facts.voteDates,
+    now,
+    repsFound: reps.length > 0,
+    bestMatchCompared: facts.mostComparedWithRep,
+    floorVotes: facts.floorVotes,
+    policyAreasVoted: facts.policyAreasVoted,
+  });
+  const unvotedFloor = floorItems.filter(
+    (item) => item.bill && !floorStates.get(item.bill.id)?.position,
+  ).length;
+  const steps = computeNextSteps({
+    signedIn: true,
+    hasLocation: Boolean(metrics.location),
+    pulseCount: facts.pulseCount,
+    floorCount: unvotedFloor,
+    fewestComparedWithRep: facts.fewestComparedWithRep,
+    votedToday: progress.votedToday,
+    dailyGoal: progress.dailyGoal,
+    streak: progress.streak,
+    votesCast: progress.votesCast,
+    followingCount: facts.followingCount,
+  });
+  const name = session?.user?.username ?? session?.user?.name;
+
+  return (
+    <PageShell>
+      <header className="space-y-3">
+        <h1 className="break-words text-2xl font-extrabold leading-tight sm:text-3xl">
+          {name ? `Welcome back, ${name}` : "Welcome back"}
+        </h1>
+        <ProgressStrip
+          streak={progress.streak}
+          xp={progress.xp}
+          level={progress.level}
+          votedToday={progress.votedToday}
+          dailyGoal={progress.dailyGoal}
+        />
+      </header>
+
+      <NextStepCard step={steps[0]} />
+
+      {pulse.length > 0 ? (
+        <Section
+          title="Your reps just voted"
+          description="Vote first, then find out if you match."
+          action={{ href: "/vote", label: "See more" }}
+          data-testid="pulse"
+        >
+          <Stack>
+            {pulse.map((item) => (
+              <BlindVoteCard key={item.bill.id} item={item} signedIn />
+            ))}
+          </Stack>
+        </Section>
+      ) : null}
+
+      {metrics.reps.length > 0 ? (
+        <Section
+          title="Do they represent you?"
+          action={{ href: "/reps", label: "Report cards" }}
+          data-testid="dashboard-reps"
+        >
+          <Grid cols="people">
+            {metrics.reps.map(({ rep, compared, matched, byPolicyArea }) => (
+              <RepReportCard
+                key={rep.id}
+                compact
+                data={{
+                  rep,
+                  compared,
+                  matched,
+                  byPolicyArea,
+                  recap: recaps.get(rep.id),
+                  stat: stats.get(rep.id) ?? null,
+                }}
+              />
+            ))}
+          </Grid>
+        </Section>
+      ) : null}
+
+      <FloorPreview items={floorItems} states={floorStates} signedIn now={now} />
+
+      <Grid cols="halves">
+        <Section title="Bills you follow">
+          <OuterBlock>
+            {lists.followed.length > 0 ? (
+              <BillLinks bills={lists.followed} testId="followed-bills" />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Tap Follow on a bill to keep track of it here.
+              </p>
+            )}
+          </OuterBlock>
+        </Section>
+        <Section title="Pick up where you left off">
+          <OuterBlock>
+            {lists.viewed.length > 0 ? (
+              <BillLinks bills={lists.viewed} testId="viewed-bills" />
+            ) : (
+              <p className="text-sm text-muted-foreground">Bills you open will show up here.</p>
+            )}
+          </OuterBlock>
+        </Section>
+      </Grid>
+
+      <Section title="Your badges">
+        <OuterBlock>
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4" data-testid="badges">
+            {progress.badges.map((badge) => (
+              <li
+                key={badge.id}
+                title={badge.description}
+                className={badge.earned ? "" : "opacity-50"}
+                data-earned={badge.earned}
+              >
+                <div
+                  className={`mb-1 flex size-10 items-center justify-center rounded-full ${
+                    badge.earned ? "bg-streak-tint text-streak" : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {badge.earned ? <Award className="size-5" aria-hidden /> : <Lock className="size-4" aria-hidden />}
+                </div>
+                <p className="text-sm font-extrabold leading-tight">{badge.label}</p>
+                <p className="text-xs text-muted-foreground">{badge.description}</p>
+              </li>
+            ))}
+          </ul>
+        </OuterBlock>
+      </Section>
+
+      {favorites.length > 0 ? (
+        <Section title="Members you saved">
+          <Grid cols="people" data-testid="saved-members">
+            {favorites.map((member) => (
+              <MemberCard key={member.id} member={member} />
+            ))}
+          </Grid>
+        </Section>
+      ) : null}
+
+      {lists.bookmarks.length > 0 ? (
+        <Section title="Saved forum posts">
+          <OuterBlock>
+            <ul className="space-y-1 text-sm" data-testid="forum-bookmarks">
+              {lists.bookmarks.map((post) => (
+                <li key={post.id} className="break-words">
+                  <Link href={`/forum/posts/${post.id}`} className="font-semibold text-primary hover:underline">
+                    {post.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </OuterBlock>
+        </Section>
+      ) : null}
+
+      <Section title="Your last 12 weeks">
+        <OuterBlock data-testid="user-metrics">
+          <p className="mb-2 text-sm">
+            <strong data-testid="votes-cast">{metrics.votesCast}</strong> votes cast ·{" "}
+            <strong>{metrics.supported}</strong> supported · <strong>{metrics.opposed}</strong> opposed ·{" "}
+            <strong>{metrics.following}</strong> followed
+          </p>
+          <ActivityChart weeks={metrics.activity} />
+        </OuterBlock>
+      </Section>
+
+      <Section title="More to do">
+        <MoreSteps steps={steps.slice(1, 4)} />
+      </Section>
+    </PageShell>
+  );
+}
+
+function BillLinks({
   bills,
   testId,
 }: {
@@ -90,15 +336,14 @@ function BillLinkList({
     billType: string;
     number: number;
     currentStatus: string;
-    latestActionDate: Date | null;
   }[];
   testId: string;
 }) {
   return (
     <ul className="divide-y text-sm" data-testid={testId}>
       {bills.map((bill) => (
-        <li key={bill.id} className="py-2">
-          <Link href={`/bills/${bill.slug}`} className="font-medium underline">
+        <li key={bill.id} className="py-2 first:pt-0 last:pb-0">
+          <Link href={`/bills/${bill.slug}`} className="font-extrabold text-primary hover:underline">
             {billLabel(bill.billType, bill.number)}
           </Link>{" "}
           <BillStatusBadge status={bill.currentStatus} />
@@ -106,250 +351,5 @@ function BillLinkList({
         </li>
       ))}
     </ul>
-  );
-}
-
-function FloorSection({
-  items,
-  signedIn,
-  states,
-  now,
-}: {
-  items: Awaited<ReturnType<typeof getUpcomingFloorItems>>;
-  signedIn: boolean;
-  states: Map<number, { position: string | null; following: boolean }>;
-  now: Date;
-}) {
-  const nextWeek = groupFloorWeeks(items, now)[0];
-  return (
-    <section aria-labelledby="floor-heading" className="space-y-3" data-testid="dashboard-floor">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id="floor-heading" className="font-semibold">
-          {nextWeek ? `On the House floor: ${nextWeek.label}` : "On the House floor"}
-        </h2>
-        <Link href="/bills/upcoming" className="shrink-0 text-sm underline">
-          All upcoming
-        </Link>
-      </div>
-      {nextWeek ? (
-        <>
-          <p className="text-sm text-muted-foreground">Weigh in before your representative votes.</p>
-          {nextWeek.items.slice(0, FLOOR_PREVIEW).map((item) => (
-            <UpcomingBillCard
-              key={item.id}
-              item={item}
-              signedIn={signedIn}
-              state={item.bill ? states.get(item.bill.id) : undefined}
-            />
-          ))}
-        </>
-      ) : (
-        <EmptyState title="Nothing scheduled right now">
-          The House may be out of session. New schedules appear here when they&apos;re published.
-        </EmptyState>
-      )}
-    </section>
-  );
-}
-
-export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id;
-  const now = new Date();
-  const [{ bills }, metrics, floorItems, lists, favorites] = await Promise.all([
-    listBills({ limit: 5 }),
-    userId ? getUserMetrics(userId) : null,
-    getUpcomingFloorItems(now),
-    userId ? getUserDashboardLists(userId) : null,
-    userId ? listFavoriteMembers(userId) : [],
-  ]);
-  const floorBillIds = floorItems.flatMap((item) => (item.bill ? [item.bill.id] : []));
-  const [floorStates, repVotes] = await Promise.all([
-    userId
-      ? getUserBillStates(userId, floorBillIds)
-      : new Map<number, { position: string | null; following: boolean }>(),
-    metrics ? getRepsRecentVotes(metrics.reps.map(({ rep }) => rep.id)) : [],
-  ]);
-  const name = session?.user?.username ?? session?.user?.name;
-
-  return (
-    <PageContainer>
-      <div>
-        <h1 className="text-2xl font-semibold">{name ? `Welcome back, ${name}` : "Dashboard"}</h1>
-        <p className="text-sm text-muted-foreground">
-          What Congress is doing, and how it lines up with you.
-        </p>
-      </div>
-
-      {metrics ? (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="user-metrics">
-          <Metric label="Votes cast" value={metrics.votesCast} testId="votes-cast" />
-          <Metric label="Bills supported" value={metrics.supported} />
-          <Metric label="Bills opposed" value={metrics.opposed} />
-          <Metric label="Bills followed" value={metrics.following} />
-        </div>
-      ) : null}
-
-      <FloorSection items={floorItems} signedIn={Boolean(userId)} states={floorStates} now={now} />
-
-      {metrics ? (
-        <>
-          <Panel aria-labelledby="reps-heading">
-            <h2 id="reps-heading" className="mb-3 font-semibold">
-              Your representatives
-            </h2>
-            {metrics.reps.length > 0 ? (
-              <div className="grid gap-3 md:grid-cols-3" data-testid="dashboard-reps">
-                {metrics.reps.map(({ rep, percent, compared, byPolicyArea }) => (
-                  <MemberCard
-                    key={rep.id}
-                    member={rep}
-                    extra={
-                      <div className="mt-1 text-sm" data-testid="alignment">
-                        {percent === null ? (
-                          <p className="text-muted-foreground">
-                            Vote on bills they&apos;ve voted on to compare.
-                          </p>
-                        ) : (
-                          <p>
-                            <strong>{percent}%</strong> agreement on {compared} bill
-                            {compared === 1 ? "" : "s"}
-                          </p>
-                        )}
-                        <PolicyAlignment areas={byPolicyArea} />
-                      </div>
-                    }
-                  />
-                ))}
-              </div>
-            ) : (
-              <EmptyState title="Tell us where you live to see your representatives">
-                You can set this in your settings at any time.
-              </EmptyState>
-            )}
-          </Panel>
-
-          {repVotes.length > 0 ? (
-            <Panel aria-labelledby="rep-votes-heading">
-              <h2 id="rep-votes-heading" className="mb-2 font-semibold">
-                How your representatives voted recently
-              </h2>
-              <ul className="divide-y text-sm" data-testid="rep-recent-votes">
-                {repVotes.map((vote) => (
-                  <li
-                    key={`${vote.rollCall.id}-${vote.person.fullName}`}
-                    className="flex items-start justify-between gap-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="break-words">
-                        <span className="font-medium">{vote.person.fullName}</span>
-                        {": "}
-                        {vote.rollCall.bill ? (
-                          <Link href={`/bills/${vote.rollCall.bill.slug}`} className="underline">
-                            {billLabel(vote.rollCall.bill.billType, vote.rollCall.bill.number)}
-                          </Link>
-                        ) : (
-                          vote.rollCall.legislationRef
-                        )}{" "}
-                        {vote.rollCall.question}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(vote.rollCall.occurredAt)}
-                      </p>
-                    </div>
-                    <span className="shrink-0 font-medium">{positionLabel(vote.position)}</span>
-                  </li>
-                ))}
-              </ul>
-            </Panel>
-          ) : null}
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <Panel aria-labelledby="followed-heading">
-              <h2 id="followed-heading" className="mb-2 font-semibold">
-                Bills you follow
-              </h2>
-              {lists && lists.followed.length > 0 ? (
-                <BillLinkList bills={lists.followed} testId="followed-bills" />
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Follow a bill to keep track of it here.
-                </p>
-              )}
-            </Panel>
-            <Panel aria-labelledby="viewed-heading">
-              <h2 id="viewed-heading" className="mb-2 font-semibold">
-                Recently viewed
-              </h2>
-              {lists && lists.viewed.length > 0 ? (
-                <BillLinkList bills={lists.viewed} testId="viewed-bills" />
-              ) : (
-                <p className="text-sm text-muted-foreground">Bills you open will show up here.</p>
-              )}
-            </Panel>
-          </div>
-
-          {favorites.length > 0 ? (
-            <Panel aria-labelledby="saved-members-heading">
-              <h2 id="saved-members-heading" className="mb-3 font-semibold">
-                Members you saved
-              </h2>
-              <div className="grid gap-3 md:grid-cols-3" data-testid="saved-members">
-                {favorites.map((member) => (
-                  <MemberCard key={member.id} member={member} />
-                ))}
-              </div>
-            </Panel>
-          ) : null}
-
-          {lists && lists.bookmarks.length > 0 ? (
-            <Panel aria-labelledby="bookmarks-heading">
-              <h2 id="bookmarks-heading" className="mb-2 font-semibold">
-                Saved forum posts
-              </h2>
-              <ul className="space-y-1 text-sm" data-testid="forum-bookmarks">
-                {lists.bookmarks.map((post) => (
-                  <li key={post.id} className="break-words">
-                    <Link href={`/forum/posts/${post.id}`} className="underline">
-                      {post.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </Panel>
-          ) : null}
-
-          <Panel aria-labelledby="activity-heading">
-            <h2 id="activity-heading" className="mb-3 font-semibold">
-              Your last 12 weeks
-            </h2>
-            <ActivityChart weeks={metrics.activity} />
-          </Panel>
-        </>
-      ) : (
-        <EmptyState
-          title="Sign in to see your representatives"
-          action={{ href: "/bills", label: "Or start by browsing bills" }}
-        >
-          You&apos;ll see how often they vote the way you would.
-        </EmptyState>
-      )}
-
-      <section aria-labelledby="latest-heading" className="space-y-3">
-        <div className="flex items-baseline justify-between">
-          <h2 id="latest-heading" className="font-semibold">
-            Latest activity in Congress
-          </h2>
-          <Link href="/bills" className="text-sm underline">
-            All bills
-          </Link>
-        </div>
-        {bills.length > 0 ? (
-          bills.map((bill) => <BillCard key={bill.id} bill={bill} />)
-        ) : (
-          <EmptyState title="No bills yet">Bills appear once the data pipeline has run.</EmptyState>
-        )}
-      </section>
-    </PageContainer>
   );
 }

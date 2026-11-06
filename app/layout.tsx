@@ -1,18 +1,16 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import AuthProvider from "./auth/provider";
 import { Toaster } from "sonner";
 import Navbar from "./navbar/navbar";
-import { Instrument_Sans } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { Nunito } from "next/font/google";
 import Modals from "@/components/cb/modals";
 import { TopProgressBar } from "@/components/app/top-progress-bar";
 import { OnboardingGate } from "@/components/onboarding/onboarding-gate";
 import { SiteFooter } from "@/components/app/site-footer";
-import { THEME_VALUES } from "@/components/app/theme-values";
+import { RewardToast } from "@/components/civic/progress-strip";
 
-const InstrumentSans = Instrument_Sans({ subsets: ['latin'], variable: '--font-geist' });
+const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito" });
 
 export const metadata: Metadata = {
   title: {
@@ -60,20 +58,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("font-geist", InstrumentSans.variable)}>
+    <html lang="en" suppressHydrationWarning className={nunito.variable}>
       <body
         suppressHydrationWarning
-        className={`bg-background-dark font-semibold text-lg antialiased`}
       >
         <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-            themes={THEME_VALUES}
-          >
-            <TopProgressBar />
+                      <TopProgressBar />
             <Navbar>
               <main className="">
                 {children}
@@ -81,8 +71,8 @@ export default function RootLayout({
               <SiteFooter />
             </Navbar>
             <Toaster />
+            <RewardToast />
             <OnboardingGate />
-          </ThemeProvider>
           <Modals />
         </AuthProvider>
       </body>

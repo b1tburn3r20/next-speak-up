@@ -124,3 +124,11 @@ export function isStale(asOf: Date | null | undefined, days: number, now = new D
   if (!asOf) return true;
   return now.getTime() - asOf.getTime() > days * 24 * 60 * 60 * 1000;
 }
+
+/** For use before a noun: "Democratic senator", where partyLabel gives "Democrat". */
+export function partyAdjective(party: string | null | undefined): string {
+  if (party === "D") return "Democratic";
+  if (party === "R") return "Republican";
+  if (party === "I") return "Independent";
+  return partyLabel(party ?? null);
+}

@@ -130,10 +130,14 @@ async function main() {
         const seed = userIndex * 7 + billIndex * 3;
         if (seed % 3 !== 0) continue;
         const position = pick(positions, seed);
+        // Spread over time, so accounts show a real streak and activity chart, with the last few
+        // days in a row and gaps before that.
+        const daysAgo = billIndex < 15 ? billIndex % 5 : 5 + ((billIndex * 2) % 55);
+        const createdAt = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
         await prisma.userBillVote.upsert({
           where: { userId_billId: { userId: user.id, billId: bill.id } },
-          update: { position },
-          create: { userId: user.id, billId: bill.id, position },
+          update: { position, createdAt },
+          create: { userId: user.id, billId: bill.id, position, createdAt },
         });
         await prisma.userBillFollow.upsert({
           where: { userId_billId: { userId: user.id, billId: bill.id } },

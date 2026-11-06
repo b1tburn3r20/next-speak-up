@@ -2,19 +2,28 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
+import { FileText, Sparkles } from "lucide-react";
 import sanitizeHtml from "sanitize-html";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { EmptyState } from "@/components/app/page-states";
 import { BillActionButtons } from "@/components/bills/bill-action-buttons";
 import { BillAskAi } from "@/components/bills/bill-ask-ai";
+import { BillStatusBadge, formatDate } from "@/components/bills/bill-card";
 import { BillListenButton } from "@/components/bills/bill-listen-button";
+import { RollCallCard } from "@/components/bills/roll-call-card";
 import { ShareButton } from "@/components/bills/share-button";
 import { FloorCategoryPill } from "@/components/bills/upcoming-bill-card";
-import { BillStatusBadge, formatDate } from "@/components/bills/bill-card";
-import { RollCallCard } from "@/components/bills/roll-call-card";
-import { EmptyState, PageContainer, Panel } from "@/components/app/page-states";
-import { getBill, getPartyBreakdowns, getPositionsFor, hasBillText } from "@/lib/civic/bills";
+import { Flex, OuterBlock, PageShell, Section, Stack } from "@/components/blocks";
+import { NextStepCard } from "@/components/civic/next-step-card";
+import { PolicyChip } from "@/components/civic/policy-chip";
+import { RevealPanel } from "@/components/civic/reveal-panel";
+import { Term } from "@/components/civic/term";
+import { MemberPhoto } from "@/components/people/member-photo";
+import { getBill, getPartyBreakdowns, hasBillText } from "@/lib/civic/bills";
+import { buildDigest } from "@/lib/civic/digest";
 import { getBillFloorItem } from "@/lib/civic/floor";
 import { weekLabel } from "@/lib/civic/floor-logic";
+import { explainAction } from "@/lib/civic/glossary";
 import {
   BILL_STAGES,
   billLabel,
@@ -22,8 +31,9 @@ import {
   partyLabel,
   type BillStatusValue,
 } from "@/lib/civic/labels";
-import { bioguideOf, repsForLocation } from "@/lib/civic/people";
-import { getUserBillState, getUserLocation, recordBillView } from "@/lib/civic/users";
+import { bioguideOf } from "@/lib/civic/people";
+import { policyAreaByName } from "@/lib/civic/policy-areas";
+import { getUserBillState, recordBillView } from "@/lib/civic/users";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -44,19 +54,47 @@ const SUMMARY_SANITIZE = {
 function BillProgress({ status }: { status: BillStatusValue }) {
   const reached = billStageIndex(status);
   return (
-    <ol className="grid grid-cols-3 gap-1 sm:grid-cols-6" aria-label="Bill progress">
+    <ol className="grid grid-cols-6 gap-1" aria-label="How far this bill has come">
       {BILL_STAGES.map((stage, index) => (
-        <li
-          key={stage}
-          aria-current={index === reached ? "step" : undefined}
-          className={`rounded px-2 py-1 text-center text-xs ${
-            index <= reached ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-          }`}
-        >
-          {stage}
+        <li key={stage} aria-current={index === reached ? "step" : undefined} className="min-w-0">
+          <div className={`h-2.5 rounded-full ${index <= reached ? "bg-primary" : "bg-background-dark"}`} />
+          <p
+            className={`mt-1 text-center text-[0.65rem] leading-tight sm:text-xs ${
+              index === reached ? "font-extrabold" : "text-muted-foreground"
+            }`}
+          >
+            {stage}
+          </p>
         </li>
       ))}
     </ol>
+  );
+}
+
+type Sponsorship = NonNullable<Awaited<ReturnType<typeof getBill>>>["sponsorships"][number];
+
+function PersonRow({ sponsorship, size = 40 }: { sponsorship: Sponsorship; size?: number }) {
+  const { person } = sponsorship;
+  const bioguide = bioguideOf(person);
+  const term = person.terms[0];
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <MemberPhoto name={person.fullName} url={person.imageUrl} party={term?.party} size={size} />
+      <p className="min-w-0 break-words leading-snug">
+        {bioguide ? (
+          <Link href={`/legislators/federal/${bioguide}`} className="font-bold hover:underline">
+            {person.fullName}
+          </Link>
+        ) : (
+          <span className="font-bold">{person.fullName}</span>
+        )}
+        {term ? (
+          <span className="block text-sm text-muted-foreground">
+            {partyLabel(term.party)}, {term.regionCode}
+          </span>
+        ) : null}
+      </p>
+    </div>
   );
 }
 
@@ -66,157 +104,186 @@ export default async function BillPage({ params }: PageProps) {
 
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
-  const [state, location] = userId
-    ? await Promise.all([getUserBillState(userId, bill.id), getUserLocation(userId)])
-    : [null, null];
+  const state = userId ? await getUserBillState(userId, bill.id) : null;
   if (userId) {
     // Viewing history is nice to have, so it never holds up or breaks the page.
     recordBillView(userId, bill.id).catch(() => undefined);
   }
 
-  const [floorItem, textAvailable] = await Promise.all([
+  const [floorItem, textAvailable, breakdowns] = await Promise.all([
     getBillFloorItem(bill.id),
     hasBillText(bill.id),
+    getPartyBreakdowns(bill.rollCalls.map((rollCall) => rollCall.id)),
   ]);
-  const rollCallIds = bill.rollCalls.map((rollCall) => rollCall.id);
-  const reps = location ? await repsForLocation(location.regionCode, location.districtCode) : [];
-  const [breakdowns, repPositions] = await Promise.all([
-    getPartyBreakdowns(rollCallIds),
-    getPositionsFor(
-      rollCallIds,
-      reps.map((rep) => rep.id),
-    ),
-  ]);
-  const repNames = new Map(reps.map((rep) => [rep.id, rep.fullName]));
 
   const sponsors = bill.sponsorships.filter((item) => item.kind === "SPONSOR");
   const cosponsors = bill.sponsorships.filter((item) => item.kind === "COSPONSOR");
   const [summary, ...olderSummaries] = bill.summaries;
+  const digest = buildDigest(summary?.text);
   const label = billLabel(bill.billType, bill.number);
+  const area = policyAreaByName(bill.policyArea);
+  const hasFinalVote = bill.rollCalls.length > 0;
 
   return (
-    <PageContainer>
+    <PageShell width="narrow">
       <header className="space-y-3">
-        <nav className="text-sm">
-          <Link href="/bills" className="underline">
-            Bills
+        <nav>
+          <Link href="/bills" className="text-sm font-bold text-primary hover:underline">
+            ← All bills
           </Link>
         </nav>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold">{label}</span>
+        <Flex gap="xs">
+          <span className="mr-1 font-extrabold">{label}</span>
           <BillStatusBadge status={bill.currentStatus} />
+          <PolicyChip name={bill.policyArea} link />
           {bill.lawNumber ? (
-            <span className="text-sm text-muted-foreground">Public Law {bill.lawNumber}</span>
-          ) : null}
-          {bill.policyArea ? (
-            <span className="text-sm text-muted-foreground" data-testid="bill-policy-area">
-              {bill.policyArea}
+            <span className="text-sm font-bold text-muted-foreground">
+              <Term id="public-law">Public Law {bill.lawNumber}</Term>
             </span>
           ) : null}
-        </div>
-        <h1 className="break-words text-xl font-semibold sm:text-2xl">{bill.title}</h1>
+        </Flex>
+        <h1 className="break-words text-2xl font-extrabold leading-tight sm:text-3xl">{bill.title}</h1>
         <BillProgress status={bill.currentStatus as BillStatusValue} />
-        <p className="text-sm text-muted-foreground">
-          Latest action, {formatDate(bill.latestActionDate)}: {bill.latestActionText ?? "None yet"}
-        </p>
-        {floorItem ? (
-          <div
-            className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/50 p-3 text-sm"
-            data-testid="floor-notice"
-          >
-            <strong>On the House floor schedule: {weekLabel(floorItem.weekOf, new Date())}.</strong>
-            <FloorCategoryPill category={floorItem.category} />
-            {floorItem.stage ? <span>{floorItem.stage} this bill.</span> : null}
-            <span className="text-muted-foreground">
-              A vote may happen, so now&apos;s the time to weigh in.
-            </span>
-          </div>
-        ) : null}
-        <div className="flex flex-wrap items-center gap-2">
-          <BillActionButtons
-            slug={bill.slug}
-            signedIn={Boolean(userId)}
-            initialPosition={state?.position ?? null}
-            initialFollowing={state?.following ?? false}
-          />
-          <ShareButton title={`${label}: ${bill.title}`} />
-        </div>
       </header>
 
-      <Panel aria-labelledby="summary-heading">
-        <h2 id="summary-heading" className="mb-2 font-semibold">
-          Summary
+      {floorItem ? (
+        <div
+          className="space-y-1 rounded-2xl border-2 border-b-4 border-primary bg-primary-tint p-4"
+          data-testid="floor-notice"
+        >
+          <p className="font-extrabold">On the House floor schedule: {weekLabel(floorItem.weekOf, new Date())}</p>
+          <Flex gap="sm">
+            <FloorCategoryPill category={floorItem.category} />
+            {floorItem.stage ? <span className="text-sm">{floorItem.stage} this bill</span> : null}
+          </Flex>
+          <p className="text-sm">A vote may happen, so now&apos;s the time to weigh in.</p>
+        </div>
+      ) : null}
+
+      <OuterBlock className="space-y-3" aria-labelledby="digest-heading" data-testid="digest">
+        <h2 id="digest-heading" className="flex items-center gap-1.5 text-sm font-extrabold uppercase tracking-wide text-muted-foreground">
+          <Sparkles className="size-4 text-primary" aria-hidden />
+          In short
         </h2>
-        {summary ? (
+        {digest ? (
           <>
-            <p className="mb-2 text-xs text-muted-foreground">
-              Congressional Research Service
-              {summary.actionDesc ? `, ${summary.actionDesc}` : ""}
-              {summary.actionDate ? `, ${formatDate(summary.actionDate)}` : ""}
-              {bill.summaries.length > 1 ? ` · ${bill.summaries.length} versions` : ""}
+            <p className="text-lg font-semibold leading-relaxed" data-testid="digest-lead">
+              {digest.lead}
             </p>
-            <div
-              data-testid="bill-summary"
-              className="prose prose-sm max-w-none break-words dark:prose-invert"
-              dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(summary.text, SUMMARY_SANITIZE),
-              }}
-            />
-            <div className="mt-3">
-              <BillListenButton slug={bill.slug} signedIn={Boolean(userId)} />
-            </div>
-            {olderSummaries.length > 0 ? (
-              <details className="mt-3 text-sm" data-testid="older-summaries">
-                <summary className="cursor-pointer font-medium">
-                  Earlier versions ({olderSummaries.length})
-                </summary>
-                <div className="mt-2 space-y-3">
-                  {olderSummaries.map((older) => (
-                    <div key={older.id} className="border-l-2 pl-3">
-                      <p className="mb-1 text-xs text-muted-foreground">
-                        {older.actionDesc ?? "Earlier version"}
-                        {older.actionDate ? `, ${formatDate(older.actionDate)}` : ""}
-                      </p>
-                      <div
-                        className="prose prose-sm max-w-none break-words dark:prose-invert"
-                        dangerouslySetInnerHTML={{
-                          __html: sanitizeHtml(older.text, SUMMARY_SANITIZE),
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </details>
+            {digest.points.length > 0 ? (
+              <ul className="list-disc space-y-1 pl-5">
+                {digest.points.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
             ) : null}
           </>
         ) : (
-          <p className="text-sm text-muted-foreground" data-testid="no-summary">
-            The Congressional Research Service hasn&apos;t published a summary for this bill yet.
-            These often take a while for new bills.
-          </p>
+          <div className="space-y-1" data-testid="no-summary">
+            <p className="text-lg font-semibold leading-relaxed">
+              {area ? `This is a ${area.name.toLowerCase()} bill. ` : ""}
+              No official summary yet.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              The <Term id="crs">Congressional Research Service</Term> summarizes bills once
+              they&apos;re moving, which can take a while for new ones.
+              {textAvailable ? " The full text is available below." : ""}
+            </p>
+          </div>
         )}
-      </Panel>
-
-      {textAvailable ? (
-        <Panel aria-labelledby="ask-heading">
-          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-            <h2 id="ask-heading" className="font-semibold">
-              Ask about this bill
-            </h2>
-            <Link href={`/bills/${bill.slug}/text`} className="text-sm underline" data-testid="bill-text-link">
+        {area ? <p className="text-sm text-muted-foreground">{area.explanation}</p> : null}
+        <p className="text-sm text-muted-foreground">
+          Latest: {bill.latestActionText ?? "No action yet"}
+          {bill.latestActionDate ? ` (${formatDate(bill.latestActionDate)})` : ""}
+        </p>
+        <Flex gap="sm">
+          {summary ? <BillListenButton slug={bill.slug} signedIn={Boolean(userId)} /> : null}
+          {textAvailable ? (
+            <Link
+              href={`/bills/${bill.slug}/text`}
+              className="inline-flex items-center gap-1 text-sm font-extrabold text-primary hover:underline"
+              data-testid="bill-text-link"
+            >
+              <FileText className="size-4" aria-hidden />
               Read the full text
             </Link>
-          </div>
-          <BillAskAi slug={bill.slug} signedIn={Boolean(userId)} />
-        </Panel>
+          ) : null}
+        </Flex>
+      </OuterBlock>
+
+      <OuterBlock className="space-y-3" data-testid="your-vote">
+        <h2 className="text-lg font-extrabold">{hasFinalVote ? "What do you think?" : "Would you support this?"}</h2>
+        <BillActionButtons
+          slug={bill.slug}
+          signedIn={Boolean(userId)}
+          initialPosition={state?.position ?? null}
+          initialFollowing={state?.following ?? false}
+          size="lg"
+        />
+        <RevealPanel
+          slug={bill.slug}
+          signedIn={Boolean(userId)}
+          initialPosition={state?.position ?? null}
+        />
+        <Flex justify="end">
+          <ShareButton title={`${label}: ${bill.title}`} />
+        </Flex>
+      </OuterBlock>
+
+      <Section title="Who's behind it">
+        <OuterBlock className="space-y-3">
+          <p className="text-sm font-extrabold text-muted-foreground">
+            <Term id="sponsor">Sponsor</Term>
+          </p>
+          {sponsors.length > 0 ? (
+            sponsors.map((sponsorship) => (
+              <PersonRow key={sponsorship.person.fullName} sponsorship={sponsorship} size={56} />
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground">Not listed yet.</p>
+          )}
+          {cosponsors.length > 0 ? (
+            <details data-testid="cosponsors">
+              <summary className="font-bold text-primary">
+                {cosponsors.length} <Term id="cosponsor">cosponsor{cosponsors.length === 1 ? "" : "s"}</Term>
+              </summary>
+              <ul className="mt-3 max-h-96 space-y-2 overflow-y-auto">
+                {cosponsors.map((sponsorship) => (
+                  <li key={sponsorship.person.fullName}>
+                    <PersonRow sponsorship={sponsorship} size={36} />
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : (
+            <p className="text-sm text-muted-foreground">No cosponsors yet.</p>
+          )}
+          {bill.subjects.length > 0 ? (
+            <p className="break-words text-sm text-muted-foreground">
+              <span className="font-bold">Topics: </span>
+              {bill.subjects
+                .slice(0, 12)
+                .map((subject) => subject.name)
+                .join(", ")}
+            </p>
+          ) : null}
+        </OuterBlock>
+      </Section>
+
+      {textAvailable ? (
+        <Section title="Ask about this bill" aria-labelledby="ask-heading">
+          <OuterBlock>
+            <BillAskAi slug={bill.slug} signedIn={Boolean(userId)} />
+          </OuterBlock>
+        </Section>
       ) : null}
 
-      <Panel aria-labelledby="votes-heading">
-        <h2 id="votes-heading" className="mb-3 font-semibold">
-          Recorded votes
-        </h2>
+      <Section
+        title="Recorded votes"
+        description="Party totals. How your own reps voted stays hidden above until you ask."
+      >
         {bill.rollCalls.length > 0 ? (
-          <div className="space-y-3">
+          <Stack>
             {bill.rollCalls.map((rollCall) => (
               <RollCallCard
                 key={rollCall.id}
@@ -236,145 +303,105 @@ export default async function BillPage({ params }: PageProps) {
                 }}
                 parties={breakdowns.get(rollCall.id) ?? []}
                 membersHref={`/bills/${bill.slug}/votes/${rollCall.id}`}
-                yourReps={repPositions
-                  .filter((position) => position.rollCallId === rollCall.id)
-                  .map((position) => ({
-                    name: repNames.get(position.personId) ?? "Your rep",
-                    position: position.position,
-                  }))}
               />
             ))}
-          </div>
+          </Stack>
         ) : (
           <EmptyState title="No recorded votes yet">
-            Many bills never get a recorded floor vote. Votes appear here if they happen.
+            Many bills never get a <Term id="roll-call">recorded vote</Term>. They appear here if they do.
           </EmptyState>
         )}
-      </Panel>
+      </Section>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Panel aria-labelledby="sponsors-heading">
-          <h2 id="sponsors-heading" className="mb-2 font-semibold">
-            Sponsors
-          </h2>
-          <ul className="space-y-1 text-sm">
-            {sponsors.map(({ person }) => {
-              const bioguide = bioguideOf(person);
-              const term = person.terms[0];
-              const name = bioguide ? (
-                <Link href={`/legislators/federal/${bioguide}`} className="underline">
-                  {person.fullName}
-                </Link>
-              ) : (
-                person.fullName
-              );
+      <Section title="What's happened so far">
+        <OuterBlock>
+          <ol className="max-h-[32rem] space-y-3 overflow-y-auto" data-testid="bill-timeline">
+            {bill.actions.map((action) => {
+              const plain = explainAction(action.text);
               return (
-                <li key={person.fullName}>
-                  {name}
-                  {term ? ` (${partyLabel(term.party)}, ${term.regionCode})` : ""}
+                <li key={action.id} className="border-l-4 border-primary-tint pl-3">
+                  <p className="text-xs font-bold text-muted-foreground">{formatDate(action.actionDate)}</p>
+                  {plain ? (
+                    <p className="font-bold leading-snug" data-testid="action-plain">
+                      {plain.term ? <Term id={plain.term}>{plain.explanation}</Term> : plain.explanation}
+                    </p>
+                  ) : null}
+                  <p className={`break-words ${plain ? "text-sm text-muted-foreground" : ""}`}>{action.text}</p>
                 </li>
               );
             })}
-          </ul>
-          {cosponsors.length > 0 ? (
-            <details className="mt-2 text-sm" data-testid="cosponsors">
-              <summary className="cursor-pointer text-muted-foreground">
-                {cosponsors.length} cosponsor{cosponsors.length === 1 ? "" : "s"}
-              </summary>
-              <ul className="mt-1 max-h-64 space-y-1 overflow-y-auto">
-                {cosponsors.map(({ person }) => {
-                  const bioguide = bioguideOf(person);
-                  const term = person.terms[0];
-                  return (
-                    <li key={person.fullName} className="break-words">
-                      {bioguide ? (
-                        <Link href={`/legislators/federal/${bioguide}`} className="underline">
-                          {person.fullName}
-                        </Link>
-                      ) : (
-                        person.fullName
-                      )}
-                      {term ? ` (${partyLabel(term.party)}, ${term.regionCode})` : ""}
-                    </li>
-                  );
-                })}
-              </ul>
-            </details>
-          ) : (
-            <p className="mt-2 text-sm text-muted-foreground">No cosponsors</p>
-          )}
-          {bill.subjects.length > 0 ? (
-            <>
-              <h3 className="mb-1 mt-4 text-sm font-semibold">Topics</h3>
-              <p className="break-words text-sm text-muted-foreground">
-                {bill.policyArea ? `${bill.policyArea}. ` : ""}
-                {bill.subjects
-                  .slice(0, 12)
-                  .map((subject) => subject.name)
-                  .join(", ")}
-              </p>
-            </>
-          ) : null}
-        </Panel>
-
-        <Panel aria-labelledby="timeline-heading">
-          <h2 id="timeline-heading" className="mb-2 font-semibold">
-            Timeline
-          </h2>
-          <ol className="max-h-96 space-y-2 overflow-y-auto text-sm" data-testid="bill-timeline">
-            {bill.actions.map((action) => (
-              <li key={action.id} className="border-l-2 pl-3">
-                <p className="text-xs text-muted-foreground">{formatDate(action.actionDate)}</p>
-                <p className="break-words">{action.text}</p>
-              </li>
-            ))}
           </ol>
-        </Panel>
-      </div>
+        </OuterBlock>
+      </Section>
 
-      {bill.textVersions.length > 0 || bill.relations.length > 0 ? (
-        <Panel aria-labelledby="more-heading">
-          <h2 id="more-heading" className="mb-2 font-semibold">
-            Text and related bills
-          </h2>
-          {bill.textVersions.length > 0 ? (
-            <ul className="mb-3 space-y-1 text-sm">
-              {bill.textVersions.map((version) => (
-                <li key={version.id} className="break-words">
-                  {version.versionType}
-                  {version.issuedOn ? `, ${formatDate(version.issuedOn)}` : ""}:{" "}
-                  {version.htmlUrl ? (
-                    <a href={version.htmlUrl} className="underline" target="_blank" rel="noreferrer">
-                      Read
-                    </a>
-                  ) : null}{" "}
-                  {version.pdfUrl ? (
-                    <a href={version.pdfUrl} className="underline" target="_blank" rel="noreferrer">
-                      PDF
-                    </a>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {bill.relations.length > 0 ? (
-            <ul className="space-y-1 text-sm">
+      {olderSummaries.length > 0 || summary ? (
+        <Section title="The full summary">
+          <OuterBlock className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              <Term id="crs">Congressional Research Service</Term>
+              {summary?.actionDesc ? `, ${summary.actionDesc}` : ""}
+              {summary?.actionDate ? `, ${formatDate(summary.actionDate)}` : ""}
+            </p>
+            <div
+              data-testid="bill-summary"
+              className="prose max-w-none break-words"
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(summary.text, SUMMARY_SANITIZE) }}
+            />
+            {olderSummaries.length > 0 ? (
+              <details data-testid="older-summaries">
+                <summary className="font-bold text-primary">Earlier versions ({olderSummaries.length})</summary>
+                <div className="mt-3 space-y-3">
+                  {olderSummaries.map((older) => (
+                    <div key={older.id} className="border-l-4 pl-3">
+                      <p className="mb-1 text-xs font-bold text-muted-foreground">
+                        {older.actionDesc ?? "Earlier version"}
+                        {older.actionDate ? `, ${formatDate(older.actionDate)}` : ""}
+                      </p>
+                      <div
+                        className="prose prose-sm max-w-none break-words"
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(older.text, SUMMARY_SANITIZE) }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </details>
+            ) : null}
+          </OuterBlock>
+        </Section>
+      ) : null}
+
+      {bill.relations.length > 0 ? (
+        <Section title="Related bills">
+          <OuterBlock>
+            <ul className="space-y-2 text-sm">
               {bill.relations.map((relation) => (
                 <li key={`${relation.relatedSlug}-${relation.relationType}`} className="break-words">
                   {relation.relatedBillId ? (
-                    <Link href={`/bills/${relation.relatedSlug}`} className="underline">
+                    <Link href={`/bills/${relation.relatedSlug}`} className="font-bold text-primary hover:underline">
                       {relation.relatedTitle ?? relation.relatedSlug}
                     </Link>
                   ) : (
-                    (relation.relatedTitle ?? relation.relatedSlug)
+                    <span className="font-bold">{relation.relatedTitle ?? relation.relatedSlug}</span>
                   )}{" "}
                   <span className="text-muted-foreground">({relation.relationType})</span>
                 </li>
               ))}
             </ul>
-          ) : null}
-        </Panel>
+          </OuterBlock>
+        </Section>
       ) : null}
+
+      <NextStepCard
+        label="Keep going"
+        step={{
+          id: "after-bill",
+          title: area ? `See more ${area.name.toLowerCase()} bills` : "Vote on another bill",
+          description: area ? area.explanation : "Each one sharpens how well you know your reps.",
+          href: area ? `/topics/${area.slug}` : "/vote",
+          cta: area ? "Browse this topic" : "Start voting",
+          tone: "primary",
+        }}
+      />
 
       {bill.sourceUrl ? (
         <p className="text-xs text-muted-foreground">
@@ -384,6 +411,6 @@ export default async function BillPage({ params }: PageProps) {
           </a>
         </p>
       ) : null}
-    </PageContainer>
+    </PageShell>
   );
 }

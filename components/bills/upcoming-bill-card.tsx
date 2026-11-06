@@ -1,15 +1,22 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { BillActionButtons } from "@/components/bills/bill-action-buttons";
-import { BillStatusBadge, formatDate } from "@/components/bills/bill-card";
+import { BillStatusBadge, formatDate, SponsorLine } from "@/components/bills/bill-card";
+import { Flex, OuterBlock, Stack } from "@/components/blocks";
+import { PolicyChip } from "@/components/civic/policy-chip";
+import { Term } from "@/components/civic/term";
+import { buildDigest } from "@/lib/civic/digest";
 import type { FloorItem } from "@/lib/civic/floor";
 import { FLOOR_CATEGORY_LABELS, floorOutcome } from "@/lib/civic/floor-logic";
+import { FLOOR_CATEGORY_TERMS } from "@/lib/civic/glossary";
 
+/** Why this bill gets a vote the way it does, with the jargon explained on tap. */
 export function FloorCategoryPill({ category }: { category: string }) {
   const details = FLOOR_CATEGORY_LABELS[category] ?? FLOOR_CATEGORY_LABELS.OTHER;
+  const term = FLOOR_CATEGORY_TERMS[category];
   return (
-    <span title={details.hint} className="rounded-full border px-2 py-0.5 text-xs">
-      {details.label}
+    <span className="rounded-full border px-2 py-0.5 text-xs font-bold">
+      {term ? <Term id={term}>{details.label}</Term> : details.label}
     </span>
   );
 }
@@ -17,10 +24,13 @@ export function FloorCategoryPill({ category }: { category: string }) {
 function Outcome({ item }: { item: FloorItem }) {
   const outcome = item.bill ? floorOutcome(item.bill.actions, item.weekOf) : null;
   if (!outcome) return null;
+  const passed = outcome.kind === "PASSED";
   return (
-    <p className="text-sm font-medium" data-testid="floor-outcome">
-      {outcome.kind === "PASSED" ? "Passed the House" : "Failed in the House"},{" "}
-      {formatDate(outcome.date)}
+    <p
+      className={`rounded-lg px-2.5 py-1 text-sm font-extrabold ${passed ? "bg-support-tint text-support" : "bg-oppose-tint text-oppose"}`}
+      data-testid="floor-outcome"
+    >
+      {passed ? "Passed the House" : "Failed in the House"}, {formatDate(outcome.date)}
     </p>
   );
 }
@@ -35,30 +45,37 @@ export function UpcomingBillCard({
   state?: { position: string | null; following: boolean };
 }) {
   const bill = item.bill;
+  const digest = buildDigest(bill?.summaries[0]?.text);
   return (
-    <article
-      className="space-y-2 rounded-lg border bg-card p-4 text-card-foreground shadow-sm"
-      data-testid="floor-item"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-semibold">{item.legislationRef}</span>
-        <FloorCategoryPill category={item.category} />
-        {bill ? <BillStatusBadge status={bill.currentStatus} /> : null}
-        {bill?.policyArea ? (
-          <span className="text-xs text-muted-foreground">{bill.policyArea}</span>
+    <OuterBlock data-testid="floor-item">
+      <Stack>
+        <Flex gap="xs">
+          <span className="mr-1 font-extrabold">{item.legislationRef}</span>
+          {bill ? <BillStatusBadge status={bill.currentStatus} /> : null}
+          <FloorCategoryPill category={item.category} />
+        </Flex>
+        {bill ? <PolicyChip name={bill.policyArea} link /> : null}
+        <h3 className="break-words text-lg font-extrabold leading-snug">
+          {bill ? (
+            <Link href={`/bills/${bill.slug}`} className="hover:underline">
+              {item.title}
+            </Link>
+          ) : (
+            item.title
+          )}
+        </h3>
+        {digest ? (
+          <p className="break-words leading-relaxed" data-testid="digest-lead">
+            {digest.lead}
+          </p>
+        ) : bill ? (
+          <p className="text-sm text-muted-foreground" data-testid="no-digest">
+            No official summary yet.{" "}
+            {item.documentUrl ? "The text going to the floor is linked below." : ""}
+          </p>
         ) : null}
-      </div>
-      <h3 className="break-words font-medium">
-        {bill ? (
-          <Link href={`/bills/${bill.slug}`} className="underline-offset-2 hover:underline">
-            {item.title}
-          </Link>
-        ) : (
-          item.title
-        )}
-      </h3>
-      <Outcome item={item} />
-      <div className="flex flex-wrap items-center justify-between gap-3">
+        {bill ? <SponsorLine bill={bill} /> : null}
+        <Outcome item={item} />
         {bill ? (
           <BillActionButtons
             slug={bill.slug}
@@ -76,13 +93,13 @@ export function UpcomingBillCard({
             href={item.documentUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 text-sm underline"
+            className="inline-flex w-fit items-center gap-1 text-sm font-bold text-primary hover:underline"
           >
             <FileText className="size-4" aria-hidden />
             Text going to the floor
           </a>
         ) : null}
-      </div>
-    </article>
+      </Stack>
+    </OuterBlock>
   );
 }

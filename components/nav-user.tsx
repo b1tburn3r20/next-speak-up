@@ -19,7 +19,6 @@ import {
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useLoginStore } from "@/app/navbar/use-login-store";
-import { ModeToggle } from "./ui/mode-toggle";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/loading-catch";
 import ShinyButton from "./ui/shiny-button";
 import {
@@ -156,7 +155,6 @@ export function NavUser() {
                 Settings
               </DropdownMenuItem>
             </Link>
-            <ModeToggle />
           </DropdownMenuGroup>
           {/* <DropdownMenuSeparator /> */}
           {/* <DropdownMenuGroup> */}

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { BillCard } from "@/components/bills/bill-card";
+import { PageHeader } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState, PageContainer } from "@/components/app/page-states";
@@ -40,15 +42,15 @@ export default async function BillsPage({
 
   return (
     <PageContainer>
-      <div>
-        <h1 className="text-2xl font-semibold">Bills</h1>
-        <p className="text-sm text-muted-foreground">
-          Federal legislation, most recently active first.{" "}
-          <Link href="/bills/upcoming" className="underline" data-testid="upcoming-link">
-            See what&apos;s coming up for a vote
-          </Link>
-        </p>
-      </div>
+      <PageHeader title="Bills" description="Federal legislation, most recently active first." />
+      <Link
+        href="/bills/upcoming"
+        className="flex items-center justify-between gap-3 rounded-2xl border-2 border-b-4 border-primary bg-primary-tint p-4 font-extrabold"
+        data-testid="upcoming-link"
+      >
+        See what may come up for a vote next
+        <ArrowRight className="size-5 shrink-0 text-primary" aria-hidden />
+      </Link>
 
       <form className="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]" role="search">
         <Input

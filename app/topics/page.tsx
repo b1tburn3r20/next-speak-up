@@ -1,0 +1,76 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Grid, PageHeader, PageShell, Section } from "@/components/blocks";
+import { NextStepCard } from "@/components/civic/next-step-card";
+import { policyIcon } from "@/components/civic/policy-chip";
+import { POLICY_AREAS, POLICY_FAMILIES, type PolicyFamily } from "@/lib/civic/policy-areas";
+import prisma from "@/prisma/client";
+
+export const metadata: Metadata = {
+  title: "Topics",
+  description: "Every kind of bill Congress works on, explained simply.",
+};
+
+export default async function TopicsPage() {
+  const counts = await prisma.bill.groupBy({
+    by: ["policyArea"],
+    _count: { _all: true },
+    where: { policyArea: { not: null } },
+  });
+  const countByArea = new Map(counts.map((row) => [row.policyArea, row._count._all]));
+
+  return (
+    <PageShell>
+      <PageHeader
+        title="Topics"
+        description="Every bill gets a policy area from the Library of Congress. Pick one you care about."
+      />
+      {(Object.keys(POLICY_FAMILIES) as PolicyFamily[]).map((family) => {
+        const { label, color, tint } = POLICY_FAMILIES[family];
+        const areas = POLICY_AREAS.filter((area) => area.family === family);
+        return (
+          <Section key={family} title={label} data-testid="topic-family">
+            <Grid cols="cards">
+              {areas.map((area) => {
+                const Icon = policyIcon(area.name);
+                const count = countByArea.get(area.name) ?? 0;
+                return (
+                  <Link
+                    key={area.slug}
+                    href={`/topics/${area.slug}`}
+                    className="flex gap-3 rounded-2xl border-2 border-b-4 bg-card p-3 transition-colors hover:border-primary/60"
+                    data-testid="topic-card"
+                  >
+                    <span
+                      className="flex size-11 shrink-0 items-center justify-center rounded-xl"
+                      style={{ backgroundColor: tint }}
+                    >
+                      <Icon className="size-5" style={{ color }} aria-hidden />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block break-words font-extrabold leading-snug">{area.name}</span>
+                      <span className="block text-sm text-muted-foreground">{area.explanation}</span>
+                      <span className="block text-xs font-bold text-muted-foreground">
+                        {count} bill{count === 1 ? "" : "s"} loaded
+                      </span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </Grid>
+          </Section>
+        );
+      })}
+      <NextStepCard
+        step={{
+          id: "learn",
+          title: "New to all this?",
+          description: "What cloture, markup, and the rest actually mean.",
+          href: "/learn",
+          cta: "Learn the lingo",
+          tone: "xp",
+        }}
+      />
+    </PageShell>
+  );
+}

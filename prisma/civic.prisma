@@ -181,6 +181,8 @@ model Person {
   positions    RollCallPosition[]
   favoritedBy  UserPersonFavorite[]
   alignments   UserRepAlignment[]
+  memberStat   MemberStat?
+  policyStats  MemberPolicyStat[]
 
   @@index([lastName])
   @@index([sortName])
@@ -470,6 +472,8 @@ model RollCall {
   totalNay       Int        @default(0)
   totalPresent   Int        @default(0)
   totalNotVoting Int        @default(0)
+  // Decides the bill's fate, rather than a procedural step. Stored so queries can filter on it.
+  isFinalVote    Boolean    @default(false)
   source         DataSource
   sourceUrl      String?    @db.VarChar(500)
   // When the source data was last fetched. The UI shows this as "as of".
@@ -485,8 +489,9 @@ model RollCall {
   actions      BillActionEvent[]
 
   @@unique([chamberId, sessionId, subSession, number])
-  @@index([billId])
+  @@index([billId, isFinalVote])
   @@index([chamberId, occurredAt])
+  @@index([isFinalVote, occurredAt])
   @@map("roll_call")
 }
 
@@ -572,6 +577,47 @@ model UserPersonFavorite {
 }
 
 // Precomputed so dashboards stay fast. policyArea "" holds the overall figure.
+// Precomputed by the pipeline, so a member page or dashboard reads one row.
+model MemberStat {
+  personId              Int       @id
+  chamberKind           String    @db.VarChar(16)
+  totalVotes            Int       @default(0)
+  missedVotes           Int       @default(0)
+  attendancePercent     Int?
+  // The share of the member's chamber strictly below them
+  attendancePercentile  Int?
+  partyVotes            Int       @default(0)
+  partyLoyaltyPercent   Int?
+  loyaltyPercentile     Int?
+  // Whole career, from their full record, not only the bills loaded so far
+  sponsoredCount        Int       @default(0)
+  sponsoredThisCongress Int       @default(0)
+  cosponsoredCount      Int       @default(0)
+  becameLawCount        Int       @default(0)
+  lawPercentile         Int?
+  lastVoteAt            DateTime?
+  computedAt            DateTime
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@map("member_stat")
+}
+
+model MemberPolicyStat {
+  personId       Int
+  policyArea     String @db.VarChar(120)
+  sponsoredCount Int    @default(0)
+  becameLawCount Int    @default(0)
+  // Final votes only
+  yeaVotes       Int    @default(0)
+  nayVotes       Int    @default(0)
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@id([personId, policyArea])
+  @@map("member_policy_stat")
+}
+
 model UserRepAlignment {
   userId        String
   personId      Int

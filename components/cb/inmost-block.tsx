@@ -1,27 +1,9 @@
-"use client";
-import { motion, HTMLMotionProps } from "framer-motion";
-import { twMerge } from "tailwind-merge";
-import clsx from "clsx";
+import { InnerBlock as Block } from "@/components/blocks";
+import { cn } from "@/lib/utils";
 
-type InmostBlockProps = HTMLMotionProps<"div">;
-
-const InmostBlock = ({ className, children, ...rest }: InmostBlockProps) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 1,
-        ease: [0.16, 1, 0.3, 1],
-      }}
-      className={twMerge(
-        clsx("bg-background-very-light shadow-md rounded-lg p-4", className),
-      )}
-      {...rest}
-    >
-      {children}
-    </motion.div>
-  );
-};
+/** Older pages use this. New pages should import from components/blocks directly. */
+const InmostBlock = ({ className, ...rest }: React.ComponentProps<"div">) => (
+  <Block className={cn("bg-card", className)} {...rest} />
+);
 
 export default InmostBlock;

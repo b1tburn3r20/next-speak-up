@@ -1,0 +1,18 @@
+[
+  { "question": "On Passage", "final": true },
+  { "question": "On Passage of the Bill", "final": true },
+  { "question": "On the Joint Resolution", "final": true },
+  { "question": "On the Resolution", "final": true },
+  { "question": "On Agreeing to the Resolution", "final": true },
+  { "question": "On the Conference Report", "final": true },
+  { "question": "On Motion to Suspend the Rules and Pass", "final": true },
+  { "question": "On Motion to Concur in the Senate Amendment", "final": true },
+  { "question": "On Overriding the Veto", "final": true },
+  { "question": "On Agreeing to the Amendment", "final": false },
+  { "question": "On Motion to Table", "final": false },
+  { "question": "On Ordering the Previous Question", "final": false },
+  { "question": "On the Cloture Motion", "final": false },
+  { "question": "On the Motion to Proceed", "final": false },
+  { "question": "On the Nomination", "final": false },
+  { "question": "Quorum", "final": false }
+]

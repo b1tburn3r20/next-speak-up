@@ -6,7 +6,6 @@ import { LandingNavbarData as navItems } from "./landing-navbar-data";
 import LandingNavUser from "@/components/landing-nav-user";
 import Link from "next/link";
 import Image from "next/image";
-import { ModeToggle } from "@/components/ui/mode-toggle";
 import SideBlock from "@/components/cb/side-block";
 
 const LandingDesktopNavbar = () => {
@@ -75,7 +74,6 @@ const LandingDesktopNavbar = () => {
 
           <div className="flex items-center gap-2">
             <LandingNavUser />
-            <ModeToggle />
           </div>
         </div>
       </div>

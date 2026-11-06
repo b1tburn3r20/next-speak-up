@@ -5,12 +5,19 @@ import { Slot } from "radix-ui";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  " inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-extrabold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
         default:
-          "bg-primary/80 text-white border-primary border-b-4 hover:bg-primary/90 active:border-b-0 dark:bg-primary dark:border-green-700/40 dark:hover:bg-primary/90",
+          "bg-primary text-primary-foreground border-b-4 border-primary-edge hover:brightness-110 active:translate-y-0.5 active:border-b-2",
+        support:
+          "bg-support text-white border-b-4 border-support-edge hover:brightness-110 active:translate-y-0.5 active:border-b-2",
+        oppose:
+          "bg-oppose text-white border-b-4 border-oppose-edge hover:brightness-110 active:translate-y-0.5 active:border-b-2",
+        streak:
+          "bg-streak text-foreground border-b-4 border-amber-600 hover:brightness-105 active:translate-y-0.5 active:border-b-2",
+        xp: "bg-xp text-white border-b-4 border-violet-800 hover:brightness-110 active:translate-y-0.5 active:border-b-2",
 
         ghost:
           "hover:bg-secondary/30 text-foreground hover:text-accent-foreground",
@@ -28,7 +35,7 @@ const buttonVariants = cva(
         orange:
           "bg-orange-500 text-white border-orange-600 border-b-4 hover:bg-orange-500/90 active:border-b-0 dark:bg-orange-600 dark:border-orange-700 dark:hover:bg-orange-600/90",
         orange_outline:
-          "bg-orange-500/10 text-orange-500 border-orange-500 border-b-4 hover:bg-orange-500/20",
+          "bg-card text-foreground border-2 border-b-4 hover:bg-muted active:translate-y-0.5 active:border-b-2",
 
         super:
           "bg-blue-500 text-white border-blue-600 border-b-4 hover:bg-blue-500/90 active:border-b-0 dark:bg-blue-600 dark:border-blue-700 dark:hover:bg-blue-600/90",
@@ -44,12 +51,12 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-14 md:h-9 px-4 py-2 has-[>svg]:px-3",
+        default: "h-11 px-4 py-2 has-[>svg]:px-3",
         huge: "h-12 md:h-18 px-4 py-2 has-[>svg]:px-3 w-full text-xl",
         xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9",
+        sm: "h-9 gap-1.5 px-3 has-[>svg]:px-2.5",
+        lg: "h-12 px-6 text-base has-[>svg]:px-4",
+        icon: "size-11",
         "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",
         "icon-lg": "size-10",

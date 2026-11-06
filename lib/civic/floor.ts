@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "@/prisma/client";
+import { BILL_CARD_SELECT } from "./bills";
 import { easternToday, mondayOf } from "./floor-logic";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -17,15 +18,7 @@ const FLOOR_SELECT = {
   sourceUpdatedAt: true,
   bill: {
     select: {
-      id: true,
-      slug: true,
-      title: true,
-      billType: true,
-      number: true,
-      currentStatus: true,
-      policyArea: true,
-      latestActionDate: true,
-      latestActionText: true,
+      ...BILL_CARD_SELECT,
       actions: {
         where: { actionCode: { in: ["8000", "9000"] } },
         select: { actionCode: true, actionDate: true },

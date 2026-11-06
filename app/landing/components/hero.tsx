@@ -1,42 +1,56 @@
-import FutureFeatureWrapper from "@/components/cb/future-feature-wrapper";
-import InmostBlock from "@/components/cb/inmost-block";
-import { TextAnimate } from "@/components/magicui/text-animate";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { ArrowRight, Check, HelpCircle, ThumbsDown, ThumbsUp } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+
+/** A small picture of the idea: you vote, then you find out. */
+function HowItFeels() {
+  return (
+    <div className="space-y-3 rounded-3xl border-2 border-b-8 bg-card p-5" aria-hidden>
+      <p className="text-xs font-extrabold uppercase tracking-wide text-muted-foreground">Your rep just voted</p>
+      <p className="text-lg font-extrabold leading-snug">A bill about something you care about</p>
+      <div className="grid grid-cols-2 gap-2">
+        <span className={buttonVariants({ variant: "support", size: "lg" })}>
+          <ThumbsUp className="size-4" /> Support
+        </span>
+        <span className={buttonVariants({ variant: "outline", size: "lg" })}>
+          <ThumbsDown className="size-4" /> Oppose
+        </span>
+      </div>
+      <div className="flex items-center gap-3 rounded-xl bg-muted p-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary-tint">
+          <HelpCircle className="size-6 text-primary" />
+        </span>
+        <span className="min-w-0 flex-1 font-bold leading-snug">Your rep voted yes</span>
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-support-tint px-2.5 py-1 text-xs font-extrabold text-support">
+          <Check className="size-3.5" /> You match
+        </span>
+      </div>
+    </div>
+  );
+}
 
 const Hero = () => {
   return (
-    <div className=" grid grid-cols-1 lg:grid-cols-2 gap-8 items-center px-4">
-      <div className="space-y-6 lg:space-y-8 text-center lg:text-left">
-        <TextAnimate
-          animation="blurInUp"
-          by="word"
-          className="font-bold text-4xl sm:text-5xl lg:text-6xl leading-tight [&>span:last-child]:text-primary"
-          as="h1"
-        >
-          Making Goverment Easy
-        </TextAnimate>
-        <p className="text-muted-foreground text-base sm:text-lg max-w-prose mx-auto lg:mx-0">
-          Coolbills aims to give every person access to tools they need to make their voice heard.
-        </p>{" "}
-        <div>
-          <Link href={"/dashboard"}>
-            <Button size="lg" className="w-full sm:w-auto">
-              Lets Go! <ArrowRight className="ml-2" />
-            </Button>
+    <div className="grid items-center gap-8 lg:grid-cols-2">
+      <div className="space-y-5 text-center lg:text-left">
+        <h1 className="text-4xl font-extrabold leading-tight sm:text-5xl">
+          Does your representative <span className="text-primary">represent you?</span>
+        </h1>
+        <p className="mx-auto max-w-prose text-lg text-muted-foreground lg:mx-0">
+          Vote on the same bills Congress does. Then find out if your representative and senators
+          agree with you. No jargon, and no party telling you what to think.
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-center lg:justify-start">
+          <Link href="/vote" className={buttonVariants({ size: "lg" })} data-testid="hero-cta">
+            Try it now
+            <ArrowRight className="size-4" aria-hidden />
+          </Link>
+          <Link href="/bills/upcoming" className={buttonVariants({ variant: "outline", size: "lg" })}>
+            See upcoming votes
           </Link>
         </div>
       </div>
-      <InmostBlock>
-        <FutureFeatureWrapper>
-          <div className="w-full flex justify-center lg:justify-end min-h-50">
-            <div className=" w-full max-w-md lg:max-w-none aspect-video flex justify-center items-center">
-              <p>Video explaining coolbills</p>
-            </div>
-          </div>
-        </FutureFeatureWrapper>
-      </InmostBlock>
+      <HowItFeels />
     </div>
   );
 };

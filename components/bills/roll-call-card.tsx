@@ -15,7 +15,6 @@ export type RollCallCardProps = {
   asOf: Date | null;
   totals: { yea: number; nay: number; present: number; notVoting: number };
   parties: PartyBreakdown[];
-  yourReps?: { name: string; position: string }[];
   /** Where to see every member's vote. */
   membersHref?: string;
 };
@@ -29,8 +28,8 @@ function ResultBar({ yea, nay }: { yea: number; nay: number }) {
       role="img"
       aria-label={`${yea} yes, ${nay} no`}
     >
-      <div className="bg-chart-1" style={{ width: `${yeaPercent}%` }} />
-      <div className="flex-1 bg-destructive/70" />
+      <div className="bg-support" style={{ width: `${yeaPercent}%` }} />
+      <div className="flex-1 bg-oppose" />
     </div>
   );
 }
@@ -38,7 +37,7 @@ function ResultBar({ yea, nay }: { yea: number; nay: number }) {
 export function RollCallCard(props: RollCallCardProps) {
   const { totals } = props;
   return (
-    <div className="space-y-3 rounded-lg border p-4" data-testid="roll-call">
+    <div className="space-y-3 rounded-2xl border-2 border-b-4 bg-card p-4" data-testid="roll-call">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3">
         <p className="font-medium">
           {props.chamber}: {props.question ?? "Recorded vote"}
@@ -49,7 +48,7 @@ export function RollCallCard(props: RollCallCardProps) {
       </div>
       {props.result ? <p className="text-sm">{props.result}</p> : null}
       {props.membersHref ? (
-        <Link href={props.membersHref} className="text-sm underline" data-testid="roll-call-members-link">
+        <Link href={props.membersHref} className="inline-block text-sm font-extrabold text-primary hover:underline" data-testid="roll-call-members-link">
           See how every member voted
         </Link>
       ) : null}
@@ -82,18 +81,6 @@ export function RollCallCard(props: RollCallCardProps) {
               ))}
             </tbody>
           </table>
-        </div>
-      ) : null}
-      {props.yourReps && props.yourReps.length > 0 ? (
-        <div className="rounded-md bg-muted/50 p-2 text-sm" data-testid="your-reps-votes">
-          <p className="font-medium">How your reps voted</p>
-          <ul>
-            {props.yourReps.map((rep) => (
-              <li key={rep.name}>
-                {rep.name}: {positionLabel(rep.position)}
-              </li>
-            ))}
-          </ul>
         </div>
       ) : null}
       {props.source === "VOTEVIEW" ? (

@@ -4,11 +4,11 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { ThemePicker } from "@/components/app/theme-picker";
 import NavUser from "@/components/nav-user";
 import { Button } from "@/components/ui/button";
 import type { NavItem as NavItemData } from "../../data/navbar-data";
 import NavItem from "../nav-item";
+import { BottomNav } from "./bottom-nav";
 
 /** The top bar and slide-out menu, shown only below the medium breakpoint. */
 export function MobileNavbar({ items }: { items: NavItemData[] }) {
@@ -27,7 +27,6 @@ export function MobileNavbar({ items }: { items: NavItemData[] }) {
           />
         </Link>
         <div className="flex items-center gap-1">
-          <ThemePicker />
           <Button
             variant="ghost"
             size="icon"
@@ -73,6 +72,7 @@ export function MobileNavbar({ items }: { items: NavItemData[] }) {
           </div>
         </>
       ) : null}
+      <BottomNav />
     </div>
   );
 }
