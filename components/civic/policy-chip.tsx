@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { policyAreaByName, policyStyle, type PolicyFamily } from "@/lib/civic/policy-areas";
 import { cn } from "@/lib/utils";
+import { topicPath } from "@/lib/routes";
 
 const FAMILY_ICON: Record<PolicyFamily, LucideIcon> = {
   economy: Coins,
@@ -61,5 +62,5 @@ export function PolicyChip({
       <span className="min-w-0 truncate">{name ?? "Not categorized yet"}</span>
     </span>
   );
-  return link && area ? <Link href={`/topics/${area.slug}`}>{chip}</Link> : chip;
+  return link && area ? <Link href={topicPath(area.slug)}>{chip}</Link> : chip;
 }

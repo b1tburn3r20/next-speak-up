@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { routes } from "@/lib/routes";
 
 const LINKS = [
-  { href: "/bills/upcoming", label: "Upcoming votes" },
-  { href: "/topics", label: "Topics" },
+  { href: routes.federal.upcoming, label: "Upcoming votes" },
+  { href: routes.federal.topics, label: "Topics" },
   { href: "/learn", label: "Learn the lingo" },
   { href: "/mission", label: "Mission" },
   { href: "/privacy", label: "Privacy" },

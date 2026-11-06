@@ -2,6 +2,7 @@
 // Local only. All generated accounts use @coolbills.test emails.
 import { PrismaClient, VotePosition } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { ensureRbac } from "./rbac";
 
 const STATE_NAMES: Record<string, string> = {
   TX: "Texas",
@@ -28,10 +29,6 @@ const ROLES = [
   { id: 4, name: "Admin", description: "Manages users and content" },
 ];
 
-const PERMISSIONS = [
-  { name: "userPolicyAndRep", description: "See the policy and representative widgets" },
-];
-
 const TEST_USERS = [
   { username: "test_superadmin", roleId: 1, state: "TX", district: 2, needsOnboarding: false },
   { username: "test_admin", roleId: 4, state: "CA", district: 12, needsOnboarding: false },
@@ -56,20 +53,7 @@ async function main() {
     for (const role of ROLES) {
       await prisma.role.upsert({ where: { id: role.id }, update: role, create: role });
     }
-    for (const permission of PERMISSIONS) {
-      const created = await prisma.permission.upsert({
-        where: { name: permission.name },
-        update: permission,
-        create: permission,
-      });
-      for (const roleId of [1, 3, 4]) {
-        await prisma.rolePermission.upsert({
-          where: { roleId_permissionId: { roleId, permissionId: created.id } },
-          update: {},
-          create: { roleId, permissionId: created.id },
-        });
-      }
-    }
+    await ensureRbac(prisma);
 
     const passwordHash = await bcrypt.hash(password, 12);
     const us = await prisma.jurisdiction.findUnique({ where: { code: "US" } });

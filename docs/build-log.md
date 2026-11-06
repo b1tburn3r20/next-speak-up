@@ -16,7 +16,18 @@ All [acceptance criteria](acceptance-criteria.md) are met on the data loaded so 
 - Notifications outside the app. They'd need email, which is a paid service.
 - A Senate schedule, if an open source appears.
 
+## Nov 6, 2026
+
+**Security fix:** 10 of the 12 admin routes only checked for a login, so any signed-in account could make itself a Super Admin, and `/admin/permissions/[id]` had no check at all. Every admin route now requires a permission, and a role can't be given by someone without all of its permissions.
+
+**Speed:** the "2 seconds on first request" problem was on this PC only. `localhost` tries IPv6 first on Windows, and MySQL only listens on IPv4. Use `127.0.0.1` in `DATABASE_URL`.
+
 ## Decisions
+
+- **Only a week is known for House votes.** The House schedule names a week, not a day. A coming week counts down to its Monday, and says "possible". The week itself says "this week".
+- **Personal pages stay at the root.** `/dashboard`, `/vote`, and `/reps` belong to the person, and will mix governments once states arrive. `/learn` stays there too, until states need their own words.
+- **Success rate only counts bills that can become law.** Simple and concurrent resolutions never go to the President, so including them would make every member look worse. The whole career is used, because a single Congress is too few bills.
+- **A role's permissions are cached for 60 seconds** in the session, because every request reads them. A change made on this server applies at once. With several servers, a removed permission can last up to a minute.
 
 - **Senate votes stay on Voteview.** senate.gov returns 403 to automated requests, including its official XML feed. Faking a browser would get around that, so we don't. The `senate_gap` check compares Senate votes named in bill actions with stored votes. On Nov 5, 2026, there was no gap, and the newest stored vote was number 256. If a gap appears, bill pages say the positions aren't in yet.
 - **Light theme only,** as asked.

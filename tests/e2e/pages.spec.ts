@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test";
 import { blockPaidServices, expectNoHorizontalOverflow, loginAs } from "./helpers";
 
-const SAMPLE_BILL = "/bills/us-119-hr-2388";
-const SAMPLE_MEMBER = "/legislators/federal/T000193";
+const SAMPLE_BILL = "/federal/bills/us-119-hr-2388";
+const SAMPLE_MEMBER = "/federal/legislators/T000193";
 
 test.beforeEach(async ({ page }) => {
   await blockPaidServices(page);
 });
 
-for (const path of ["/dashboard", "/bills", SAMPLE_BILL, "/legislators", SAMPLE_MEMBER, "/forum", "/"]) {
+for (const path of ["/dashboard", "/federal/bills", SAMPLE_BILL, "/federal/legislators", SAMPLE_MEMBER, "/forum", "/"]) {
   test(`${path} loads and fits the screen`, async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -21,9 +21,9 @@ for (const path of ["/dashboard", "/bills", SAMPLE_BILL, "/legislators", SAMPLE_
 }
 
 test("bills can be searched and filtered, including by citation", async ({ page }) => {
-  await page.goto("/bills?q=H.R.%202388");
+  await page.goto("/federal/bills?q=H.R.%202388");
   await expect(page.getByTestId("bill-card").first()).toContainText("H.R. 2388");
-  await page.goto("/bills?q=zzzzznothingmatches");
+  await page.goto("/federal/bills?q=zzzzznothingmatches");
   await expect(page.getByRole("main").getByText("No bills match that")).toBeVisible();
 });
 
@@ -34,7 +34,7 @@ test("a bill shows its real status and history", async ({ page }) => {
 });
 
 test("a bill passed and signed in one day shows as law, newest action first", async ({ page }) => {
-  await page.goto("/bills/us-119-s-4465");
+  await page.goto("/federal/bills/us-119-s-4465");
   await expect(page.getByTestId("bill-timeline").locator("li").first()).toContainText(
     "Became Public Law"
   );
@@ -45,19 +45,19 @@ test("a bill passed and signed in one day shows as law, newest action first", as
 });
 
 test("an unknown bill or member is a clean 404", async ({ page }) => {
-  expect((await page.goto("/bills/us-119-hr-999999"))?.status()).toBe(404);
-  expect((await page.goto("/legislators/federal/Z999999"))?.status()).toBe(404);
+  expect((await page.goto("/federal/bills/us-119-hr-999999"))?.status()).toBe(404);
+  expect((await page.goto("/federal/legislators/Z999999"))?.status()).toBe(404);
 });
 
 test("the legislators page filters by state and finds both senators", async ({ page }) => {
-  await page.goto("/legislators?state=WY&chamber=UPPER");
+  await page.goto("/federal/legislators?state=WY&chamber=UPPER");
   await expect(page.getByTestId("member-card")).toHaveCount(2);
-  await page.goto("/legislators?state=WY&chamber=LOWER");
+  await page.goto("/federal/legislators?state=WY&chamber=LOWER");
   await expect(page.getByTestId("member-card")).toContainText("At Large");
 });
 
 test("a member page shows attendance and party voting", async ({ page }) => {
-  await page.goto("/legislators/federal/B001261");
+  await page.goto("/federal/legislators/B001261");
   await expect(page.getByTestId("member-stats")).toContainText("Attendance");
   await expect(page.getByTestId("member-stats")).toContainText("%");
   await page.getByTestId("member-votes-reveal").locator("summary").click();
@@ -105,7 +105,7 @@ test("voting on a bill saves, shows on the dashboard, and can be undone", async 
 
 test("a failed save rolls the vote back and tells the user", async ({ page }) => {
   await loginAs(page, "test_member");
-  await page.goto("/bills/us-119-hr-7147");
+  await page.goto("/federal/bills/us-119-hr-7147");
   await page.route("**/api/civic/bills/vote", (route) =>
     route.fulfill({ status: 500, json: { error: "That didn't save." } }),
   );
@@ -120,43 +120,6 @@ test("voting while signed out asks you to sign in", async ({ page }) => {
   await page.goto(SAMPLE_BILL);
   await page.getByTestId("vote-support").click();
   await expect(page.getByText("Log in or sign up")).toBeVisible();
-});
-
-test("a new user can onboard by picking a state and district", async ({ page }) => {
-  const username = `e2e_on_${Date.now()}`;
-  const response = await page.request.post("/api/account/signup", {
-    headers: { origin: "http://localhost:3000" },
-    data: { username, email: `${username}@coolbills.test`, password: "a good password" },
-  });
-  expect(response.status()).toBe(201);
-  await page.goto("/bills");
-  const onboarding = page.getByTestId("onboarding");
-  await expect(onboarding).toBeVisible();
-  await onboarding.getByLabel("Or choose it yourself").selectOption("WY");
-  await expect(onboarding.getByLabel("District")).toHaveValue("AL");
-  await onboarding.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByTestId("onboarding-reps")).toContainText("Hageman");
-  await page.getByTestId("onboarding-next").click();
-  await page.getByTestId("onboarding-finish").click();
-  await expect(onboarding).toBeHidden();
-
-  await page.reload();
-  await expect(page.getByTestId("onboarding")).toBeHidden();
-  await page.goto("/dashboard");
-  await expect(page.getByRole("main").getByTestId("dashboard-reps")).toContainText("Hageman");
-});
-
-test("skipping onboarding always works", async ({ page }) => {
-  const username = `e2e_sk_${Date.now()}`;
-  await page.request.post("/api/account/signup", {
-    headers: { origin: "http://localhost:3000" },
-    data: { username, email: `${username}@coolbills.test`, password: "a good password" },
-  });
-  await page.goto("/bills");
-  await page.getByTestId("onboarding-skip").click();
-  await expect(page.getByTestId("onboarding")).toBeHidden();
-  await page.reload();
-  await expect(page.getByTestId("onboarding")).toBeHidden();
 });
 
 for (const path of ["/settings", "/forum", "/mission", "/privacy", "/forum/create-forum-post"]) {
@@ -180,17 +143,17 @@ test("admin pages open for admins and refuse members", async ({ page }) => {
 test("page content is in the server response, not behind a JavaScript spinner", async ({
   request,
 }) => {
-  const html = await (await request.get("/bills")).text();
+  const html = await (await request.get("/federal/bills")).text();
   expect(html).toContain('data-testid="bill-card"');
 });
 
 test("phones get a working menu", async ({ page, isMobile }, testInfo) => {
   test.skip(!["phone", "phone-small"].includes(testInfo.project.name), "Phone only");
-  await page.goto("/bills");
+  await page.goto("/federal/bills");
   await page.getByTestId("mobile-menu-button").click();
   const menu = page.getByRole("dialog", { name: "Menu" });
   await expect(menu).toBeVisible();
-  await menu.getByRole("link", { name: "Federal Legislators" }).click();
+  await menu.getByRole("link", { name: "Legislators" }).click();
   await expect(page).toHaveURL(/legislators/);
   await expect(menu).toBeHidden();
   void isMobile;
@@ -198,8 +161,8 @@ test("phones get a working menu", async ({ page, isMobile }, testInfo) => {
 
 test("site search finds members and bills, and goes to them", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name.startsWith("phone"), "The search box is in the wide layout.");
-  await page.goto("/bills");
-  await page.locator('[data-testid="site-search"]:visible').click();
+  await page.goto("/federal/bills");
+  await page.locator('[data-testid="site-search"]:visible, [data-testid="site-search-mobile"]:visible').first().click();
   await page.getByTestId("site-search-input").fill("Barrasso");
   await expect(page.getByTestId("search-result").first()).toContainText("Barrasso");
   await page.getByTestId("site-search-input").fill("H.R. 2388");
@@ -219,18 +182,13 @@ test("changing state in the older settings form updates your reps", async ({ pag
   });
   expect(response.ok()).toBeTruthy();
   await page.goto("/dashboard");
-  // Onboarding picks up from the saved location, and shows the right people.
-  await expect(page.getByTestId("onboarding-reps")).toContainText("Barrasso");
   await page.getByTestId("onboarding-skip").click();
+  await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("main").getByTestId("dashboard-reps")).toContainText("Barrasso");
   // With only a state, you see your senators, not somebody else's House member.
   await expect(page.getByRole("main").getByTestId("dashboard-reps").getByTestId("rep-report-card")).toHaveCount(2);
 });
 
-test("the old bill section redirects to the new one", async ({ page }) => {
-  await page.goto("/federal/bills");
-  await expect(page).toHaveURL(/\/bills$/);
-});
 
 test("the progress bar shows during a slow navigation, then clears", async ({ page }) => {
   await page.goto("/dashboard");

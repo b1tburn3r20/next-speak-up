@@ -6,6 +6,8 @@ import type { BillListItem } from "@/lib/civic/bills";
 import { buildDigest } from "@/lib/civic/digest";
 import { billLabel, BILL_STATUS_LABELS, partyLabel, type BillStatusValue } from "@/lib/civic/labels";
 import { cn } from "@/lib/utils";
+import { billPath } from "@/lib/routes";
+import { BillWhen } from "@/components/bills/bill-when";
 
 export function formatDate(date: Date | null | undefined) {
   if (!date) return "";
@@ -72,11 +74,11 @@ export function BillCard({ bill }: { bill: BillListItem }) {
       <div className="mb-2 flex flex-wrap items-center gap-1.5">
         <span className="font-extrabold">{billLabel(bill.billType, bill.number)}</span>
         <BillStatusBadge status={bill.currentStatus} />
-        <PolicyChip name={bill.policyArea} />
+        {bill.policyArea ? <PolicyChip name={bill.policyArea} /> : null}
       </div>
       <h3 className="mb-1 line-clamp-3 break-words font-bold leading-snug">
         {/* The whole card is clickable, with the title as the real link. */}
-        <Link href={`/bills/${bill.slug}`} className="after:absolute after:inset-0 after:content-['']">
+        <Link href={billPath(bill.slug)} className="after:absolute after:inset-0 after:content-['']">
           {bill.title}
         </Link>
       </h3>
@@ -84,10 +86,13 @@ export function BillCard({ bill }: { bill: BillListItem }) {
         <p className="mb-2 line-clamp-3 break-words text-sm text-muted-foreground">{digest.lead}</p>
       ) : bill.latestActionText ? (
         <p className="mb-2 line-clamp-2 break-words text-sm text-muted-foreground">
-          {formatDate(bill.latestActionDate)}: {bill.latestActionText}
+          {bill.latestActionText}
         </p>
       ) : null}
       <SponsorLine bill={bill} />
+      <p className="mt-2">
+        <BillWhen bill={bill} />
+      </p>
     </OuterBlock>
   );
 }

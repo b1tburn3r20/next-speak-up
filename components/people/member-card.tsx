@@ -3,6 +3,7 @@ import { partyAdjective, roleLabel, seatLabel } from "@/lib/civic/labels";
 import { bioguideOf, type MemberCard as MemberData } from "@/lib/civic/people";
 import { MemberPhoto } from "./member-photo";
 import { stateName } from "./state-name";
+import { memberPath } from "@/lib/routes";
 
 export { MemberPhoto, stateName };
 
@@ -27,7 +28,7 @@ export function MemberCard({ member, extra }: { member: MemberData; extra?: Reac
   const className = "block rounded-2xl border-2 border-b-4 bg-card p-3 text-card-foreground";
   return bioguide ? (
     <Link
-      href={`/legislators/federal/${bioguide}`}
+      href={memberPath(bioguide)}
       className={`${className} transition-colors hover:border-primary/60`}
       data-testid="member-card"
     >

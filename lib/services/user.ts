@@ -14,6 +14,7 @@ import { getServerSession } from "next-auth";
 
 // Use Prisma's generated type and extend it if needed
 import { syncLocationFromProfile } from "@/lib/civic/users";
+import { can } from "@/lib/auth/permissions";
 
 export type User = PrismaUser;
 
@@ -182,7 +183,7 @@ export const getAllUsers = async () => {
     throw new Error("Unauthorized");
   }
 
-  if (!["Admin", "Super Admin"].includes(session.user.role.name)) {
+  if (!can(session, "users.manage")) {
     throw new Error("Forbidden");
   }
 

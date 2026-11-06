@@ -8,7 +8,7 @@ import { VoteSession } from "@/components/civic/vote-session";
 import { buttonVariants } from "@/components/ui/button";
 import { getVoteQueue } from "@/lib/civic/engage";
 import { repsForLocation } from "@/lib/civic/people";
-import { getUserLocation } from "@/lib/civic/users";
+import { getUserLocation, getUserTopics } from "@/lib/civic/users";
 
 export const metadata: Metadata = {
   title: "Vote",
@@ -22,7 +22,8 @@ export default async function VotePage() {
   const userId = session?.user?.id ?? null;
   const location = userId ? await getUserLocation(userId) : null;
   const reps = location ? await repsForLocation(location.regionCode, location.districtCode) : [];
-  const queue = await getVoteQueue(userId, reps.map((rep) => rep.id), SESSION_LENGTH);
+  const topics = userId ? await getUserTopics(userId) : [];
+  const queue = await getVoteQueue(userId, reps.map((rep) => rep.id), SESSION_LENGTH, new Date(), topics);
 
   return (
     <PageShell width="narrow">

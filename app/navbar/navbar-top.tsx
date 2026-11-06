@@ -1,5 +1,5 @@
 "use client"
-import SiteSearch from "./site-search";
+import { SearchButton } from "@/components/search/search-dialog";
 import Image from "next/image";
 import { useNavbarStore } from "./use-navbar-store";
 import SideBlock from "@/components/cb/side-block";
@@ -17,14 +17,14 @@ const NavbarTop = () => {
             <Link href={"/"}>
               <SideBlock>
                 <Image height={25} width={25} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/icon.png"} />
-                <Image height={29} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} />
+                <Image height={29} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} style={{ width: 100, height: "auto" }} />
               </SideBlock>
             </Link>
           )
         }
       </div>
       <div className="flex gap-2 items-center ">
-        <SiteSearch />
+        <SearchButton />
       </div>
     </div>
   );

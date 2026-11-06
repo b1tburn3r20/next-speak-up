@@ -57,16 +57,18 @@ export type LocationSource = "BROWSER" | "ADDRESS" | "MANUAL";
 export async function saveUserLocation(
   userId: string,
   regionCode: string,
-  districtCode: string,
+  districtCode: string | null,
   source: LocationSource,
 ): Promise<boolean> {
-  const district = await prisma.district.findFirst({
-    where: { regionCode, code: districtCode, chamber: { kind: "LOWER" } },
-    select: { id: true },
-  });
-  if (!district) return false;
+  const district = districtCode
+    ? await prisma.district.findFirst({
+        where: { regionCode, code: districtCode, chamber: { kind: "LOWER" } },
+        select: { id: true },
+      })
+    : null;
+  if (districtCode && !district) return false;
   const jurisdictionId = await federalJurisdictionId();
-  const values = { regionCode, districtId: district.id, source };
+  const values = { regionCode, districtId: district?.id ?? null, source };
   await prisma.$transaction([
     prisma.userLocation.upsert({
       where: { userId_jurisdictionId: { userId, jurisdictionId } },
@@ -78,12 +80,32 @@ export async function saveUserLocation(
       where: { id: userId },
       data: {
         state: NAMES[regionCode] ?? regionCode,
-        district: districtCode === "AL" ? 0 : Number.parseInt(districtCode, 10),
+        district: !districtCode ? null : districtCode === "AL" ? 0 : Number.parseInt(districtCode, 10),
       },
     }),
   ]);
   await refreshUserAlignment(userId);
   return true;
+}
+
+/** The policy areas someone chose to track, oldest first. */
+export async function getUserTopics(userId: string): Promise<string[]> {
+  const rows = await prisma.userPolicyTopic.findMany({
+    where: { userId },
+    orderBy: { createdAt: "asc" },
+    select: { policyArea: true },
+  });
+  return rows.map((row) => row.policyArea);
+}
+
+/** Replaces the whole list. */
+export async function setUserTopics(userId: string, topics: string[]): Promise<void> {
+  await prisma.$transaction([
+    prisma.userPolicyTopic.deleteMany({ where: { userId } }),
+    prisma.userPolicyTopic.createMany({
+      data: [...new Set(topics)].map((policyArea) => ({ userId, policyArea })),
+    }),
+  ]);
 }
 
 /**

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "../../auth/[...nextauth]/route"
 import { NextRequest, NextResponse } from "next/server"
 import { deletePermission, updatePermission } from "@/lib/services/permissions"
+import { can } from "@/lib/auth/permissions";
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -14,11 +15,8 @@ export async function PATCH(request: NextRequest) {
         { status: 400 }
       )
     }
-    if (!["Admin", "Super Admin"].includes(session?.user?.role.name)) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+    if (!can(session, "roles.manage")) {
+      return NextResponse.json({ error: "You don't have permission to do that." }, { status: 403 });
     }
     const rateLimitResult = await checkRateLimit(
       "general",
@@ -68,11 +66,8 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       )
     }
-    if (!["Admin", "Super Admin"].includes(session?.user?.role.name)) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+    if (!can(session, "roles.manage")) {
+      return NextResponse.json({ error: "You don't have permission to do that." }, { status: 403 });
     }
     const rateLimitResult = await checkRateLimit(
       "general",

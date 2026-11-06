@@ -1,6 +1,8 @@
 # Mission
 
-**Coolbills demystifies the U.S. government. It does what Congress.gov does, 10 times better, by working for the person using it.**
+**Coolbills demystifies government in the U.S., both federal and state. It does what Congress.gov does, 10 times better, by working for the person using it.**
+
+Federal comes first, and state follows. Build every model, route, and screen so a state can be added without redoing it. See [Federal and state](ui-guidelines.md#federal-and-state).
 
 Read this before starting any task. If a change doesn't serve these goals, question it.
 

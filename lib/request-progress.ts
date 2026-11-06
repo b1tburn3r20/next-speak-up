@@ -43,12 +43,26 @@ export function isBackgroundRequest(url: string): boolean {
   return BACKGROUND_REQUESTS.test(url);
 }
 
+/** Next.js fetches linked pages ahead of time, and nobody's waiting on those either. */
+export function isPrefetch(init?: RequestInit): boolean {
+  const headers = init?.headers;
+  if (!headers) return false;
+  const value = new Headers(headers).get("next-router-prefetch");
+  return value !== null;
+}
+
+/** Where the bar goes next while waiting: quick at first, slowing down, and never reaching the end. */
+export function nextTrickle(percent: number): number {
+  const ceiling = 92;
+  return percent >= ceiling ? percent : percent + (ceiling - percent) * 0.08;
+}
+
 /** Wraps fetch so every request a page makes shows in the bar, without changing any caller. */
 export function trackFetch(original: typeof fetch, tracker: ProgressTracker): typeof fetch {
   return async (input, init) => {
     const url =
       typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-    if (isBackgroundRequest(url)) return original(input, init);
+    if (isBackgroundRequest(url) || isPrefetch(init)) return original(input, init);
     tracker.start();
     try {
       return await original(input, init);

@@ -11,6 +11,8 @@ import { useForumPostDetailsStore } from "../../use-forum-post-details-store";
 import { useLoginStore } from "@/app/navbar/use-login-store";
 import { Lock, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { can } from "@/lib/auth/permissions";
+import { useSession } from "next-auth/react";
 
 interface LockForumPostProps {
   userId?: string;
@@ -26,7 +28,8 @@ const LockForumPost = ({ userId, userRole, postId }: LockForumPostProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Check if user has admin privileges
-  const isAdmin = userRole === "Admin" || userRole === "Super Admin";
+  const { data: session } = useSession();
+  const isAdmin = can(session, "forum.moderate");
 
   const updatePostLockStatus = async () => {
     if (!userId) {

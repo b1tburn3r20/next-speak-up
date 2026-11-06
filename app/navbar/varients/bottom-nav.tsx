@@ -5,18 +5,21 @@ import { usePathname } from "next/navigation";
 import { CalendarClock, Home, Scale, Users, Vote } from "lucide-react";
 import { PulseDot } from "@/components/civic/pulse-dot";
 import { cn } from "@/lib/utils";
+import { routes } from "@/lib/routes";
+import { activeNavHref } from "@/lib/nav";
 
 const TABS = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/vote", label: "Vote", icon: Vote },
-  { href: "/bills/upcoming", label: "Upcoming", icon: CalendarClock },
+  { href: routes.federal.upcoming, label: "Upcoming", icon: CalendarClock },
   { href: "/reps", label: "My reps", icon: Scale },
-  { href: "/legislators", label: "Congress", icon: Users },
+  { href: routes.federal.legislators, label: "Congress", icon: Users },
 ];
 
 /** The main places, in reach of a thumb. Phones only. */
 export function BottomNav() {
   const pathname = usePathname();
+  const activeHref = activeNavHref(pathname, TABS.map((tab) => tab.href));
   return (
     <nav
       aria-label="Primary"
@@ -24,7 +27,7 @@ export function BottomNav() {
       data-testid="bottom-nav"
     >
       {TABS.map(({ href, label, icon: Icon }) => {
-        const active = pathname === href || pathname.startsWith(`${href}/`);
+        const active = activeHref === href;
         return (
           <Link
             key={href}

@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { CalendarClock, FileText } from "lucide-react";
 import { BillActionButtons } from "@/components/bills/bill-action-buttons";
-import { BillStatusBadge, formatDate, SponsorLine } from "@/components/bills/bill-card";
+import { BillStatusBadge, SponsorLine } from "@/components/bills/bill-card";
+import { FloorWhen } from "@/components/bills/bill-when";
+import { RelativeDate } from "@/components/app/relative-date";
 import { Flex, OuterBlock, Stack } from "@/components/blocks";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { Term } from "@/components/civic/term";
@@ -9,6 +11,7 @@ import { buildDigest } from "@/lib/civic/digest";
 import type { FloorItem } from "@/lib/civic/floor";
 import { FLOOR_CATEGORY_LABELS, floorOutcome } from "@/lib/civic/floor-logic";
 import { FLOOR_CATEGORY_TERMS } from "@/lib/civic/glossary";
+import { billPath } from "@/lib/routes";
 
 /** Why this bill gets a vote the way it does, with the jargon explained on tap. */
 export function FloorCategoryPill({ category }: { category: string }) {
@@ -30,7 +33,11 @@ function Outcome({ item }: { item: FloorItem }) {
       className={`rounded-lg px-2.5 py-1 text-sm font-extrabold ${passed ? "bg-support-tint text-support" : "bg-oppose-tint text-oppose"}`}
       data-testid="floor-outcome"
     >
-      {passed ? "Passed the House" : "Failed in the House"}, {formatDate(outcome.date)}
+      <RelativeDate
+        date={outcome.date}
+        label={passed ? "Passed the House" : "Failed in the House"}
+        className="font-extrabold"
+      />
     </p>
   );
 }
@@ -45,6 +52,7 @@ export function UpcomingBillCard({
   state?: { position: string | null; following: boolean };
 }) {
   const bill = item.bill;
+  const now = new Date();
   const digest = buildDigest(bill?.summaries[0]?.text);
   return (
     <OuterBlock data-testid="floor-item">
@@ -57,7 +65,7 @@ export function UpcomingBillCard({
         {bill ? <PolicyChip name={bill.policyArea} link /> : null}
         <h3 className="break-words text-lg font-extrabold leading-snug">
           {bill ? (
-            <Link href={`/bills/${bill.slug}`} className="hover:underline">
+            <Link href={billPath(bill.slug)} className="hover:underline">
               {item.title}
             </Link>
           ) : (
@@ -75,7 +83,14 @@ export function UpcomingBillCard({
           </p>
         ) : null}
         {bill ? <SponsorLine bill={bill} /> : null}
-        <Outcome item={item} />
+        {item.bill && floorOutcome(item.bill.actions, item.weekOf) ? (
+          <Outcome item={item} />
+        ) : (
+          <p className="flex items-center gap-1.5" data-testid="floor-when">
+            <CalendarClock className="size-4 shrink-0 text-primary" aria-hidden />
+            <FloorWhen weekOf={item.weekOf} now={now} className="text-sm font-bold" />
+          </p>
+        )}
         {bill ? (
           <BillActionButtons
             slug={bill.slug}

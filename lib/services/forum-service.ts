@@ -848,18 +848,18 @@ export const softDeleteComment = async (
 export const softDeletePost = async (
   postId: number,
   userId: string,
-  userRole: string
+  userRole: string,
+  canModerate = false
 ) => {
   const post = await prisma.forumPost.findUnique({
     where: { id: postId },
     select: { authorId: true, isDeleted: true },
   });
-  const adminRoles = ["Super Admin", "Admin"];
   if (!post) {
     throw new Error("Post not found");
   }
 
-  if (post.authorId !== userId && !adminRoles.includes(userRole)) {
+  if (post.authorId !== userId && !canModerate) {
     throw new Error("Unauthorized: You can only delete your own posts");
   }
 

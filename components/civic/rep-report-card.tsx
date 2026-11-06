@@ -18,6 +18,7 @@ import {
   type VerdictTone,
 } from "@/lib/civic/verdict";
 import { cn } from "@/lib/utils";
+import { billPath, memberPath, routes } from "@/lib/routes";
 
 const TONE_STYLE: Record<VerdictTone, string> = {
   good: "bg-support-tint text-support",
@@ -61,7 +62,7 @@ export function RepReportCard({ data, compact = false }: { data: RepCardData; co
   const bioguide = bioguideOf(rep);
   const verdict = alignmentVerdict(compared, matched);
   const difference = biggestDifference(byPolicyArea);
-  const href = bioguide ? `/legislators/federal/${bioguide}` : "/legislators";
+  const href = bioguide ? memberPath(bioguide) : routes.federal.legislators;
   const chamber = term?.chamber.kind ?? "LOWER";
   return (
     <OuterBlock data-testid="rep-report-card" className="flex flex-col">
@@ -118,7 +119,7 @@ export function RepReportCard({ data, compact = false }: { data: RepCardData; co
             {recap.latestBill ? (
               <span className="mt-1 block" data-testid="rep-latest-bill">
                 <span className="font-bold">Their latest bill: </span>
-                <Link href={`/bills/${recap.latestBill.slug}`} className="font-semibold text-primary hover:underline">
+                <Link href={billPath(recap.latestBill.slug)} className="font-semibold text-primary hover:underline">
                   {recap.latestBill.label}
                 </Link>{" "}
                 <span className="line-clamp-2 text-muted-foreground">{recap.latestBill.title}</span>

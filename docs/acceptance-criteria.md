@@ -69,3 +69,58 @@ Work isn't done until each line is proven by a test or by looking at it. `[ ]` m
 - [x] No browser console errors on main pages (test)
 - [x] Each main page reviewed by screenshot on phone and desktop, against the UI test questions
 - [x] Paid services are never called in tests
+
+## Federal and state
+
+- [x] Federal pages live under `/federal`, and old URLs redirect (test)
+- [x] Every government URL comes from `lib/routes.ts`
+- [x] Docs say we cover federal and state, and how to build for both
+- [x] Bill URLs and search don't assume one government where a bill can say which it's in
+
+## Navigation
+
+- [x] Only one link is ever active (test)
+- [x] Topics is a child of Bills, not a root link (test)
+- [x] Links read "Bills" and "Legislators", not "Federal Bills"
+
+## Dates
+
+- [x] `RelativeDate` shows words, with the exact date on hover after 200ms, or in a dialog on tap (test)
+- [x] Every bill card says when, using the date its status changed (test)
+- [x] Upcoming bills count down in words, say "possible", and explain that only a week is known (test)
+
+## Onboarding
+
+- [x] At most 3 steps with a progress bar: age, location, topics (test)
+- [x] Location finds them automatically if the browser allows it, and a state alone works (test)
+- [x] Topics are suggested from their age and state (test)
+- [x] Cards stack, and fade between steps
+- [x] It ends on the dashboard, and can be skipped for good (test)
+
+## Dashboard
+
+- [x] Shows their House rep and senators (test)
+- [x] Next bill card: policy area, name, two-line summary, and a way to vote (test)
+- [x] It never reveals how a rep voted (test)
+- [x] Each rep's policy areas sponsored, and success rate (test)
+- [x] Success rate only counts bills that can become law (test)
+
+## Loading bar
+
+- [x] It shows on every page change, moves, and finishes (test)
+- [x] Prefetches don't trigger it (test)
+
+## Search and permissions
+
+- [x] One dialog finds bills, representatives, senators, topics, words, and pages (test)
+- [x] Each group loads and fails on its own, with a skeleton (test)
+- [x] Typos and initials match, using our own scoring (test)
+- [x] Adding a provider takes one file and one line
+- [x] Accounts only appear for people with `users.search` (test)
+- [x] Roles have many permissions, and code checks permissions rather than role names (test)
+- [x] A member can't use any admin route, or promote themselves (test)
+- [x] Nobody can hand out permissions they don't have (test)
+
+## Plain words
+
+- [x] No developer words on main pages: loaded, imported, pipeline, database (test)

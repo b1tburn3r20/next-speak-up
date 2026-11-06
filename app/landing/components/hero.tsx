@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, HelpCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { routes } from "@/lib/routes";
 
 /** A small picture of the idea: you vote, then you find out. */
 function HowItFeels() {
@@ -45,7 +46,7 @@ const Hero = () => {
             Try it now
             <ArrowRight className="size-4" aria-hidden />
           </Link>
-          <Link href="/bills/upcoming" className={buttonVariants({ variant: "outline", size: "lg" })}>
+          <Link href={routes.federal.upcoming} className={buttonVariants({ variant: "outline", size: "lg" })}>
             See upcoming votes
           </Link>
         </div>

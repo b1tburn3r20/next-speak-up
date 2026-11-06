@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import type { NavItem as NavItemData } from "../../data/navbar-data";
 import NavItem from "../nav-item";
 import { BottomNav } from "./bottom-nav";
+import { SearchButton } from "@/components/search/search-dialog";
 
 /** The top bar and slide-out menu, shown only below the medium breakpoint. */
 export function MobileNavbar({ items }: { items: NavItemData[] }) {
@@ -27,6 +28,7 @@ export function MobileNavbar({ items }: { items: NavItemData[] }) {
           />
         </Link>
         <div className="flex items-center gap-1">
+          <SearchButton compact />
           <Button
             variant="ghost"
             size="icon"

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BillActionButtons } from "@/components/bills/bill-action-buttons";
-import { BillStatusBadge, formatDate, SponsorLine } from "@/components/bills/bill-card";
+import { BillStatusBadge, SponsorLine } from "@/components/bills/bill-card";
+import { RelativeDate } from "@/components/app/relative-date";
 import { OuterBlock, Stack } from "@/components/blocks";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { RevealPanel } from "@/components/civic/reveal-panel";
@@ -8,6 +9,7 @@ import { MemberPhoto } from "@/components/people/member-photo";
 import { buildDigest } from "@/lib/civic/digest";
 import type { QueueItem } from "@/lib/civic/engage";
 import { billLabel } from "@/lib/civic/labels";
+import { billPath } from "@/lib/routes";
 
 function repsSentence(reps: QueueItem["reps"]): string {
   const names = reps.map((rep) => rep.name);
@@ -41,7 +43,7 @@ export function BlindVoteCard({
             <p className="min-w-0 text-sm font-bold leading-snug">
               {repsSentence(reps)}
               {occurredAt ? (
-                <span className="block font-semibold text-muted-foreground">{formatDate(occurredAt)}</span>
+                <span className="block font-semibold text-muted-foreground"><RelativeDate date={occurredAt} label="Voted" /></span>
               ) : null}
             </p>
           </div>
@@ -52,7 +54,7 @@ export function BlindVoteCard({
           <PolicyChip name={bill.policyArea} link />
         </div>
         <h3 className="break-words text-lg font-extrabold leading-snug">
-          <Link href={`/bills/${bill.slug}`} className="hover:underline">
+          <Link href={billPath(bill.slug)} className="hover:underline">
             {bill.title}
           </Link>
         </h3>

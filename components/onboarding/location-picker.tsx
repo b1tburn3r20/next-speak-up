@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { STATE_NAMES } from "@/lib/constants/state-names";
 
-export type ResolvedLocation = { regionCode: string; districtCode: string };
+export type ResolvedLocation = { regionCode: string; districtCode: string | null };
 
 const STATES = Object.entries(STATE_NAMES as Record<string, string>).sort((a, b) =>
   a[1].localeCompare(b[1]),
@@ -24,14 +24,29 @@ async function submit(body: unknown): Promise<ResolvedLocation> {
   return data;
 }
 
-/** Tries the easiest option first, and always leaves a way forward if one fails. */
-export function LocationPicker({ onResolved }: { onResolved: (location: ResolvedLocation) => void }) {
+/**
+ * Tries the easiest option first, and always leaves a way forward if one fails. Someone who only
+ * knows their state still gets their senators, and can add a district later.
+ */
+export function LocationPicker({
+  onResolved,
+  autoLocate = false,
+}: {
+  onResolved: (location: ResolvedLocation) => void;
+  /** Asks the browser right away, instead of waiting for a tap. */
+  autoLocate?: boolean;
+}) {
   const [address, setAddress] = useState("");
   const [state, setState] = useState("");
   const [districts, setDistricts] = useState<string[]>([]);
   const [district, setDistrict] = useState("");
+  // Until this finishes, we don't know if the state has one district that's already the answer.
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Someone may pick a state while the browser is still locating them. Their choice wins.
+  const choseManually = useRef(false);
 
   const run = async (body: unknown) => {
     setBusy(true);
@@ -45,57 +60,132 @@ export function LocationPicker({ onResolved }: { onResolved: (location: Resolved
     }
   };
 
-  const useBrowserLocation = () => {
+  const locate = (quiet: boolean) => {
     if (!("geolocation" in navigator)) {
-      setError("Your browser can't share a location. Enter an address instead.");
+      if (!quiet) setError("Your browser can't share a location. Choose your state instead.");
       return;
     }
-    setBusy(true);
+    setLocating(true);
     setError(null);
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => run({ lat: coords.latitude, lng: coords.longitude }),
+      ({ coords }) => {
+        setLocating(false);
+        if (!choseManually.current) run({ lat: coords.latitude, lng: coords.longitude });
+      },
       () => {
-        setBusy(false);
-        setError("We couldn't get your location. Enter an address instead.");
+        setLocating(false);
+        // Saying no to a prompt we started isn't an error worth showing.
+        if (!quiet) setError("We couldn't get your location. Choose your state instead.");
       },
       { timeout: 10000 },
     );
   };
 
+  const asked = useRef(false);
+  useEffect(() => {
+    if (!autoLocate || asked.current) return;
+    asked.current = true;
+    locate(true);
+    // Only ever once, when this first appears.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLocate]);
+
   const chooseState = async (value: string) => {
+    choseManually.current = true;
     setState(value);
     setDistrict("");
     setDistricts([]);
     if (!value) return;
-    const response = await fetch(`/api/civic/location/districts?state=${value}`);
-    const data = await response.json().catch(() => null);
-    const found: string[] = data?.districts ?? [];
-    setDistricts(found);
-    if (found.length === 1) setDistrict(found[0]);
+    setLoadingDistricts(true);
+    try {
+      const response = await fetch(`/api/civic/location/districts?state=${value}`);
+      const data = await response.json().catch(() => null);
+      const found: string[] = data?.districts ?? [];
+      setDistricts(found);
+      if (found.length === 1) setDistrict(found[0]);
+    } catch {
+      // They can still continue with just their state.
+    } finally {
+      setLoadingDistricts(false);
+    }
   };
 
-  const selectClass = "h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm";
+  const selectClass = "h-11 w-full rounded-md border border-input bg-transparent px-3 text-base";
 
   return (
     <div className="space-y-4 font-normal">
       <Button
         type="button"
+        size="lg"
         className="w-full"
-        onClick={useBrowserLocation}
-        disabled={busy}
+        onClick={() => {
+          choseManually.current = false;
+          locate(false);
+        }}
+        disabled={busy || locating}
         data-testid="use-my-location"
       >
         <LocateFixed className="size-4" />
-        {busy ? "Looking…" : "Use my location"}
+        {locating || busy ? "Finding you…" : "Use my location"}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
         We only use this to find your district, and we don&apos;t store your location or address.
       </p>
 
       <form
+        className="space-y-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          choseManually.current = true;
+          run({ regionCode: state, districtCode: district || null });
+        }}
+      >
+        <Label htmlFor="location-state">Or choose your state</Label>
+        <select
+          id="location-state"
+          className={selectClass}
+          value={state}
+          onChange={(event) => chooseState(event.target.value)}
+        >
+          <option value="">State</option>
+          {STATES.map(([code, name]) => (
+            <option key={code} value={code}>
+              {name}
+            </option>
+          ))}
+        </select>
+        {state && districts.length > 1 ? (
+          <select
+            aria-label="District"
+            className={selectClass}
+            value={district}
+            onChange={(event) => setDistrict(event.target.value)}
+          >
+            <option value="">I don&apos;t know my district</option>
+            {districts.map((code) => (
+              <option key={code} value={code}>
+                District {code}
+              </option>
+            ))}
+          </select>
+        ) : null}
+        {state ? (
+          <Button type="submit" size="lg" className="w-full" disabled={busy || loadingDistricts} data-testid="save-location">
+            Continue
+          </Button>
+        ) : null}
+        {state && districts.length > 1 && !district ? (
+          <p className="text-xs text-muted-foreground">
+            That still gets you your senators. Enter your address below to find your House rep too.
+          </p>
+        ) : null}
+      </form>
+
+      <form
         className="space-y-1"
         onSubmit={(event) => {
           event.preventDefault();
+          choseManually.current = true;
           run({ address });
         }}
       >
@@ -103,55 +193,14 @@ export function LocationPicker({ onResolved }: { onResolved: (location: Resolved
         <div className="flex gap-2">
           <Input
             id="location-address"
+            className="h-11"
             value={address}
             autoComplete="street-address"
             placeholder="123 Main St, Austin, TX"
             onChange={(event) => setAddress(event.target.value)}
           />
-          <Button type="submit" variant="outline" disabled={busy || address.trim().length < 5}>
+          <Button type="submit" variant="outline" className="h-11" disabled={busy || address.trim().length < 5}>
             Find
-          </Button>
-        </div>
-      </form>
-
-      <form
-        className="space-y-1"
-        onSubmit={(event) => {
-          event.preventDefault();
-          run({ regionCode: state, districtCode: district });
-        }}
-      >
-        <Label htmlFor="location-state">Or choose it yourself</Label>
-        <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-          <select
-            id="location-state"
-            className={selectClass}
-            value={state}
-            onChange={(event) => chooseState(event.target.value)}
-          >
-            <option value="">State</option>
-            {STATES.map(([code, name]) => (
-              <option key={code} value={code}>
-                {name}
-              </option>
-            ))}
-          </select>
-          <select
-            aria-label="District"
-            className={selectClass}
-            value={district}
-            disabled={districts.length === 0}
-            onChange={(event) => setDistrict(event.target.value)}
-          >
-            <option value="">District</option>
-            {districts.map((code) => (
-              <option key={code} value={code}>
-                {code === "AL" ? "At large" : code}
-              </option>
-            ))}
-          </select>
-          <Button type="submit" variant="outline" disabled={busy || !state || !district}>
-            Save
           </Button>
         </div>
       </form>

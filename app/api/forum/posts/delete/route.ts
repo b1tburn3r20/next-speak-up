@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../auth/[...nextauth]/route";
 import { softDeletePost } from "@/lib/services/forum-service";
+import { can } from "@/lib/auth/permissions";
 
 export async function POST(request) {
   try {
@@ -28,7 +29,8 @@ export async function POST(request) {
     const deletedPost = await softDeletePost(
       parseInt(postId),
       session.user.id,
-      session.user.role.name
+      session.user.role.name,
+      can(session, "forum.moderate")
     );
 
     return NextResponse.json(

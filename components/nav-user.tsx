@@ -43,7 +43,7 @@ export function NavUser() {
     const currentNavItem = navItems.find((item) =>
       currentPath.startsWith(item.href === "/" ? "/?" : item.href)
     );
-    const isProtected = !!currentNavItem?.requiredRoles?.length;
+    const isProtected = Boolean(currentNavItem?.permission || currentNavItem?.signedIn);
     signOut({ callbackUrl: isProtected ? "/" : window.location.href });
   };
   const startQuickstart = async () => {

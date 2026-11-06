@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getUserLocation } from "@/lib/civic/users";
-import { listBills } from "@/lib/civic/bills";
 import { roleLabel, seatLabel } from "@/lib/civic/labels";
 import { bioguideOf, repsForLocation } from "@/lib/civic/people";
 import { STATE_NAMES } from "@/lib/constants/state-names";
@@ -20,10 +19,7 @@ export async function GET(request: NextRequest) {
   if (!/^[A-Z]{2}$/.test(state)) {
     return NextResponse.json({ error: "Choose a state." }, { status: 400 });
   }
-  const [reps, { bills }] = await Promise.all([
-    repsForLocation(state, district),
-    listBills({ limit: 5 }),
-  ]);
+  const reps = await repsForLocation(state, district);
   const stateName = (STATE_NAMES as Record<string, string>)[state] ?? state;
   return NextResponse.json({
     reps: reps.map((rep) => {
@@ -38,11 +34,5 @@ export async function GET(request: NextRequest) {
         seat: term ? seatLabel(stateName, term.district?.code, term.chamber.kind) : stateName,
       };
     }),
-    suggestedBills: bills.map((bill) => ({
-      slug: bill.slug,
-      title: bill.title,
-      billType: bill.billType,
-      number: bill.number,
-    })),
   });
 }

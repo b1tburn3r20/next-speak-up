@@ -79,6 +79,21 @@ export function comparedToChamber(
   return `Higher than ${percentile}% of the ${chamber}`;
 }
 
+/**
+ * How many of a member's bills became law. Only counts bills that can: a simple resolution never
+ * goes to the President. Null when they haven't sponsored any, because 0% would be misleading.
+ */
+export function lawSuccess(stat: { becameLawCount: number; lawEligibleCount: number }) {
+  if (stat.lawEligibleCount <= 0) return null;
+  // Rounds down below one percent, so 1 of 300 doesn't read as nothing.
+  const raw = (stat.becameLawCount / stat.lawEligibleCount) * 100;
+  const percent = stat.becameLawCount > 0 ? Math.max(1, Math.round(raw)) : 0;
+  return {
+    percent,
+    sentence: `${stat.becameLawCount} of ${stat.lawEligibleCount} bill${stat.lawEligibleCount === 1 ? "" : "s"} they sponsored became law`,
+  };
+}
+
 /** Where someone differs most from you, needing at least two votes in that area to say so. */
 export function biggestDifference<T extends { compared: number; percent: number }>(
   areas: T[],

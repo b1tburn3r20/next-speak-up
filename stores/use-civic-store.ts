@@ -34,6 +34,8 @@ type CivicState = {
   votes: Record<string, Choice | null>;
   follows: Record<string, boolean>;
   favorites: Record<string, boolean>;
+  /** Policy areas started or stopped since the page loaded. */
+  topics: Record<string, boolean>;
   reveals: Record<string, RevealState>;
   /** Votes cast or undone since this page was loaded, added to the server's numbers. */
   voteDelta: number;
@@ -45,6 +47,7 @@ type CivicState = {
   castVote: (slug: string, choice: Choice | null, previous: Choice | null) => Promise<boolean>;
   setFollow: (slug: string, following: boolean) => Promise<boolean>;
   setFavorite: (bioguideId: string, favorite: boolean) => Promise<boolean>;
+  setTopic: (policyArea: string, tracked: boolean) => Promise<boolean>;
   loadReveal: (slug: string) => Promise<void>;
   clearReveal: (slug: string) => void;
   clearReward: () => void;
@@ -55,6 +58,8 @@ async function postJson(url: string, body: unknown): Promise<void> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    // The screen has already changed, so leaving the page mustn't cancel the save.
+    keepalive: true,
   });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
@@ -68,6 +73,7 @@ export const useCivicStore = create<CivicState>((set, get) => ({
   votes: {},
   follows: {},
   favorites: {},
+  topics: {},
   reveals: {},
   voteDelta: 0,
   reward: null,
@@ -128,6 +134,17 @@ export const useCivicStore = create<CivicState>((set, get) => ({
       return true;
     } catch (error) {
       set((state) => ({ favorites: { ...state.favorites, [bioguideId]: !favorite } }));
+      throw error;
+    }
+  },
+
+  setTopic: async (policyArea, tracked) => {
+    set((state) => ({ topics: { ...state.topics, [policyArea]: tracked } }));
+    try {
+      await postJson("/api/civic/topics", { policyArea, tracked });
+      return true;
+    } catch (error) {
+      set((state) => ({ topics: { ...state.topics, [policyArea]: !tracked } }));
       throw error;
     }
   },

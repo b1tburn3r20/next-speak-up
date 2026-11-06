@@ -1,4 +1,3 @@
-// data/navbarData.ts
 import {
   Book,
   Briefcase,
@@ -12,40 +11,37 @@ import {
   Settings,
   Vote,
 } from "lucide-react";
+import type { NavAccess } from "@/lib/auth/permissions";
+import { routes } from "@/lib/routes";
 
-export type NavItem = {
+export type NavItem = NavAccess & {
   href: string;
   icon: LucideIcon;
   label: string;
-  requiredRoles?: string[];
+  /** Secondary pages, shown indented under this link. */
+  children?: NavItem[];
 };
 
+// Core features are root links. See "Navigation" in docs/ui-guidelines.md.
 export const navItems: NavItem[] = [
-  { href: "/dashboard", icon: Home, label: "Dashboard" },
-  { href: "/vote", icon: Vote, label: "Vote" },
-  { href: "/reps", icon: Scale, label: "My Reps" },
-  { href: "/bills/upcoming", icon: CalendarClock, label: "Upcoming Votes" },
-  { href: "/bills", icon: Book, label: "Bills" },
-  { href: "/legislators", icon: Briefcase, label: "Federal Legislators" },
-  { href: "/topics", icon: Compass, label: "Topics" },
-  { href: "/learn", icon: GraduationCap, label: "Learn the Lingo" },
-  // {
-  //   href: "/forum",
-  //   icon: Users,
-  //   label: "Forum",
-  // },
+  { href: routes.dashboard, icon: Home, label: "Dashboard" },
+  { href: routes.vote, icon: Vote, label: "Vote" },
+  { href: routes.reps, icon: Scale, label: "My Reps" },
+  { href: routes.federal.upcoming, icon: CalendarClock, label: "Upcoming Votes" },
   {
-    href: "/admin/permissions",
-    icon: Key,
-    label: "Permissions",
-    requiredRoles: ["Super Admin", "Admin"],
+    href: routes.federal.bills,
+    icon: Book,
+    label: "Bills",
+    children: [{ href: routes.federal.topics, icon: Compass, label: "Topics" }],
   },
-
-  // { href: "/", icon: Home, label: "Home" },
-  {
-    href: "/settings",
-    icon: Settings,
-    label: "Settings",
-    requiredRoles: ["Member", "Supporter", "Super Admin"],
-  },
+  { href: routes.federal.legislators, icon: Briefcase, label: "Legislators" },
+  { href: routes.learn, icon: GraduationCap, label: "Learn the Lingo" },
+  { href: "/admin/permissions", icon: Key, label: "Permissions", permission: "users.manage" },
+  { href: routes.settings, icon: Settings, label: "Settings", signedIn: true },
 ];
+
+/** Every link, children included, because only one of them is ever active. */
+export const allNavHrefs: string[] = navItems.flatMap((item) => [
+  item.href,
+  ...(item.children ?? []).map((child) => child.href),
+]);

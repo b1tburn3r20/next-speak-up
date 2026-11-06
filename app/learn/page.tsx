@@ -53,7 +53,7 @@ export default function LearnPage() {
         <Section key={group.title} title={group.title}>
           <Grid cols="halves">
             {group.keys.map((key) => (
-              <OuterBlock key={key} data-testid="glossary-entry">
+              <OuterBlock key={key} id={key} className="scroll-mt-16" data-testid="glossary-entry">
                 <h3 className="font-extrabold">{GLOSSARY[key].term}</h3>
                 <p className="text-sm">{GLOSSARY[key].short}</p>
               </OuterBlock>

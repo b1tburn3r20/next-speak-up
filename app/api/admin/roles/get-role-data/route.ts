@@ -2,11 +2,15 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 import { getRoleData } from "@/lib/services/permissions";
+import { can } from "@/lib/auth/permissions";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return new NextResponse("Unauthorized request", { status: 401 });
+  }
+  if (!can(session, "roles.manage")) {
+    return NextResponse.json({ error: "You don't have permission to do that." }, { status: 403 });
   }
   const { searchParams } = new URL(request.url);
   const roleId = searchParams.get("roleId");

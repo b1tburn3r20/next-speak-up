@@ -47,12 +47,15 @@ const nextConfig = {
 
   allowedDevOrigins: ['127.0.0.1'],
 
-  // The old second bill section. Bills all live under /bills now.
+  // Each government lives under its own prefix. See "Federal and state" in docs/ui-guidelines.md.
   async redirects() {
     return [
-      { source: '/federal/bills', destination: '/bills', permanent: false },
-      { source: '/congress', destination: '/legislators', permanent: false },
-      { source: '/federal/bills/:slug', destination: '/bills/:slug', permanent: false },
+      { source: '/bills/upcoming', destination: '/federal/upcoming', permanent: true },
+      { source: '/bills/:path*', destination: '/federal/bills/:path*', permanent: true },
+      { source: '/legislators/federal/:id', destination: '/federal/legislators/:id', permanent: true },
+      { source: '/legislators', destination: '/federal/legislators', permanent: true },
+      { source: '/topics/:path*', destination: '/federal/topics/:path*', permanent: true },
+      { source: '/congress', destination: '/federal/legislators', permanent: true },
     ];
   },
 

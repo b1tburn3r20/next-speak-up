@@ -3,19 +3,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { pinPost } from "@/lib/services/forum-service";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
+import { can } from "@/lib/auth/permissions";
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
-    const userRole = session?.user?.role?.name;
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check if user has admin privileges
-    if (userRole !== "Admin" && userRole !== "Super Admin") {
+    if (!can(session, "forum.moderate")) {
       return NextResponse.json(
         { error: "Forbidden: Admin privileges required" },
         { status: 403 }
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const updatedPost = await pinPost(postId, pinStatus, userId, userRole);
+      const updatedPost = await pinPost(postId, pinStatus, userId, session.user.role?.name ?? "Unknown");
 
       return NextResponse.json({
         success: true,

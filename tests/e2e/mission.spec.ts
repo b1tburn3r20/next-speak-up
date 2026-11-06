@@ -12,8 +12,9 @@ async function newUser(page: Page, tag: string, state = "WY") {
     data: { username, email: `${username}@coolbills.test`, password: "a good password" },
   });
   expect(response.status()).toBe(201);
-  const done = await page.request.post("/api/civic/onboarding/complete", {
+  const done = await page.request.patch("/api/civic/onboarding", {
     headers: { origin: "http://localhost:3000" },
+    data: { complete: true },
   });
   expect(done.ok()).toBeTruthy();
   if (state) {
@@ -46,7 +47,7 @@ test.describe("voting before finding out", () => {
 
   test("a bill page's HTML has no rep positions for a signed-in user who hasn't voted", async ({ page }) => {
     await newUser(page, "billblind");
-    const html = await (await page.request.get("/bills/us-119-s-4465")).text();
+    const html = await (await page.request.get("/federal/bills/us-119-s-4465")).text();
     expect(html).toContain("reveal-hidden");
     expect(html).not.toContain("reveal-row");
     expect(html).not.toContain("How your reps voted");
@@ -130,7 +131,7 @@ test.describe("the dashboard", () => {
     await newUser(page, "dash");
     await page.goto("/dashboard");
     await expect(main(page).getByTestId("progress-strip")).toBeVisible();
-    await expect(main(page).getByTestId("next-step").first()).toBeVisible();
+    await expect(main(page).getByTestId("next-bill")).toBeVisible();
     await expect(main(page).getByTestId("pulse-alert").first()).toBeVisible();
     await expect(main(page).getByTestId("pulse")).toContainText("Vote first");
     await expect(main(page).getByTestId("rep-report-card")).toHaveCount(3);
@@ -152,16 +153,15 @@ test.describe("the dashboard", () => {
     await page.waitForLoadState("networkidle");
     const finder = main(page).getByTestId("find-reps");
     await expect(finder).toBeVisible();
-    await finder.getByLabel("Or choose it yourself").selectOption("WY");
-    await expect(finder.getByLabel("District")).toHaveValue("AL");
-    await finder.getByRole("button", { name: "Save" }).click();
+    await finder.getByLabel("Or choose your state").selectOption("WY");
+    await finder.getByTestId("save-location").click();
     await expect(main(page).getByTestId("rep-report-card")).toHaveCount(3, { timeout: 15000 });
   });
 
   test("the navigation alerts you to your reps' votes, and counts down", async ({ page }, testInfo) => {
     test.skip(!testInfo.project.name.startsWith("phone"), "Checked on the phone navigation");
     await newUser(page, "alert");
-    await page.goto("/bills");
+    await page.goto("/federal/bills");
     const dot = page.getByTestId("bottom-nav").getByTestId("pulse-dot");
     await expect(dot).toBeVisible();
     const count = async () => (await (await page.request.get("/api/civic/pulse")).json()).count;
@@ -212,7 +212,7 @@ test.describe("demystifying", () => {
   test("upcoming bills show their topic, sponsor, and a digest or an honest gap", async ({ page, request }) => {
     const { items } = await (await request.get("/api/civic/floor")).json();
     test.skip(items.length === 0, "Nothing is scheduled");
-    await page.goto("/bills/upcoming");
+    await page.goto("/federal/upcoming");
     const card = main(page).getByTestId("floor-item").first();
     await expect(card.getByTestId("policy-chip")).toBeVisible();
     await expect(card.getByTestId("sponsor-line")).toBeVisible();
@@ -220,7 +220,7 @@ test.describe("demystifying", () => {
   });
 
   test("a bill page leads with the digest, not boilerplate", async ({ page }) => {
-    await page.goto("/bills/us-119-hr-3978");
+    await page.goto("/federal/bills/us-119-hr-3978");
     const digest = main(page).getByTestId("digest");
     await expect(digest).toBeVisible();
     await expect(digest).not.toContainText("The following analysis is based on");
@@ -228,35 +228,35 @@ test.describe("demystifying", () => {
   });
 
   test("a bill with no summary says so, and still helps", async ({ page }) => {
-    const html = await (await page.request.get("/bills?status=IN_COMMITTEE")).text();
+    const html = await (await page.request.get("/federal/bills?status=IN_COMMITTEE")).text();
     expect(html).toContain("bill-card");
-    await page.goto("/bills/us-119-s-4465");
+    await page.goto("/federal/bills/us-119-s-4465");
     await expect(main(page).getByTestId("digest")).toBeVisible();
   });
 
   test("jargon explains itself on tap", async ({ page, request }) => {
     const { items } = await (await request.get("/api/civic/floor")).json();
     test.skip(items.length === 0, "Nothing is scheduled");
-    await page.goto("/bills/upcoming");
+    await page.goto("/federal/upcoming");
     await page.waitForLoadState("networkidle");
     await main(page).getByTestId("term-suspension-of-the-rules").first().click();
     await expect(page.getByTestId("term-explanation")).toContainText("two-thirds");
   });
 
   test("the timeline explains actions in plain words", async ({ page }) => {
-    await page.goto("/bills/us-119-s-4465");
+    await page.goto("/federal/bills/us-119-s-4465");
     await expect(main(page).getByTestId("action-plain").first()).toContainText("It's now the law.");
   });
 
   test("topics are color coded and explained, and lead to bills", async ({ page }) => {
-    await page.goto("/topics");
+    await page.goto("/federal/topics");
     await expect(main(page).getByTestId("topic-family")).toHaveCount(8);
     await expect(main(page).getByTestId("topic-card").first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
-    await page.goto("/topics/health");
+    await page.goto("/federal/topics/health");
     await expect(main(page)).toContainText("Health care");
     await expect(main(page).getByTestId("bill-card").first()).toBeVisible();
-    expect((await page.goto("/topics/not-a-topic"))?.status()).toBe(404);
+    expect((await page.goto("/federal/topics/not-a-topic"))?.status()).toBe(404);
   });
 
   test("the lingo page explains how a bill becomes a law", async ({ page }) => {
@@ -268,7 +268,7 @@ test.describe("demystifying", () => {
 });
 
 test.describe("members", () => {
-  const MEMBER = "/legislators/federal/T000193";
+  const MEMBER = "/federal/legislators/T000193";
 
   test("show job measures compared with their chamber, and charts by policy", async ({ page }) => {
     await page.goto(MEMBER);
@@ -280,19 +280,19 @@ test.describe("members", () => {
   });
 
   test("senators get the same", async ({ page }) => {
-    await page.goto("/legislators/federal/B001261");
+    await page.goto("/federal/legislators/B001261");
     await expect(main(page).getByTestId("member-stats")).toContainText("of the Senate");
     await expect(main(page).getByTestId("sponsored-chart").locator("li").first()).toBeVisible();
   });
 
   test("the list is paged, and filtering still finds everyone", async ({ page }) => {
-    await page.goto("/legislators");
+    await page.goto("/federal/legislators");
     await expect(main(page).getByTestId("member-card")).toHaveCount(48);
     await expect(main(page)).toContainText("current members of Congress");
     await main(page).getByTestId("next-members").click();
     await expect(page).toHaveURL(/page=2/);
     await expect(main(page).getByTestId("member-card")).toHaveCount(48);
-    await page.goto("/legislators?state=TX&chamber=UPPER");
+    await page.goto("/federal/legislators?state=TX&chamber=UPPER");
     await expect(main(page).getByTestId("member-card")).toHaveCount(2);
     await expect(main(page).getByTestId("member-pages")).toHaveCount(0);
   });
@@ -306,7 +306,7 @@ test.describe("members", () => {
 });
 
 test.describe("every main page", () => {
-  for (const path of ["/", "/dashboard", "/vote", "/reps", "/bills", "/bills/upcoming", "/legislators", "/topics", "/learn"]) {
+  for (const path of ["/", "/dashboard", "/vote", "/reps", "/federal/bills", "/federal/upcoming", "/federal/legislators", "/federal/topics", "/learn"]) {
     test(`${path} fits the screen and logs no errors`, async ({ page }) => {
       await loginAs(page, "test_member");
       const errors: string[] = [];
@@ -322,7 +322,7 @@ test.describe("every main page", () => {
     });
   }
 
-  for (const path of ["/bills/upcoming", "/bills/us-119-s-4465", "/legislators/federal/T000193", "/topics", "/learn", "/reps"]) {
+  for (const path of ["/federal/upcoming", "/federal/bills/us-119-s-4465", "/federal/legislators/T000193", "/federal/topics", "/learn", "/reps"]) {
     test(`${path} offers a next step`, async ({ page }) => {
       await page.goto(path);
       await expect(main(page).getByTestId("next-step").first()).toBeVisible();
@@ -345,7 +345,7 @@ test.describe("every main page", () => {
   test("there's one theme, whatever the device prefers", async ({ browser }) => {
     const context = await browser.newContext({ colorScheme: "dark" });
     const page = await context.newPage();
-    await page.goto("/bills");
+    await page.goto("/federal/bills");
     const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     expect(background).toBe("rgb(244, 247, 253)");
     await expect(page.locator('[data-testid="theme-picker"]')).toHaveCount(0);

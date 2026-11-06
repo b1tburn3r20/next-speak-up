@@ -10,6 +10,7 @@ import { partyLabel, positionLabel } from "@/lib/civic/labels";
 import { revealOutcome } from "@/lib/civic/verdict";
 import { cn } from "@/lib/utils";
 import { useCivicStore, type RepReveal } from "@/stores/use-civic-store";
+import { memberPath } from "@/lib/routes";
 
 const OUTCOME = {
   MATCH: { label: "You match", icon: Check, className: "bg-support-tint text-support" },
@@ -40,7 +41,7 @@ function RevealRow({ rep, userChoice }: { rep: RepReveal; userChoice: string | n
       <div className="min-w-0 flex-1">
         <p className="break-words font-bold leading-snug">
           {rep.bioguide ? (
-            <Link href={`/legislators/federal/${rep.bioguide}`} className="hover:underline">
+            <Link href={memberPath(rep.bioguide)} className="hover:underline">
               {rep.name}
             </Link>
           ) : (

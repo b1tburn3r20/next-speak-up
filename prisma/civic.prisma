@@ -99,12 +99,12 @@ model LegislativeChamber {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
-  jurisdiction Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
+  jurisdiction Jurisdiction        @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
   districts    District[]
   terms        OfficeTerm[]
   rollCalls    RollCall[]
   originBills  Bill[]
-  floorItems FloorScheduleItem[]
+  floorItems   FloorScheduleItem[]
 
   @@unique([jurisdictionId, kind])
   @@map("legislative_chamber")
@@ -122,10 +122,10 @@ model LegislativeSession {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  jurisdiction Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
+  jurisdiction Jurisdiction        @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
   bills        Bill[]
   rollCalls    RollCall[]
-  floorItems FloorScheduleItem[]
+  floorItems   FloorScheduleItem[]
 
   @@unique([jurisdictionId, identifier])
   @@index([jurisdictionId, isCurrent])
@@ -273,6 +273,9 @@ model Bill {
   @@index([jurisdictionId, latestActionDate, id])
   @@index([currentStatus, latestActionDate])
   @@index([policyArea, latestActionDate])
+  @@index([latestActionDate, id])
+  // Word search in the search dialog
+  @@fulltext([title])
   @@map("bill")
 }
 
@@ -594,6 +597,8 @@ model MemberStat {
   sponsoredThisCongress Int       @default(0)
   cosponsoredCount      Int       @default(0)
   becameLawCount        Int       @default(0)
+  // Sponsored bills that can become law. Simple and concurrent resolutions can't.
+  lawEligibleCount      Int       @default(0)
   lawPercentile         Int?
   lastVoteAt            DateTime?
   computedAt            DateTime
@@ -644,4 +649,16 @@ model UserPassword {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_password")
+}
+
+// What a person wants to keep track of, chosen in onboarding or on a topic's page.
+model UserPolicyTopic {
+  userId     String
+  policyArea String   @db.VarChar(120)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, policyArea])
+  @@map("user_policy_topic")
 }

@@ -11,6 +11,8 @@ import { useForumPostDetailsStore } from "../../use-forum-post-details-store";
 import { useLoginStore } from "@/app/navbar/use-login-store";
 import { Pin, PinOff, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { can } from "@/lib/auth/permissions";
+import { useSession } from "next-auth/react";
 
 interface PinForumPostProps {
   userId?: string;
@@ -26,7 +28,8 @@ const PinForumPost = ({ userId, userRole, postId }: PinForumPostProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Check if user has admin privileges
-  const isAdmin = userRole === "Admin" || userRole === "Super Admin";
+  const { data: session } = useSession();
+  const isAdmin = can(session, "forum.moderate");
 
   const updatePostPinStatus = async () => {
     if (!userId) {

@@ -4,6 +4,7 @@ import { Grid, OuterBlock } from "@/components/blocks";
 import { MemberCard } from "@/components/people/member-card";
 import { buttonVariants } from "@/components/ui/button";
 import { listCurrentMembers } from "@/lib/civic/people";
+import { routes } from "@/lib/routes";
 
 const STEPS = [
   {
@@ -47,7 +48,7 @@ const LearnYourReps = async () => {
             ))}
           </Grid>
           <div className="text-center">
-            <Link href="/legislators" className={buttonVariants({ variant: "outline", size: "lg" })}>
+            <Link href={routes.federal.legislators} className={buttonVariants({ variant: "outline", size: "lg" })}>
               Find your own reps
             </Link>
           </div>

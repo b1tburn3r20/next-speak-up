@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { blockPaidServices, expectNoHorizontalOverflow, loginAs } from "./helpers";
 
 // A real bill with votes, text, and a summary, once the pipeline has run.
-const LAW = "/bills/us-119-s-4465";
+const LAW = "/federal/bills/us-119-s-4465";
 
 test.beforeEach(async ({ page }) => {
   await blockPaidServices(page);
@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
 test.describe("upcoming votes", () => {
   test("shows what the schedule API has, or says nothing's scheduled", async ({ page, request }) => {
     const { items } = await (await request.get("/api/civic/floor")).json();
-    const response = await page.goto("/bills/upcoming");
+    const response = await page.goto("/federal/upcoming");
     expect(response?.status()).toBe(200);
     await expectNoHorizontalOverflow(page);
     if (items.length === 0) {
@@ -31,7 +31,7 @@ test.describe("upcoming votes", () => {
       (item: { slug: string | null; week: string }) => item.slug && !item.week.startsWith("Last"),
     );
     test.skip(!upcoming, "Nothing is scheduled this week or next");
-    await page.goto(`/bills/${upcoming.slug}`);
+    await page.goto(`/federal/bills/${upcoming.slug}`);
     await expect(page.getByTestId("floor-notice")).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
@@ -40,7 +40,7 @@ test.describe("upcoming votes", () => {
     const { items } = await (await request.get("/api/civic/floor")).json();
     test.skip(!items.some((item: { slug: string | null }) => item.slug), "No linked bills");
     await loginAs(page, "test_member");
-    await page.goto("/bills/upcoming");
+    await page.goto("/federal/upcoming");
     const card = page.getByTestId("floor-item").filter({ has: page.getByTestId("vote-support") }).first();
     const support = card.getByTestId("vote-support");
     const before = await support.getAttribute("aria-pressed");
@@ -54,9 +54,9 @@ test.describe("upcoming votes", () => {
   test("the dashboard and bills list point to it", async ({ page }) => {
     await page.goto("/dashboard");
     await expect(page.getByRole("main").getByTestId("dashboard-floor")).toBeVisible();
-    await page.goto("/bills");
+    await page.goto("/federal/bills");
     await page.getByTestId("upcoming-link").click();
-    await expect(page).toHaveURL(/\/bills\/upcoming/);
+    await expect(page).toHaveURL(/\/federal\/upcoming/);
   });
 });
 
@@ -84,7 +84,7 @@ test.describe("bill details", () => {
   });
 
   test("unknown or malformed text and vote addresses are 404s", async ({ page }) => {
-    expect((await page.goto("/bills/us-119-hr-999999/text"))?.status()).toBe(404);
+    expect((await page.goto("/federal/bills/us-119-hr-999999/text"))?.status()).toBe(404);
     expect((await page.goto(`${LAW}/votes/not-a-number`))?.status()).toBe(404);
   });
 
@@ -97,7 +97,7 @@ test.describe("bill details", () => {
   });
 
   test("cosponsors expand", async ({ page }) => {
-    await page.goto("/bills/us-119-hr-2388");
+    await page.goto("/federal/bills/us-119-hr-2388");
     const cosponsors = page.getByTestId("cosponsors");
     if (await cosponsors.count()) {
       await cosponsors.locator("summary").click();
@@ -176,7 +176,7 @@ test.describe("AI and read-aloud, with the paid services stubbed", () => {
 });
 
 test.describe("members", () => {
-  const MEMBER = "/legislators/federal/T000193";
+  const MEMBER = "/federal/legislators/T000193";
 
   test("show their record and can be saved to the dashboard", async ({ page }, testInfo) => {
     // Each screen width gets its own account, because these run at the same time.
@@ -234,12 +234,12 @@ test.describe("site-wide", () => {
     page.on("pageerror", (error) => errors.push(`${current}: ${error.message.slice(0, 200)}`));
     for (const path of [
       "/dashboard",
-      "/bills",
-      "/bills/upcoming",
+      "/federal/bills",
+      "/federal/upcoming",
       LAW,
       `${LAW}/text`,
-      "/legislators",
-      "/legislators/federal/T000193",
+      "/federal/legislators",
+      "/federal/legislators/T000193",
       "/feedback",
       "/settings",
       "/forum",
@@ -252,7 +252,7 @@ test.describe("site-wide", () => {
   });
 
   test("the footer is there and its links work", async ({ page }) => {
-    await page.goto("/bills");
+    await page.goto("/federal/bills");
     const footer = page.getByTestId("site-footer");
     await expect(footer).toBeVisible();
     await footer.getByRole("link", { name: "Feedback" }).click();
@@ -276,7 +276,7 @@ test.describe("site-wide", () => {
     await expect(page.getByText("Log in or sign up")).toBeVisible();
   });
 
-  for (const path of ["/federal/bills", "/api/bills/recent-bills", "/api/dev/test", "/dev/add-contacts"]) {
+  for (const path of ["/api/bills/recent-bills", "/api/dev/test", "/dev/add-contacts"]) {
     test(`${path} no longer serves the old app`, async ({ request }) => {
       const response = await request.get(path, { maxRedirects: 0 });
       expect([307, 308, 404, 405]).toContain(response.status());

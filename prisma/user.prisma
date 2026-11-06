@@ -37,6 +37,7 @@ model User {
 
   // Schema v2
   locations       UserLocation[]
+  policyTopics    UserPolicyTopic[]
   billVotes       UserBillVote[]
   billFollows     UserBillFollow[]
   personFavorites UserPersonFavorite[]

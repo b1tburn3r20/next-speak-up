@@ -1,52 +1,51 @@
-// components/NavItem.tsx (Client Component)
 "use client";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navItems } from "../data/navbar-data";
 import { PulseDot } from "@/components/civic/pulse-dot";
+import { activeNavHref } from "@/lib/nav";
+import { routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
+import { allNavHrefs, navItems, type NavItem as NavItemData } from "../data/navbar-data";
+import { useNavbarStore } from "./use-navbar-store";
 
-interface NavItemProps {
-  href: string; // Only pass the href as a string
-}
-
-const NavItem = ({ href }: NavItemProps) => {
-  const pathname = usePathname();
-
-  // Find the nav item data using href lookup
-  const navItem = navItems.find((item) => item.href === href);
-
-  // Handle case where href doesn't match any nav item
-  if (!navItem) {
-    console.warn(`No nav item found for href: ${href}`);
-    return null;
-  }
-
-  const IconComponent = navItem.icon;
-  const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
-
+function NavRow({ item, active, child }: { item: NavItemData; active: boolean; child?: boolean }) {
+  const collapsed = useNavbarStore((store) => store.navCollapsed);
+  const Icon = item.icon;
   return (
     <Link
-      href={href}
-      className={`flex items-center justify-start px-4 py-3 transition-colors relative ${
-        isActive
-          ? "bg-primary/10 text-primary font-medium"
-          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-      }`}
-    >
-      <IconComponent
-        size={20}
-        className={`shrink-0 transition-colors ${
-          isActive ? "text-primary" : ""
-        }`}
-      />
-      <span className="nav-label ml-3 text-sm font-medium">
-        {navItem.label}
-      </span>
-      {href === "/vote" ? <PulseDot className="nav-label ml-auto" /> : null}
-      {isActive && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
+      href={item.href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "relative flex items-center justify-start px-4 transition-colors",
+        child ? "py-2" : "py-3",
+        child && !collapsed && "pl-11",
+        active
+          ? "bg-primary/10 font-medium text-primary"
+          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
       )}
+    >
+      <Icon size={child ? 16 : 20} className={cn("shrink-0 transition-colors", active && "text-primary")} />
+      <span className="nav-label ml-3 text-sm font-medium">{item.label}</span>
+      {item.href === routes.vote ? <PulseDot className="nav-label ml-auto" /> : null}
+      {active ? <div className="absolute inset-y-0 left-0 w-1 rounded-r-full bg-primary" /> : null}
     </Link>
+  );
+}
+
+/** A nav link and any links under it. Only the best match for the URL is ever active. */
+const NavItem = ({ href }: { href: string }) => {
+  const pathname = usePathname();
+  const item = navItems.find((candidate) => candidate.href === href);
+  if (!item) return null;
+  const activeHref = activeNavHref(pathname, allNavHrefs);
+  return (
+    <>
+      <NavRow item={item} active={activeHref === item.href} />
+      {item.children?.map((child) => (
+        <NavRow key={child.href} item={child} active={activeHref === child.href} child />
+      ))}
+    </>
   );
 };
 

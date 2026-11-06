@@ -17,7 +17,8 @@ const lookupSchema = z.union([
   z.object({ address: z.string().trim().min(5).max(200) }),
   z.object({
     regionCode: z.string().length(2).toUpperCase(),
-    districtCode: z.string().min(1).max(4),
+    // Someone who doesn't know their district still gets their senators.
+    districtCode: z.string().min(1).max(4).nullable(),
   }),
 ]);
 
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
   }
   const input = parsed.data;
 
-  let resolved: { regionCode: string; districtCode: string } | null;
+  let resolved: { regionCode: string; districtCode: string | null } | null;
   let source: LocationSource;
   try {
     if ("lat" in input) {

@@ -6,6 +6,7 @@ import { ArrowRight, PartyPopper, SkipForward, X } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCivicStore } from "@/stores/use-civic-store";
+import { routes } from "@/lib/routes";
 
 export function SessionProgress({ current, total }: { current: number; total: number }) {
   const percent = total === 0 ? 0 : Math.round((current / total) * 100);
@@ -73,7 +74,7 @@ function SessionFinish({ slugs, signedIn }: { slugs: string[]; signedIn: boolean
           <ArrowRight className="size-4" aria-hidden />
         </Link>
         <Link
-          href={signedIn ? "/reps" : "/bills/upcoming"}
+          href={signedIn ? "/reps" : routes.federal.upcoming}
           className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
         >
           {signedIn ? "See your reps' report cards" : "See upcoming votes"}

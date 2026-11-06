@@ -9,10 +9,11 @@ import AllPermissions from "./components/all-permissions";
 import { getAllPermissions, getAllRoles } from "@/lib/services/permissions";
 import { Label } from "@/components/ui/label";
 import AllRoles from "./components/all-roles";
+import { can } from "@/lib/auth/permissions";
 const Page = async () => {
   const session: AuthSession = await getServerSession(authOptions);
   const userId = session?.user?.id;
-  if (!userId || !["Admin", "Super Admin"].includes(session?.user?.role?.name)) {
+  if (!userId || !can(session, "users.manage")) {
     redirect("/")
   }
   const users = await getAllUsers();

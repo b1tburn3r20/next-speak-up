@@ -1,5 +1,6 @@
 // What someone should do next. Pure, so every page can ask, and tests can cover each situation.
 import { MIN_VOTES_FOR_VERDICT } from "./verdict";
+import { routes } from "@/lib/routes";
 
 export type NextStep = {
   id: string;
@@ -40,7 +41,7 @@ export function computeNextSteps(state: NextStepState): NextStep[] {
       id: "see-upcoming",
       title: "See what Congress may vote on",
       description: "The bills coming up next, in plain words.",
-      href: "/bills/upcoming",
+      href: routes.federal.upcoming,
       cta: "See upcoming votes",
       tone: "xp",
     });
@@ -78,7 +79,7 @@ export function computeNextSteps(state: NextStepState): NextStep[] {
       id: "floor",
       title: `${state.floorCount} bill${state.floorCount === 1 ? "" : "s"} may come up for a vote soon`,
       description: "Weigh in before your representative does.",
-      href: "/bills/upcoming",
+      href: routes.federal.upcoming,
       cta: "See upcoming votes",
       tone: "support",
     });
@@ -108,7 +109,7 @@ export function computeNextSteps(state: NextStepState): NextStep[] {
     id: "explore-topic",
     title: "Explore a topic you care about",
     description: "Health, taxes, immigration, and more, explained simply.",
-    href: "/topics",
+    href: routes.federal.topics,
     cta: "Browse topics",
     tone: "xp",
   });
@@ -117,7 +118,7 @@ export function computeNextSteps(state: NextStepState): NextStep[] {
       id: "follow",
       title: "Follow a bill you care about",
       description: "Keep track of it on your dashboard.",
-      href: "/bills",
+      href: routes.federal.bills,
       cta: "Browse bills",
       tone: "support",
     });

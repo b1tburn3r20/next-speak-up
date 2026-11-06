@@ -39,6 +39,7 @@ export const BILL_CARD_SELECT = {
   title: true,
   policyArea: true,
   currentStatus: true,
+  statusDate: true,
   latestActionDate: true,
   latestActionText: true,
   introducedDate: true,

@@ -3,6 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/prisma/client";
 import { AgeRange, IncomeRange, Permission } from "@prisma/client";
+import { getRoleWithPermissions } from "@/lib/auth/role-cache";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -76,40 +77,34 @@ export const authOptions = {
     },
 
     session: async ({ session, user }) => {
-      // Fetch full user data from database including needsOnboarding
-      const fullUser = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-          username: true,
-          state: true,
-          ageRange: true,
-          householdIncome: true,
-          district: true,
-          needsOnboarding: true,
-          role: {
-            include: {
-              permissions: {
-                include: {
-                  permission: true
-                }
-              }
-            }
-          }
-        },
-      });
-
+      // The adapter just loaded the user's row, so only their role needs looking up.
+      const account = user as typeof user & {
+        id: string;
+        username: string | null;
+        state: string | null;
+        ageRange: AgeRange | null;
+        householdIncome: IncomeRange | null;
+        district: number | null;
+        needsOnboarding: boolean | null;
+        roleId: number | null;
+      };
+      const role = await getRoleWithPermissions(account.roleId);
       return {
         ...session,
         user: {
           ...session.user,
-          ...fullUser,
-
-          permissions: fullUser?.role?.permissions.map(rp => rp.permission) ?? [],
-          needsOnboarding: fullUser?.needsOnboarding ?? true,
+          id: account.id,
+          name: account.name,
+          email: account.email,
+          image: account.image,
+          username: account.username,
+          state: account.state,
+          ageRange: account.ageRange,
+          householdIncome: account.householdIncome,
+          district: account.district,
+          role,
+          permissions: role?.permissions.map((item) => item.permission) ?? [],
+          needsOnboarding: account.needsOnboarding ?? true,
         },
       };
     },

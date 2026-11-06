@@ -12,14 +12,25 @@ import { ProgressStrip } from "@/components/civic/progress-strip";
 import { RepReportCard } from "@/components/civic/rep-report-card";
 import { MemberCard } from "@/components/people/member-card";
 import { listBills } from "@/lib/civic/bills";
-import { getEngagementFacts, getMemberStats, getPulseItems, getRepRecaps } from "@/lib/civic/engage";
+import {
+  getEngagementFacts,
+  getMemberStats,
+  getPulseItems,
+  getRepRecaps,
+  getSponsoredAreas,
+  getVoteQueue,
+} from "@/lib/civic/engage";
 import { getUpcomingFloorItems } from "@/lib/civic/floor";
 import { groupFloorWeeks } from "@/lib/civic/floor-logic";
 import { billLabel } from "@/lib/civic/labels";
 import { computeNextSteps } from "@/lib/civic/next-steps";
 import { listFavoriteMembers } from "@/lib/civic/people";
 import { computeProgress } from "@/lib/civic/progress";
-import { getUserBillStates, getUserDashboardLists, getUserMetrics } from "@/lib/civic/users";
+import { getUserBillStates, getUserDashboardLists, getUserMetrics, getUserTopics } from "@/lib/civic/users";
+import { NextBillCard } from "@/components/civic/next-bill-card";
+import { RepWorkCard } from "@/components/civic/rep-work-card";
+import { PolicyChip } from "@/components/civic/policy-chip";
+import { billPath, routes } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -75,7 +86,7 @@ function FloorPreview({
     <Section
       title={`Coming up: ${week.label}`}
       description="Weigh in before your representative votes."
-      action={{ href: "/bills/upcoming", label: `All ${items.length}` }}
+      action={{ href: routes.federal.upcoming, label: `All ${items.length}` }}
       data-testid="dashboard-floor"
     >
       <Stack>
@@ -115,7 +126,7 @@ async function SignedOutDashboard() {
       />
       <NextStepCard step={steps[0]} label="Start here" />
       <FloorPreview items={floorItems} states={new Map()} signedIn={false} now={now} />
-      <Section title="Latest in Congress" action={{ href: "/bills", label: "All bills" }}>
+      <Section title="Latest in Congress" action={{ href: routes.federal.bills, label: "All bills" }}>
         <Stack>
           {bills.map((bill) => (
             <BillCard key={bill.id} bill={bill} />
@@ -133,22 +144,26 @@ export default async function DashboardPage() {
   if (!userId) return <SignedOutDashboard />;
 
   const now = new Date();
-  const [metrics, floorItems, lists, favorites] = await Promise.all([
+  const [metrics, floorItems, lists, favorites, topics] = await Promise.all([
     getUserMetrics(userId),
     getUpcomingFloorItems(now),
     getUserDashboardLists(userId),
     listFavoriteMembers(userId),
+    getUserTopics(userId),
   ]);
   const reps = metrics.reps.map(({ rep }) => rep);
   const repIds = reps.map((rep) => rep.id);
   const floorBillIds = floorItems.flatMap((item) => (item.bill ? [item.bill.id] : []));
-  const [facts, pulse, recaps, stats, floorStates] = await Promise.all([
+  const [facts, pulse, recaps, stats, floorStates, sponsoredAreas, queue] = await Promise.all([
     getEngagementFacts(userId, repIds),
-    getPulseItems(userId, repIds, 2),
+    getPulseItems(userId, repIds, 3),
     getRepRecaps(reps, now),
     getMemberStats(repIds),
     getUserBillStates(userId, floorBillIds),
+    getSponsoredAreas(repIds),
+    getVoteQueue(userId, repIds, 1, now, topics),
   ]);
+  const nextBill = queue[0];
   const progress = computeProgress({
     voteDates: facts.voteDates,
     now,
@@ -189,26 +204,13 @@ export default async function DashboardPage() {
         />
       </header>
 
-      <NextStepCard step={steps[0]} />
-
-      {pulse.length > 0 ? (
-        <Section
-          title="Your reps just voted"
-          description="Vote first, then find out if you match."
-          action={{ href: "/vote", label: "See more" }}
-          data-testid="pulse"
-        >
-          <Stack>
-            {pulse.map((item) => (
-              <BlindVoteCard key={item.bill.id} item={item} signedIn />
-            ))}
-          </Stack>
-        </Section>
-      ) : null}
+      {metrics.reps.length === 0 ? <NextStepCard step={steps[0]} /> : null}
+      {nextBill ? <NextBillCard item={nextBill} /> : null}
 
       {metrics.reps.length > 0 ? (
         <Section
-          title="Do they represent you?"
+          title="Your representatives"
+          description="Your House rep and two senators vote for you in Congress."
           action={{ href: "/reps", label: "Report cards" }}
           data-testid="dashboard-reps"
         >
@@ -230,6 +232,66 @@ export default async function DashboardPage() {
           </Grid>
         </Section>
       ) : null}
+
+      {/* The next bill is already above, so this starts from the one after it. */}
+      {pulse.filter((item) => item.bill.id !== nextBill?.bill.id).length > 0 ? (
+        <Section
+          title="Your reps just voted"
+          description="Vote first, then find out if you match."
+          action={{ href: "/vote", label: "See more" }}
+          data-testid="pulse"
+        >
+          <Stack>
+            {pulse
+              .filter((item) => item.bill.id !== nextBill?.bill.id)
+              .slice(0, 2)
+              .map((item) => (
+                <BlindVoteCard key={item.bill.id} item={item} signedIn />
+              ))}
+          </Stack>
+        </Section>
+      ) : null}
+
+      {metrics.reps.length > 0 ? (
+        <Section
+          title="What your reps work on"
+          description="The topics they write bills about, and how often those bills become law."
+          data-testid="dashboard-rep-work"
+        >
+          <Grid cols="people">
+            {metrics.reps.map(({ rep }) => (
+              <RepWorkCard
+                key={rep.id}
+                data={{
+                  rep,
+                  stat: stats.get(rep.id) ?? null,
+                  areas: sponsoredAreas.get(rep.id) ?? [],
+                }}
+              />
+            ))}
+          </Grid>
+        </Section>
+      ) : null}
+
+      <Section
+        title="Topics you track"
+        action={{ href: routes.federal.topics, label: topics.length > 0 ? "Change" : "Pick topics" }}
+        data-testid="dashboard-topics"
+      >
+        <OuterBlock>
+          {topics.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {topics.map((name) => (
+                <PolicyChip key={name} name={name} link />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Pick the topics you care about, and we&apos;ll put those bills first.
+            </p>
+          )}
+        </OuterBlock>
+      </Section>
 
       <FloorPreview items={floorItems} states={floorStates} signedIn now={now} />
 
@@ -343,7 +405,7 @@ function BillLinks({
     <ul className="divide-y text-sm" data-testid={testId}>
       {bills.map((bill) => (
         <li key={bill.id} className="py-2 first:pt-0 last:pb-0">
-          <Link href={`/bills/${bill.slug}`} className="font-extrabold text-primary hover:underline">
+          <Link href={billPath(bill.slug)} className="font-extrabold text-primary hover:underline">
             {billLabel(bill.billType, bill.number)}
           </Link>{" "}
           <BillStatusBadge status={bill.currentStatus} />

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Coolbills is a civic app for browsing U.S. federal legislation and members of Congress. Users can see what's coming up for a House vote, vote on bills themselves, compare their positions with their representatives, ask AI questions about bills, listen to summaries read aloud, and post in a forum. It is a single Next.js 16 App Router app (React 19) using Prisma with MySQL. The repo is `next-speak-up`, the npm package is `next-politics`, and the brand is Coolbills.
+Coolbills is a civic app for browsing U.S. federal legislation and members of Congress. Users can see what's coming up for a House vote, vote on bills themselves, compare their positions with their representatives, ask AI questions about bills, listen to summaries read aloud, and post in a forum. It covers federal government now, and is built so states can follow. It is a single Next.js 16 App Router app (React 19) using Prisma with MySQL. The repo is `next-speak-up`, the npm package is `next-politics`, and the brand is Coolbills.
 
 ## Reference sheets
 
@@ -21,6 +21,8 @@ Read these before starting a task, and check your work against them:
 - **Never test or call AI or paid services unless the user specifically says to.** That covers Gemini, Lemonfox, SMTP email, and Upstash. Stub them in tests.
 - **Local database only.** Never run migrations, seeds, or pipelines against Railway or any other production database.
 - **Kebab-case file names.** Name all TypeScript files in kebab-case, such as `bill-text-tab.tsx`.
+- **Build for federal and state.** Government pages live under `/federal`, and later `/state/{state}`. Build their URLs with `lib/routes.ts`. Pages about the person, like `/dashboard`, stay at the root.
+- **Check permissions, not role names.** Use `can` or `requirePermission` from `lib/auth`. Every API route that isn't public needs a check.
 
 ## Commands
 
@@ -41,6 +43,7 @@ npx playwright test tests/e2e/auth.spec.ts --project=desktop   # one file at one
 npm run db:up                      # start MySQL (the container is defined in ../civic-pipeline)
 npm run db:deploy                  # apply migrations (db:migrate is the same, for Railway)
 npm run db:seed                    # roles, test accounts, generated activity; local only
+npm run db:rbac                    # just the permission catalog and role defaults; safe to re-run
 npx prisma generate --schema=./prisma                 # after install and after schema changes
 ```
 
@@ -98,7 +101,7 @@ Pages are server components that call `lib/civic/*` directly, so content is in t
 - **Password login:** NextAuth's Credentials provider always writes a JWT cookie, which doesn't work with database sessions. So `app/api/account/login` and `signup` use `lib/services/password-auth.ts` to create a real `session` row and set NextAuth's cookie. `getServerSession` and `signOut` then work unchanged. Hashes live in `UserPassword`, so ordinary user queries can't return them.
 - **Before public launch:** password login still needs email verification and password reset. Without verification, someone could sign up with another person's email and block that person's Google sign-in.
 - **No middleware:** nothing protects routes globally. Each route must call `getServerSession(authOptions)` and do its own checks, so new endpoints are unprotected by default.
-- **Roles:** `User` → `Role` → `RolePermission` → `Permission`. Admin checks usually compare role names, `"Admin"` and `"Super Admin"`. `User.roleId` defaults to 2, which the seed creates as Member. Signup fails if that row is missing.
+- **Roles:** `User` → `Role` → `RolePermission` → `Permission`, so a role has many permissions. `PERMISSIONS` in `lib/auth/permissions.ts` is the catalog, and `session.user.permissions` holds what someone has. Role lookups are cached for 60 seconds in `lib/auth/role-cache.ts`. `User.roleId` defaults to 2, which the seed creates as Member. Signup fails if that row is missing.
 
 ### Rate limiting
 
@@ -119,13 +122,16 @@ Both paid routes need a signed-in user, and use text from the database, never te
 
 ### Frontend layout
 
-- **Navigation:** `app/navbar/varients/client-navbar.tsx` uses one layout with CSS breakpoints. Don't branch on screen size in JavaScript to choose page content, because that blocks server rendering.
+- **Navigation:** `app/navbar/varients/client-navbar.tsx` uses one layout with CSS breakpoints. Don't branch on screen size in JavaScript to choose page content, because that blocks server rendering. Links are in `app/data/navbar-data.ts`, and `activeNavHref` picks the one active link.
+- **Dates:** show them with `RelativeDate`. `billMoment` and `floorMoment` choose what to say about a bill.
+- **Search:** `lib/search/registry.ts` lists the providers, and `/api/search/[provider]` runs one at a time. See `docs/ui-guidelines.md`.
+- **Onboarding:** `/onboarding`. `OnboardingGate` sends new accounts there.
 - **Blocks:** build pages from `components/blocks`. See `docs/ui-guidelines.md`.
 - **State:** `stores/use-civic-store.ts` is global client state, read with narrow selectors. Components take the server's value as `initial...`, and the store only holds what's changed since.
 - **Reveal:** a rep's vote must stay out of a page's HTML until the user votes or asks. Only `getBillReveal` selects it for a bill page.
 - **Shared pieces:** `components/app` has the progress bar and page states. `components/civic` has the core loop, charts, and next steps. `components/bills`, `components/people`, and `components/onboarding` hold feature components.
 - **UI kits:** `components/ui` is shadcn/ui and `components/magicui` is Magic UI.
-- **Progress bar:** `TopProgressBar` wraps `window.fetch`, so any request shows in it automatically.
+- **Progress bar:** `TopProgressBar` wraps `window.fetch`, so any request shows in it automatically. Prefetches are ignored.
 - **Theme:** there's one, in `app/globals.css`, and it's light. Use its tokens, not raw colors.
 - **Loading skeletons:** `loading.tsx` also applies to child routes, and it makes a missing page return 200 instead of 404. That's why the list pages sit in `(list)` route groups. Don't add a `loading.tsx` above a detail page.
 - **Styling:** Tailwind v4 with no `tailwind.config` file, although `components.json` still references one.
@@ -133,7 +139,7 @@ Both paid routes need a signed-in user, and use text from the database, never te
 
 ## Environment
 
-Local variables go in `.env` at the repo root, which is gitignored. Use `.env` rather than `.env.local` for `DATABASE_URL` so the Prisma CLI can read it.
+Local variables go in `.env` at the repo root, which is gitignored. Use `.env` rather than `.env.local` for `DATABASE_URL` so the Prisma CLI can read it. Use `127.0.0.1` as its host, not `localhost`: on Windows, `localhost` tries IPv6 first, and each new connection waits about 2 seconds.
 
 Needed locally: `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `CONGRESS_API_KEY`, `RATE_LIMITING_DISABLED`, `SEED_USER_PASSWORD`.
 
@@ -147,4 +153,4 @@ The app deploys to Railway from the `Dockerfile` as a standalone Next.js server 
 
 Local development uses `mysql:latest` from `../civic-pipeline/docker-compose.yaml`, through `npm run db:up`. This repo's `docker-compose.yaml` has its own `mysql:8.0` service on the same port, so don't run both.
 
-Before public launch: add email verification and password reset, turn rate limiting back on with Upstash, and write the script that moves production's data to schema v2.
+Before public launch: add email verification and password reset, turn rate limiting back on with Upstash, write the script that moves production's data to schema v2, and run `npm run db:rbac`, because no one can use admin features until it has run.

@@ -69,7 +69,7 @@ export async function countCurrentMembers(filters: MemberFilters = {}) {
 
 /** A user's two senators and one representative. Delegates count as the representative. */
 export const repsForLocation = cache(async (regionCode: string, districtCode: string | null) => {
-  return prisma.person.findMany({
+  const reps = await prisma.person.findMany({
     where: {
       terms: {
         some: {
@@ -87,6 +87,9 @@ export const repsForLocation = cache(async (regionCode: string, districtCode: st
     select: MEMBER_SELECT,
     orderBy: { sortName: "asc" },
   });
+  // The House rep first, because they're the one person who's only yours.
+  const isSenator = (rep: (typeof reps)[number]) => (rep.terms[0]?.chamber.kind === "UPPER" ? 1 : 0);
+  return [...reps].sort((a, b) => isSenator(a) - isSenator(b));
 });
 
 export const getMemberByBioguide = cache(async (bioguide: string) => {

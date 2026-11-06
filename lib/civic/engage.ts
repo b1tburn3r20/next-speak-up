@@ -83,6 +83,7 @@ export async function getVoteQueue(
   repIds: number[],
   limit = 10,
   now = new Date(),
+  topics: string[] = [],
 ): Promise<QueueItem[]> {
   const notVoted: Prisma.BillWhereInput = userId ? { userVotes: { none: { userId } } } : {};
   const pulse = userId ? await getPulseItems(userId, repIds, limit) : [];
@@ -109,23 +110,28 @@ export async function getVoteQueue(
     }
   }
 
-  if (items.length < limit) {
-    // Bills with a recorded vote and a summary make the best questions.
+  // Bills with a recorded vote and a summary make the best questions. Topics they track go first.
+  const addRecent = async (policyAreas?: string[]) => {
+    if (items.length >= limit) return;
     const recent = await prisma.bill.findMany({
       where: {
         ...notVoted,
         id: { notIn: [...seen] },
         summaries: { some: {} },
         rollCalls: { some: { isFinalVote: true } },
+        ...(policyAreas ? { policyArea: { in: policyAreas } } : {}),
       },
       orderBy: [{ latestActionDate: { sort: "desc", nulls: "last" } }, { id: "desc" }],
       take: limit - items.length,
       select: BILL_CARD_SELECT,
     });
     for (const bill of recent) {
+      seen.add(bill.id);
       items.push({ bill, reason: "RECENT", reps: [], occurredAt: null });
     }
-  }
+  };
+  if (topics.length > 0) await addRecent(topics);
+  await addRecent();
   return items;
 }
 
@@ -263,6 +269,23 @@ export async function getMemberStats(personIds: number[]) {
   if (personIds.length === 0) return new Map();
   const rows = await prisma.memberStat.findMany({ where: { personId: { in: personIds } } });
   return new Map(rows.map((row) => [row.personId, row]));
+}
+
+/** The policy areas each member has sponsored most bills in, largest first. */
+export async function getSponsoredAreas(personIds: number[], perMember = 5) {
+  const result = new Map<number, { policyArea: string; sponsoredCount: number; becameLawCount: number }[]>();
+  if (personIds.length === 0) return result;
+  const rows = await prisma.memberPolicyStat.findMany({
+    where: { personId: { in: personIds }, sponsoredCount: { gt: 0 } },
+    orderBy: { sponsoredCount: "desc" },
+    select: { personId: true, policyArea: true, sponsoredCount: true, becameLawCount: true },
+  });
+  for (const { personId, ...area } of rows) {
+    const areas = result.get(personId) ?? [];
+    if (areas.length < perMember) areas.push(area);
+    result.set(personId, areas);
+  }
+  return result;
 }
 
 /** Sponsored bills and final votes by policy area, largest first. */

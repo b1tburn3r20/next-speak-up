@@ -19,7 +19,7 @@ export function PulseDot({ className }: { className?: string }) {
       data-testid="pulse-dot"
       aria-label={`${count} of your reps' votes to weigh in on`}
     >
-      {count > 99 ? "99+" : count}
+      {count > 9 ? "9+" : count}
     </span>
   );
 }

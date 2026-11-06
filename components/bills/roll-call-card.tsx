@@ -3,6 +3,7 @@ import { partyLabel, positionLabel } from "@/lib/civic/labels";
 import type { PartyBreakdown } from "@/lib/civic/bills";
 import { AsOfNote } from "@/components/app/page-states";
 import { formatDate } from "./bill-card";
+import { RelativeDate } from "@/components/app/relative-date";
 
 export type RollCallCardProps = {
   question: string | null;
@@ -43,7 +44,7 @@ export function RollCallCard(props: RollCallCardProps) {
           {props.chamber}: {props.question ?? "Recorded vote"}
         </p>
         <p className="text-sm text-muted-foreground">
-          {formatDate(props.occurredAt)} · Roll {props.number}
+          {props.occurredAt ? <RelativeDate date={props.occurredAt} label="Voted" /> : null} · Roll {props.number}
         </p>
       </div>
       {props.result ? <p className="text-sm">{props.result}</p> : null}

@@ -1,3 +1,7 @@
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { can } from "@/lib/auth/permissions";
 import { getUserById } from "@/lib/services/user";
 import UserAccountInformation from "./components/user-account-information";
 
@@ -9,6 +13,8 @@ interface PageProps {
   }>;
 }
 const Page = async ({ params }: PageProps) => {
+  const session = await getServerSession(authOptions);
+  if (!can(session, "users.manage")) redirect("/");
   const { id } = await params;
   const userId = id;
   const user = await getUserById(userId);

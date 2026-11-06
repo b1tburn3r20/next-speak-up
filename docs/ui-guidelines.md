@@ -33,6 +33,51 @@ Build pages only from `components/blocks`. Don't hand-write spacing, card styles
 
 **Responsiveness:** phone is the default, and larger screens add to it. Choose columns through `Grid`, never by checking screen size in JavaScript, because that breaks server rendering. Nothing may scroll sideways at 360px.
 
+## Federal and state
+
+We cover both, starting with federal. Every screen and model must leave room for states.
+
+- **URLs:** a government's pages live under its prefix: `/federal/bills`, and later `/state/tx/bills`. Things that belong to the person, not a government, stay at the root: `/dashboard`, `/vote`, `/reps`, `/settings`.
+- **Never hand-write a government URL.** Use `lib/routes.ts`: `routes.federal.bills`, `billPath(slug)`, `memberPath(id)`, `topicPath(slug)`. Old URLs redirect from `next.config.mjs`.
+- **Labels stay plain.** Don't put "Federal" in front of everything. There's only one federal government, so it keeps root nav links: "Bills", not "Federal Bills". How states appear in the nav is still to be decided, so don't build a state nav yet.
+- **Models take a jurisdiction.** Queries and components shouldn't assume Congress when a bill or person can say where it's from.
+
+## Navigation
+
+- **Nav items live in `app/data/navbar-data.ts`.** An item can have `children`, shown indented beneath it. Core features are root links. Secondary ones, like Topics under Bills, are children.
+- **One link is active.** Always use `activeNavHref` from `lib/nav.ts`, where the longest matching link wins. Never use `pathname.startsWith` on its own: it lights up both `/bills` and `/bills/upcoming`.
+- **Who sees an item** is set by `permission`, never by role name.
+
+## Dates
+
+People relate to relative times. Show every date with `RelativeDate` from `components/app/relative-date.tsx`, not a bare formatted string.
+
+- **Text:** `Became law 2 months ago`, `Introduced 1 year ago`, `House vote possible in 1 week, 3 days`.
+- **The exact date is one gesture away:** hover on a computer, after 200ms, or tap on a phone. Both show the same content.
+- **Every bill says when:** `billMoment` picks the label and date for its status, so cards and pages never disagree.
+- **Be accurate.** The House schedule names a week, not a day, and a listed bill may not get a vote. Upcoming items say "possible" and explain that in the details.
+
+## Loading bar
+
+`TopProgressBar` is on every page, like YouTube's. It jumps forward when a request starts, creeps while waiting, and races to the end when the last one finishes. `fetch` is wrapped, so new requests show up without doing anything. Prefetches and session checks don't count, because nobody's waiting on them.
+
+## Onboarding
+
+`/onboarding` has at most 3 steps, with a progress bar: age range, location, then suggested topics. Answer once, and it moves on. It saves as it goes, can always be skipped, and ends on the dashboard. Each step is a card in a stack: the old one lifts and fades, and the next moves forward from behind it. Don't add a step without taking one away.
+
+## Search
+
+`components/search/search-dialog.tsx` is one dialog, opened from any button or with Ctrl+K. Each kind of result is a provider in `lib/search/providers`, listed in `lib/search/registry.ts`.
+
+- **To search something new:** write a provider, and add it to the list. Nothing else changes.
+- **Independent:** each group has its own request, skeleton, and error, so a slow one never holds up the others.
+- **Ranked by us:** use `commandScore` or `scoreFields` from `lib/search/score.ts`, so typos and initials work, and ranking stays the same everywhere.
+- **Permissions:** a provider's `access` is checked on the server for every request. Someone without permission gets the same 404 as for a provider that doesn't exist.
+
+## Permissions
+
+A role has many permissions. **Code asks about a permission, never a role's name**: `can(session, "users.manage")` in a page or component, and `requirePermission("users.manage")` in an API route. Hiding a button protects nothing, so a route must always check. The catalog is `PERMISSIONS` in `lib/auth/permissions.ts`. Rate limits are the one exception: they're tiers, set by role.
+
 ## One theme
 
 There's one theme, and it's light. Don't add `dark:` classes, theme pickers, or hard-coded colors. Use the tokens in `app/globals.css`. Themes may come back later, and tokens keep that possible.
@@ -100,4 +145,4 @@ Short and rewarding: 150 to 300ms. Celebrate real wins, like a reveal, a streak,
 
 ## Words
 
-Write like a friend who knows Congress. Short sentences. "Support" and "Oppose", not "Yea" and "Nay". Say "may come up for a vote", not "will". Never tell people what to think.
+Write like a friend who knows Congress. Short sentences. Never use developer words on a screen: "loaded", "imported", "records", "pipeline", "database", "sync". "Support" and "Oppose", not "Yea" and "Nay". Say "may come up for a vote", not "will". Never tell people what to think.

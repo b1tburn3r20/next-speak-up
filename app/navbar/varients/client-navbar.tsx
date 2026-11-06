@@ -11,6 +11,8 @@ import NavItem from "../nav-item";
 import NavToggle from "../nav-toggle";
 import NavbarTop from "../navbar-top";
 import { useNavbarStore } from "../use-navbar-store";
+import { routes } from "@/lib/routes";
+import { SearchDialog } from "@/components/search/search-dialog";
 import { MobileNavbar } from "./mobile-navbar";
 
 interface ClientNavbarProps {
@@ -45,7 +47,7 @@ const ClientNavbar = ({ visibleNavHrefs, userRole, children }: ClientNavbarProps
     if (userRole) setActiveUserRole(userRole);
   }, [userRole, setActiveUserRole]);
 
-  if (pathname === "/" || pathname === "/mission") {
+  if (pathname === "/" || pathname === "/mission" || pathname === routes.onboarding) {
     return <>{children}</>;
   }
 
@@ -63,6 +65,7 @@ const ClientNavbar = ({ visibleNavHrefs, userRole, children }: ClientNavbarProps
         </nav>
       </div>
 
+      <SearchDialog />
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="hidden md:block">
           <NavbarTop />

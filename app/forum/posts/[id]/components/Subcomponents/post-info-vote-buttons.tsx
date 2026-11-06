@@ -20,6 +20,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useForumPostDetailsStore } from "../../use-forum-post-details-store";
+import { can } from "@/lib/auth/permissions";
+import { useSession } from "next-auth/react";
 
 interface UserVoteStatus {
   hasUpvoted: boolean;
@@ -61,13 +63,13 @@ const PostInfoVoteButtons = ({
 
   // Check if current user can delete this post (and post is not already deleted)
 
-  const authorizedDeletionRoles = ["Super Admin", "Admin"];
+  const { data: session } = useSession();
   const canDelete =
     (userId &&
       (userId === authorId || isUserAuthor) &&
       !isDeleted &&
       !isPostDeleted) ||
-    (authorizedDeletionRoles.includes(userRole) &&
+    (can(session, "forum.moderate") &&
       !isDeleted &&
       !isPostDeleted);
 

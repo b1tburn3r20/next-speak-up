@@ -4,6 +4,8 @@ import { logUserAction } from "./user";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { AuthSession } from "../types/user-types";
+import { can } from "@/lib/auth/permissions";
+import { forgetRole } from "@/lib/auth/role-cache";
 export const checkPermission = async (name: string) => {
   return await prisma.permission.findUnique({
     where: {
@@ -44,7 +46,7 @@ export const getAllRoles = async () => {
     throw new Error("Unauthorized");
   }
 
-  if (!["Admin", "Super Admin"].includes(session.user.role.name)) {
+  if (!can(session, "roles.manage")) {
     throw new Error("Forbidden");
   }
 
@@ -58,7 +60,7 @@ export const getAllPermissions = async () => {
     throw new Error("Unauthorized");
   }
 
-  if (!["Admin", "Super Admin"].includes(session.user.role.name)) {
+  if (!can(session, "roles.manage")) {
     throw new Error("Forbidden");
   }
 
@@ -162,6 +164,7 @@ export const assignPermissionToRole = async (
     `${permissionId} assigned to ${roleId}`,
     actionTakerRole
   );
+  forgetRole(roleId);
   return getRoleData(roleId);
 };
 
@@ -177,6 +180,7 @@ export const removePermissionFromRole = async (
       },
     },
   });
+  forgetRole(roleId);
   return getRoleData(roleId);
 };
 export const roleHasPermission = async (
