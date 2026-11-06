@@ -69,11 +69,7 @@ export default async function UpcomingBillsPage() {
         </section>
       ))}
 
-      {asOf ? (
-        <p className="text-xs text-muted-foreground">
-          <AsOfNote date={asOf} label="From docs.house.gov. Fetched" />
-        </p>
-      ) : null}
+      {asOf ? <AsOfNote date={asOf} label="From docs.house.gov. Fetched" /> : null}
     </PageContainer>
   );
 }

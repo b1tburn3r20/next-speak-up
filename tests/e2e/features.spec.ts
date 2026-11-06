@@ -221,6 +221,35 @@ test.describe("members", () => {
 });
 
 test.describe("site-wide", () => {
+  test("pages log no errors in the browser", async ({ page }, testInfo) => {
+    test.skip(!["phone", "desktop"].includes(testInfo.project.name), "One phone and one desktop");
+    test.setTimeout(180_000);
+    await loginAs(page, "test_member");
+    const errors: string[] = [];
+    let current = "";
+    page.on("console", (message) => {
+      if (message.type() === "error") errors.push(`${current}: ${message.text().slice(0, 200)}`);
+    });
+    page.on("pageerror", (error) => errors.push(`${current}: ${error.message.slice(0, 200)}`));
+    for (const path of [
+      "/dashboard",
+      "/bills",
+      "/bills/upcoming",
+      LAW,
+      `${LAW}/text`,
+      "/legislators",
+      "/legislators/federal/T000193",
+      "/feedback",
+      "/settings",
+      "/forum",
+    ]) {
+      current = path;
+      await page.goto(path);
+      await page.waitForLoadState("networkidle");
+    }
+    expect(errors).toEqual([]);
+  });
+
   test("the footer is there and its links work", async ({ page }) => {
     await page.goto("/bills");
     const footer = page.getByTestId("site-footer");
