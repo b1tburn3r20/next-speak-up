@@ -135,16 +135,18 @@ test.describe("relative dates", () => {
 
   test("a small date has a thumb-sized target", async ({ page }) => {
     await page.goto("/federal/bills");
+    await page.waitForLoadState("networkidle");
     const date = page.getByTestId("bill-card").first().getByTestId("relative-date");
     // Centered, so nothing fixed to the screen, like the phone's tab bar, is on top of it.
     await date.evaluate((element) => element.scrollIntoView({ block: "center" }));
-    const box = await date.boundingBox();
-    expect(box).not.toBeNull();
-    const hit = await page.evaluate(
-      ([x, y]) => document.elementFromPoint(x, y)?.closest('[data-testid="relative-date"]') !== null,
-      [box!.x + box!.width / 2, box!.y - 8],
-    );
-    expect(hit).toBe(true);
+    await expect(async () => {
+      const box = await date.boundingBox();
+      const hit = await page.evaluate(
+        ([x, y]) => Boolean(document.elementFromPoint(x, y)?.closest('[data-testid="relative-date"]')),
+        [box!.x + box!.width / 2, box!.y - 8],
+      );
+      expect(hit).toBe(true);
+    }).toPass({ timeout: 5000 });
   });
 
   test("hovering shows the exact date, after a moment", async ({ page }, testInfo) => {
