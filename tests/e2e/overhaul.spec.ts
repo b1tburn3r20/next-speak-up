@@ -135,7 +135,10 @@ test.describe("relative dates", () => {
 
   test("a small date has a thumb-sized target", async ({ page }) => {
     await page.goto("/federal/bills");
-    const box = await page.getByTestId("bill-card").first().getByTestId("relative-date").boundingBox();
+    const date = page.getByTestId("bill-card").first().getByTestId("relative-date");
+    // Centered, so nothing fixed to the screen, like the phone's tab bar, is on top of it.
+    await date.evaluate((element) => element.scrollIntoView({ block: "center" }));
+    const box = await date.boundingBox();
     expect(box).not.toBeNull();
     const hit = await page.evaluate(
       ([x, y]) => document.elementFromPoint(x, y)?.closest('[data-testid="relative-date"]') !== null,
