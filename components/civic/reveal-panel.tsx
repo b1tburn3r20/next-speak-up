@@ -140,8 +140,8 @@ export function RevealPanel({
     return (
       <div className="rounded-xl bg-muted p-3 text-sm" data-testid="reveal-no-reps">
         <p className="font-bold">We don&apos;t know who your reps are yet.</p>
-        <Link href="/settings" className="font-bold text-primary hover:underline">
-          Add your location to compare
+        <Link href="/reps" className="font-bold text-primary hover:underline">
+          Find your reps to compare
         </Link>
       </div>
     );

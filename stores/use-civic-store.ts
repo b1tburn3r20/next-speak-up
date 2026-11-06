@@ -38,6 +38,9 @@ type CivicState = {
   /** Votes cast or undone since this page was loaded, added to the server's numbers. */
   voteDelta: number;
   reward: Reward | null;
+  /** How many of your reps' votes you haven't weighed in on. Null until loaded. */
+  pulseCount: number | null;
+  loadPulseCount: (force?: boolean) => Promise<void>;
   /** Saves a vote right away, and rolls it back if the server refuses. */
   castVote: (slug: string, choice: Choice | null, previous: Choice | null) => Promise<boolean>;
   setFollow: (slug: string, following: boolean) => Promise<boolean>;
@@ -68,6 +71,19 @@ export const useCivicStore = create<CivicState>((set, get) => ({
   reveals: {},
   voteDelta: 0,
   reward: null,
+  pulseCount: null,
+
+  loadPulseCount: async (force = false) => {
+    if (get().pulseCount !== null && !force) return;
+    try {
+      const response = await fetch("/api/civic/pulse");
+      if (!response.ok) return;
+      const data = await response.json();
+      set({ pulseCount: data.count });
+    } catch {
+      // Only a badge, so it can stay hidden.
+    }
+  },
 
   castVote: async (slug, choice, previous) => {
     const change = (choice === null ? 0 : 1) - (previous === null ? 0 : 1);
@@ -81,6 +97,8 @@ export const useCivicStore = create<CivicState>((set, get) => ({
     }));
     try {
       await postJson("/api/civic/bills/vote", { slug, position: choice });
+      // Voting may clear one of your reps' votes. The server knows which.
+      if (change !== 0) get().loadPulseCount(true);
       return true;
     } catch (error) {
       set((state) => ({

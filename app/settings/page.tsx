@@ -1,3 +1,4 @@
+import { OuterBlock, PageHeader, PageShell } from "@/components/blocks";
 import type { Metadata } from 'next';
 // app/settings/page.tsx
 import { getServerSession } from "next-auth";
@@ -22,21 +23,19 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto p-2 lg:p-0 lg:py-8 ">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Account Settings</h1>
-        <div>
-          <SettingsForm
-            id={user.id}
-            name={user.name}
-            username={user.username}
-            state={user.state}
-            district={user.district ? String(user.district) : undefined}
-            ageRange={user.ageRange}
-            householdIncome={user.householdIncome}
-          />
-        </div>
-      </div>
-    </div>
+    <PageShell width="narrow">
+      <PageHeader title="Account settings" />
+      <OuterBlock>
+        <SettingsForm
+          id={user.id}
+          name={user.name}
+          username={user.username}
+          state={user.state}
+          district={user.district ? String(user.district) : undefined}
+          ageRange={user.ageRange}
+          householdIncome={user.householdIncome}
+        />
+      </OuterBlock>
+    </PageShell>
   );
 }

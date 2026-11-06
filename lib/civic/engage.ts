@@ -6,7 +6,7 @@ import prisma from "@/prisma/client";
 import { revealOutcome, type RevealOutcome, type RevealPosition } from "./verdict";
 import { BILL_CARD_SELECT, type BillListItem } from "./bills";
 import { easternToday, mondayOf } from "./floor-logic";
-import { roleLabel } from "./labels";
+import { billLabel, roleLabel } from "./labels";
 import { bioguideOf, repsForLocation } from "./people";
 import { getUserLocation } from "./users";
 
@@ -185,7 +185,13 @@ export async function getBillReveal(userId: string, slug: string): Promise<BillR
 
 export const RECAP_DAYS = 30;
 
-export type RepRecap = { votes: number; missed: number; lastChamberVote: Date | null };
+export type RepRecap = {
+  votes: number;
+  missed: number;
+  lastChamberVote: Date | null;
+  /** The bill they sponsored that moved most recently. */
+  latestBill: { slug: string; title: string; label: string; date: Date | null } | null;
+};
 
 /** What each rep has done lately, and when their chamber last voted, for quiet stretches. */
 export async function getRepRecaps(
@@ -194,6 +200,19 @@ export async function getRepRecaps(
 ): Promise<Map<number, RepRecap>> {
   if (reps.length === 0) return new Map();
   const since = new Date(now.getTime() - RECAP_DAYS * 24 * 60 * 60 * 1000);
+  const latestBills = await Promise.all(
+    reps.map((rep) =>
+      prisma.billSponsorship.findFirst({
+        where: { personId: rep.id, kind: "SPONSOR" },
+        orderBy: { bill: { latestActionDate: { sort: "desc", nulls: "last" } } },
+        select: {
+          bill: {
+            select: { slug: true, title: true, billType: true, number: true, latestActionDate: true },
+          },
+        },
+      }),
+    ),
+  );
   const [groups, house, senate] = await Promise.all([
     prisma.rollCallPosition.groupBy({
       by: ["personId", "position"],
@@ -213,8 +232,9 @@ export async function getRepRecaps(
     }),
   ]);
   return new Map(
-    reps.map((rep) => {
+    reps.map((rep, index) => {
       const own = groups.filter((group) => group.personId === rep.id);
+      const latest = latestBills[index]?.bill;
       const missed = own.find((group) => group.position === "NOT_VOTING")?._count._all ?? 0;
       const total = own.reduce((sum, group) => sum + group._count._all, 0);
       const kind = rep.terms[0]?.chamber.kind;
@@ -224,6 +244,14 @@ export async function getRepRecaps(
           votes: total - missed,
           missed,
           lastChamberVote: (kind === "UPPER" ? senate : house)._max.occurredAt,
+          latestBill: latest
+            ? {
+                slug: latest.slug,
+                title: latest.title,
+                label: billLabel(latest.billType, latest.number),
+                date: latest.latestActionDate,
+              }
+            : null,
         },
       ];
     }),

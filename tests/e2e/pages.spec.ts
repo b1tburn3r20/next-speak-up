@@ -24,7 +24,7 @@ test("bills can be searched and filtered, including by citation", async ({ page 
   await page.goto("/bills?q=H.R.%202388");
   await expect(page.getByTestId("bill-card").first()).toContainText("H.R. 2388");
   await page.goto("/bills?q=zzzzznothingmatches");
-  await expect(page.getByText("No bills match that")).toBeVisible();
+  await expect(page.getByRole("main").getByText("No bills match that")).toBeVisible();
 });
 
 test("a bill shows its real status and history", async ({ page }) => {
@@ -224,7 +224,7 @@ test("changing state in the older settings form updates your reps", async ({ pag
   await page.getByTestId("onboarding-skip").click();
   await expect(page.getByRole("main").getByTestId("dashboard-reps")).toContainText("Barrasso");
   // With only a state, you see your senators, not somebody else's House member.
-  await expect(page.getByRole("main").getByTestId("dashboard-reps").getByTestId("member-card")).toHaveCount(2);
+  await expect(page.getByRole("main").getByTestId("dashboard-reps").getByTestId("rep-report-card")).toHaveCount(2);
 });
 
 test("the old bill section redirects to the new one", async ({ page }) => {

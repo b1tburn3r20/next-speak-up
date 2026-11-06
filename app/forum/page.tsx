@@ -1,4 +1,4 @@
-import { TextAnimate } from "@/components/magicui/text-animate";
+import { PageHeader, PageShell } from "@/components/blocks";
 import { AuthSession } from "@/lib/types/user-types";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
@@ -16,23 +16,14 @@ const Page = async () => {
   const userId = session?.user?.id;
   const userName = session?.user?.username;
   return (
-    <div>
-      <div className="flex justify-between items-center">
-        <TextAnimate
-          animation="blurInUp"
-          by="word"
-          className="text-4xl m-4 font-bold [&>span:last-child]:text-primary"
-        >
-          Coolbills Forum
-        </TextAnimate>
-        <div className="m-2 lg:m-0">
-          <CreateForumPostLink userId={userId} username={userName} />
-        </div>
-      </div>
-      <div>
-        <ForumPosts />
-      </div>
-    </div>
+    <PageShell>
+      <PageHeader
+        title="Forum"
+        description="Talk about bills and the app with other people."
+        action={<CreateForumPostLink userId={userId} username={userName} />}
+      />
+      <ForumPosts />
+    </PageShell>
   );
 };
 export const dynamic = "force-dynamic";

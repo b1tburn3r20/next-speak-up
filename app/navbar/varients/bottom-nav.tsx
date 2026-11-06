@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarClock, Home, Scale, Users, Vote } from "lucide-react";
+import { PulseDot } from "@/components/civic/pulse-dot";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -34,7 +35,10 @@ export function BottomNav() {
               active ? "text-primary" : "text-muted-foreground",
             )}
           >
-            <Icon className="size-5" aria-hidden />
+            <span className="relative">
+              <Icon className="size-5" aria-hidden />
+              {href === "/vote" ? <PulseDot className="absolute -right-3 -top-2" /> : null}
+            </span>
             {label}
           </Link>
         );

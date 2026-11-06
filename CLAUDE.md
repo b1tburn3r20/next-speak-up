@@ -6,6 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Coolbills is a civic app for browsing U.S. federal legislation and members of Congress. Users can see what's coming up for a House vote, vote on bills themselves, compare their positions with their representatives, ask AI questions about bills, listen to summaries read aloud, and post in a forum. It is a single Next.js 16 App Router app (React 19) using Prisma with MySQL. The repo is `next-speak-up`, the npm package is `next-politics`, and the brand is Coolbills.
 
+## Reference sheets
+
+Read these before starting a task, and check your work against them:
+
+- `docs/mission.md`: what this is for, and who it's for
+- `docs/ui-guidelines.md`: how to build screens, including the layout blocks and Zustand rules
+- `docs/data-guidelines.md`: schemas, queries, pipelines, and handling gaps
+- `docs/acceptance-criteria.md`: what done means
+- `docs/build-log.md`: what's been decided, and what's next
+
 ## Rules
 
 - **Never test or call AI or paid services unless the user specifically says to.** That covers Gemini, Lemonfox, SMTP email, and Upstash. Stub them in tests.
@@ -66,8 +76,8 @@ This schema v2 work exists only on `overhaul/v2`. `main` still has the old app.
 
 Pages are server components that call `lib/civic/*` directly, so content is in the first response. Client components call `app/api/civic/*` for writes.
 
-- `lib/civic/alignment.ts`, `location.ts`, `labels.ts`, `floor-logic.ts`, `bill-text-logic.ts`, and `member-record.ts` are pure logic, with no database access. Put new calculations there and test them.
-- `lib/civic/bills.ts`, `people.ts`, `users.ts`, and `floor.ts` hold the queries.
+- `lib/civic/alignment.ts`, `location.ts`, `labels.ts`, `floor-logic.ts`, `bill-text-logic.ts`, `member-record.ts`, `verdict.ts`, `digest.ts`, `progress.ts`, `next-steps.ts`, `policy-areas.ts`, and `glossary.ts` are pure logic, with no database access. Put new calculations there and test them.
+- `lib/civic/bills.ts`, `people.ts`, `users.ts`, `floor.ts`, and `engage.ts` hold the queries.
 - Services in `lib/services/` back the forum, permissions, settings, and password login.
 - **Stored alignment:** `UserRepAlignment` holds each user's agreement with their reps. `getUserMetrics` recalculates it when new votes have arrived since.
 
@@ -110,10 +120,13 @@ Both paid routes need a signed-in user, and use text from the database, never te
 ### Frontend layout
 
 - **Navigation:** `app/navbar/varients/client-navbar.tsx` uses one layout with CSS breakpoints. Don't branch on screen size in JavaScript to choose page content, because that blocks server rendering.
-- **Shared pieces:** `components/app` has the progress bar, theme picker, and page states. `components/bills`, `components/people`, and `components/onboarding` hold feature components.
+- **Blocks:** build pages from `components/blocks`. See `docs/ui-guidelines.md`.
+- **State:** `stores/use-civic-store.ts` is global client state, read with narrow selectors. Components take the server's value as `initial...`, and the store only holds what's changed since.
+- **Reveal:** a rep's vote must stay out of a page's HTML until the user votes or asks. Only `getBillReveal` selects it for a bill page.
+- **Shared pieces:** `components/app` has the progress bar and page states. `components/civic` has the core loop, charts, and next steps. `components/bills`, `components/people`, and `components/onboarding` hold feature components.
 - **UI kits:** `components/ui` is shadcn/ui and `components/magicui` is Magic UI.
 - **Progress bar:** `TopProgressBar` wraps `window.fetch`, so any request shows in it automatically.
-- **Themes:** `components/app/theme-values.ts` lists them. A new theme needs a CSS block in `app/globals.css`, and dark ones also go in the `dark` variant at the top of that file.
+- **Theme:** there's one, in `app/globals.css`, and it's light. Use its tokens, not raw colors.
 - **Loading skeletons:** `loading.tsx` also applies to child routes, and it makes a missing page return 200 instead of 404. That's why the list pages sit in `(list)` route groups. Don't add a `loading.tsx` above a detail page.
 - **Styling:** Tailwind v4 with no `tailwind.config` file, although `components.json` still references one.
 - **Imports:** `@/*` resolves from the repo root.

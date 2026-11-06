@@ -146,20 +146,6 @@ export default async function BillPage({ params }: PageProps) {
         <BillProgress status={bill.currentStatus as BillStatusValue} />
       </header>
 
-      {floorItem ? (
-        <div
-          className="space-y-1 rounded-2xl border-2 border-b-4 border-primary bg-primary-tint p-4"
-          data-testid="floor-notice"
-        >
-          <p className="font-extrabold">On the House floor schedule: {weekLabel(floorItem.weekOf, new Date())}</p>
-          <Flex gap="sm">
-            <FloorCategoryPill category={floorItem.category} />
-            {floorItem.stage ? <span className="text-sm">{floorItem.stage} this bill</span> : null}
-          </Flex>
-          <p className="text-sm">A vote may happen, so now&apos;s the time to weigh in.</p>
-        </div>
-      ) : null}
-
       <OuterBlock className="space-y-3" aria-labelledby="digest-heading" data-testid="digest">
         <h2 id="digest-heading" className="flex items-center gap-1.5 text-sm font-extrabold uppercase tracking-wide text-muted-foreground">
           <Sparkles className="size-4 text-primary" aria-hidden />
@@ -212,6 +198,16 @@ export default async function BillPage({ params }: PageProps) {
       </OuterBlock>
 
       <OuterBlock className="space-y-3" data-testid="your-vote">
+        {floorItem ? (
+          <div className="space-y-1 rounded-xl bg-primary-tint p-3" data-testid="floor-notice">
+            <p className="font-extrabold">On the House floor schedule: {weekLabel(floorItem.weekOf, new Date())}</p>
+            <Flex gap="sm">
+              <FloorCategoryPill category={floorItem.category} />
+              {floorItem.stage ? <span className="text-sm">{floorItem.stage} this bill</span> : null}
+            </Flex>
+            <p className="text-sm">A vote may happen, so now&apos;s the time to weigh in.</p>
+          </div>
+        ) : null}
         <h2 className="text-lg font-extrabold">{hasFinalVote ? "What do you think?" : "Would you support this?"}</h2>
         <BillActionButtons
           slug={bill.slug}

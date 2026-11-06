@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navItems } from "../data/navbar-data";
+import { PulseDot } from "@/components/civic/pulse-dot";
 
 interface NavItemProps {
   href: string; // Only pass the href as a string
@@ -41,6 +42,7 @@ const NavItem = ({ href }: NavItemProps) => {
       <span className="nav-label ml-3 text-sm font-medium">
         {navItem.label}
       </span>
+      {href === "/vote" ? <PulseDot className="nav-label ml-auto" /> : null}
       {isActive && (
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
       )}

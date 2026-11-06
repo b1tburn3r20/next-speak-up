@@ -5,7 +5,8 @@ import { blockPaidServices, expectNoHorizontalOverflow, loginAs } from "./helper
 const main = (page: Page) => page.getByRole("main");
 
 async function newUser(page: Page, tag: string, state = "WY") {
-  const username = `e2e_${tag}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  // Usernames have a length limit, so only the tag's start and a short random part are used.
+  const username = `e2e_${tag.slice(0, 5)}_${Math.random().toString(36).slice(2, 10)}`;
   const response = await page.request.post("/api/account/signup", {
     headers: { origin: "http://localhost:3000" },
     data: { username, email: `${username}@coolbills.test`, password: "a good password" },
@@ -143,6 +144,34 @@ test.describe("the dashboard", () => {
     await newUser(page, "noloc", "");
     await page.goto("/dashboard");
     await expect(main(page).getByTestId("next-step").first()).toHaveAttribute("data-step", "find-reps");
+  });
+
+  test("finding your reps happens right there, and then they appear", async ({ page }) => {
+    await newUser(page, "findr", "");
+    await page.goto("/reps");
+    await page.waitForLoadState("networkidle");
+    const finder = main(page).getByTestId("find-reps");
+    await expect(finder).toBeVisible();
+    await finder.getByLabel("Or choose it yourself").selectOption("WY");
+    await expect(finder.getByLabel("District")).toHaveValue("AL");
+    await finder.getByRole("button", { name: "Save" }).click();
+    await expect(main(page).getByTestId("rep-report-card")).toHaveCount(3, { timeout: 15000 });
+  });
+
+  test("the navigation alerts you to your reps' votes, and counts down", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.startsWith("phone"), "Checked on the phone navigation");
+    await newUser(page, "alert");
+    await page.goto("/bills");
+    const dot = page.getByTestId("bottom-nav").getByTestId("pulse-dot");
+    await expect(dot).toBeVisible();
+    const before = Number(await dot.textContent());
+    expect(before).toBeGreaterThan(0);
+    await page.goto("/vote");
+    await page.waitForLoadState("networkidle");
+    const saved = page.waitForResponse("**/api/civic/bills/vote");
+    await page.getByTestId("vote-support").click();
+    await saved;
+    await expect(dot).toHaveText(String(before - 1));
   });
 
   test("signed out, it explains the idea and offers a first step", async ({ page }) => {

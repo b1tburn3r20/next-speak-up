@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { EmptyState } from "@/components/app/page-states";
 import { Grid, PageHeader, PageShell, Section } from "@/components/blocks";
+import { FindReps } from "@/components/civic/find-reps";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { RepReportCard } from "@/components/civic/rep-report-card";
 import { getMemberStats, getRepRecaps } from "@/lib/civic/engage";
@@ -71,9 +71,7 @@ export default async function RepsPage() {
           ))}
         </Grid>
       ) : (
-        <EmptyState title="We don't know who your reps are yet" action={{ href: "/settings", label: "Add your location" }}>
-          It takes a few seconds, and then you can see if they vote the way you would.
-        </EmptyState>
+        <FindReps />
       )}
       <Section title="Sharpen your scores">
         <NextStepCard

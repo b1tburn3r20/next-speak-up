@@ -51,7 +51,7 @@ export function computeNextSteps(state: NextStepState): NextStep[] {
       id: "find-reps",
       title: "Find your representatives",
       description: "Takes a few seconds. Then you can see if they vote the way you would.",
-      href: "/settings",
+      href: "/reps",
       cta: "Find my reps",
       tone: "primary",
     });

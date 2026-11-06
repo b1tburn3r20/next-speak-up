@@ -33,7 +33,7 @@ export default async function UpcomingBillsPage() {
       <PageHeader
         back={{ href: "/bills", label: "All bills" }}
         title="Upcoming votes"
-        description="What the House may vote on, so you can weigh in before your representative does. Being listed doesn't guarantee a vote, and the schedule changes during the week. The Senate doesn't publish its schedule this way."
+        description="What the House may vote on next. Weigh in before your representative does."
       />
 
       {!hasUpcoming ? (
@@ -62,6 +62,10 @@ export default async function UpcomingBillsPage() {
         </Section>
       ))}
 
+      <p className="text-sm text-muted-foreground">
+        Being listed doesn&apos;t guarantee a vote, and the schedule can change during the week. The
+        Senate doesn&apos;t publish its schedule this way.
+      </p>
       {asOf ? <AsOfNote date={asOf} label="From docs.house.gov. Fetched" /> : null}
 
       <NextStepCard

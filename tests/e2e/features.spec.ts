@@ -213,6 +213,7 @@ test.describe("members", () => {
 
   test("have pages of votes", async ({ page }) => {
     await page.goto(MEMBER);
+    await page.getByTestId("member-votes-reveal").locator("summary").click();
     await page.getByRole("link", { name: "Older votes" }).click();
     await expect(page).toHaveURL(/page=2/);
     await expect(page.getByRole("link", { name: "Newer votes" })).toBeVisible();

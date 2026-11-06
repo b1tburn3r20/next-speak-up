@@ -115,6 +115,15 @@ export function RepReportCard({ data, compact = false }: { data: RepCardData; co
               lastCongressVote: recap.lastChamberVote,
               days: RECAP_DAYS,
             })}
+            {recap.latestBill ? (
+              <span className="mt-1 block" data-testid="rep-latest-bill">
+                <span className="font-bold">Their latest bill: </span>
+                <Link href={`/bills/${recap.latestBill.slug}`} className="font-semibold text-primary hover:underline">
+                  {recap.latestBill.label}
+                </Link>{" "}
+                <span className="line-clamp-2 text-muted-foreground">{recap.latestBill.title}</span>
+              </span>
+            ) : null}
           </p>
         ) : null}
 
