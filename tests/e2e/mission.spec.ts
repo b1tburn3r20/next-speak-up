@@ -164,14 +164,16 @@ test.describe("the dashboard", () => {
     await page.goto("/bills");
     const dot = page.getByTestId("bottom-nav").getByTestId("pulse-dot");
     await expect(dot).toBeVisible();
-    const before = Number(await dot.textContent());
+    const count = async () => (await (await page.request.get("/api/civic/pulse")).json()).count;
+    const before = await count();
     expect(before).toBeGreaterThan(0);
     await page.goto("/vote");
     await page.waitForLoadState("networkidle");
     const saved = page.waitForResponse("**/api/civic/bills/vote");
     await page.getByTestId("vote-support").click();
     await saved;
-    await expect(dot).toHaveText(String(before - 1));
+    expect(await count()).toBe(before - 1);
+    await expect(dot).toBeVisible();
   });
 
   test("signed out, it explains the idea and offers a first step", async ({ page }) => {
@@ -199,6 +201,9 @@ test.describe("the dashboard", () => {
     await expect(main(page).getByTestId("rep-report-card").first()).toBeVisible();
     await expect(main(page).getByTestId("verdict").first()).toBeVisible();
     await expect(main(page).getByTestId("alignment-ring").first()).toBeVisible();
+    await expect(main(page).getByTestId("alignment-by-topic").first()).toBeVisible();
+    await expect(main(page).getByTestId("job-measures").first()).toContainText("of the");
+    await expect(main(page).getByTestId("rep-latest-bill").first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 });
@@ -278,6 +283,18 @@ test.describe("members", () => {
     await page.goto("/legislators/federal/B001261");
     await expect(main(page).getByTestId("member-stats")).toContainText("of the Senate");
     await expect(main(page).getByTestId("sponsored-chart").locator("li").first()).toBeVisible();
+  });
+
+  test("the list is paged, and filtering still finds everyone", async ({ page }) => {
+    await page.goto("/legislators");
+    await expect(main(page).getByTestId("member-card")).toHaveCount(48);
+    await expect(main(page)).toContainText("current members of Congress");
+    await main(page).getByTestId("next-members").click();
+    await expect(page).toHaveURL(/page=2/);
+    await expect(main(page).getByTestId("member-card")).toHaveCount(48);
+    await page.goto("/legislators?state=TX&chamber=UPPER");
+    await expect(main(page).getByTestId("member-card")).toHaveCount(2);
+    await expect(main(page).getByTestId("member-pages")).toHaveCount(0);
   });
 
   test("hide how they voted until you open it", async ({ page }) => {

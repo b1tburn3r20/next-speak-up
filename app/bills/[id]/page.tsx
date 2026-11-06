@@ -34,6 +34,7 @@ import {
 import { bioguideOf } from "@/lib/civic/people";
 import { policyAreaByName } from "@/lib/civic/policy-areas";
 import { getUserBillState, recordBillView } from "@/lib/civic/users";
+import { missingSenateVotes } from "@/lib/civic/verdict";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -123,6 +124,7 @@ export default async function BillPage({ params }: PageProps) {
   const label = billLabel(bill.billType, bill.number);
   const area = policyAreaByName(bill.policyArea);
   const hasFinalVote = bill.rollCalls.length > 0;
+  const pendingSenateVotes = missingSenateVotes(bill.actions, bill.rollCalls);
 
   return (
     <PageShell width="narrow">
@@ -278,6 +280,12 @@ export default async function BillPage({ params }: PageProps) {
         title="Recorded votes"
         description="Party totals. How your own reps voted stays hidden above until you ask."
       >
+        {pendingSenateVotes.length > 0 ? (
+          <p className="rounded-xl bg-streak-tint p-3 text-sm" data-testid="pending-senate-votes">
+            The Senate has voted on this: see the timeline below for the result. How each senator
+            voted isn&apos;t in yet, because that data can take a few weeks to arrive.
+          </p>
+        ) : null}
         {bill.rollCalls.length > 0 ? (
           <Stack>
             {bill.rollCalls.map((rollCall) => (
@@ -302,7 +310,7 @@ export default async function BillPage({ params }: PageProps) {
               />
             ))}
           </Stack>
-        ) : (
+        ) : pendingSenateVotes.length > 0 ? null : (
           <EmptyState title="No recorded votes yet">
             Many bills never get a <Term id="roll-call">recorded vote</Term>. They appear here if they do.
           </EmptyState>

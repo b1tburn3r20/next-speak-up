@@ -40,19 +40,31 @@ export function bioguideOf(person: { identifiers: { value: string }[] }): string
   return person.identifiers[0]?.value ?? null;
 }
 
-export async function listCurrentMembers(filters: MemberFilters = {}) {
+function memberWhere(filters: MemberFilters): Prisma.PersonWhereInput {
   const term: Prisma.OfficeTermWhereInput = { isCurrent: true };
   if (filters.chamber) term.chamber = { kind: filters.chamber };
   if (filters.state) term.regionCode = filters.state;
   if (filters.party) term.party = filters.party;
+  return {
+    terms: { some: term },
+    ...(filters.q ? { fullName: { contains: filters.q.trim() } } : {}),
+  };
+}
+
+export async function listCurrentMembers(
+  filters: MemberFilters = {},
+  paging: { take?: number; skip?: number } = {},
+) {
   return prisma.person.findMany({
-    where: {
-      terms: { some: term },
-      ...(filters.q ? { fullName: { contains: filters.q.trim() } } : {}),
-    },
+    where: memberWhere(filters),
     select: MEMBER_SELECT,
     orderBy: { sortName: "asc" },
+    ...paging,
   });
+}
+
+export async function countCurrentMembers(filters: MemberFilters = {}) {
+  return prisma.person.count({ where: memberWhere(filters) });
 }
 
 /** A user's two senators and one representative. Delegates count as the representative. */

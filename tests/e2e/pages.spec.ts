@@ -241,7 +241,7 @@ test("the progress bar shows during a slow navigation, then clears", async ({ pa
     await new Promise((resolve) => setTimeout(resolve, 800));
     await route.continue();
   });
-  await page.getByRole("link", { name: "Bills", exact: true }).first().click();
+  await page.getByRole("link", { name: "All bills" }).click();
   await expect(bar).toHaveAttribute("data-active", "true");
   await expect(page).toHaveURL(/\/bills/, { timeout: 20000 });
   await expect(bar).toHaveAttribute("data-active", "false", { timeout: 20000 });

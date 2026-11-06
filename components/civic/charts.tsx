@@ -4,7 +4,7 @@
 import { policyStyle } from "@/lib/civic/policy-areas";
 import type { VerdictTone } from "@/lib/civic/verdict";
 import { cn } from "@/lib/utils";
-import { policyIcon } from "./policy-chip";
+import { PolicyIcon } from "./policy-chip";
 
 const TONE_COLOR: Record<VerdictTone, string> = {
   good: "var(--support)",
@@ -73,27 +73,36 @@ export function PolicyBars({
   label,
   max = 8,
   testId,
+  suffix = "",
+  scale,
 }: {
   rows: PolicyBarRow[];
   label: string;
   max?: number;
   testId?: string;
+  /** Added after each number, like "%". */
+  suffix?: string;
+  /** What a full bar means. By default, the largest value. */
+  scale?: number;
 }) {
-  const shown = rows.filter((row) => row.value > 0).slice(0, max);
-  const highest = Math.max(1, ...shown.map((row) => row.value));
+  // A percentage of zero still means something, so only counts drop their empty rows.
+  const shown = (scale ? rows : rows.filter((row) => row.value > 0)).slice(0, max);
+  const highest = scale ?? Math.max(1, ...shown.map((row) => row.value));
   return (
     <ul className="space-y-2.5" aria-label={label} data-testid={testId}>
       {shown.map((row) => {
-        const Icon = policyIcon(row.policyArea);
         const { color } = policyStyle(row.policyArea);
         return (
           <li key={row.policyArea} title={row.detail}>
             <div className="mb-0.5 flex items-baseline justify-between gap-2 text-sm">
               <span className="flex min-w-0 items-center gap-1.5 font-semibold">
-                <Icon className="size-3.5 shrink-0" style={{ color }} aria-hidden />
+                <PolicyIcon name={row.policyArea} className="size-3.5 shrink-0" style={{ color }} aria-hidden />
                 <span className="min-w-0 truncate">{row.policyArea}</span>
               </span>
-              <span className="shrink-0 font-bold tabular-nums">{row.value}</span>
+              <span className="shrink-0 font-bold tabular-nums">
+                {row.value}
+                {suffix}
+              </span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-muted">
               <div
@@ -134,13 +143,12 @@ export function VoteSplitBars({
       <ul className="space-y-2.5" aria-label="Final votes by policy area" data-testid="vote-split">
         {shown.map((row) => {
           const total = row.yea + row.nay;
-          const Icon = policyIcon(row.policyArea);
-          const { color } = policyStyle(row.policyArea);
+            const { color } = policyStyle(row.policyArea);
           return (
             <li key={row.policyArea}>
               <div className="mb-0.5 flex items-baseline justify-between gap-2 text-sm">
                 <span className="flex min-w-0 items-center gap-1.5 font-semibold">
-                  <Icon className="size-3.5 shrink-0" style={{ color }} aria-hidden />
+                  <PolicyIcon name={row.policyArea} className="size-3.5 shrink-0" style={{ color }} aria-hidden />
                   <span className="min-w-0 truncate">{row.policyArea}</span>
                 </span>
                 <span className="shrink-0 text-xs font-bold tabular-nums">

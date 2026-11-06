@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, TriangleAlert } from "lucide-react";
 import { Flex, OuterBlock, Stack } from "@/components/blocks";
-import { AlignmentRing, StatTile } from "@/components/civic/charts";
+import { AlignmentRing, PolicyBars, StatTile } from "@/components/civic/charts";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { Term } from "@/components/civic/term";
 import { MemberPhoto } from "@/components/people/member-photo";
@@ -125,6 +125,23 @@ export function RepReportCard({ data, compact = false }: { data: RepCardData; co
               </span>
             ) : null}
           </p>
+        ) : null}
+
+        {!compact && byPolicyArea.length > 0 ? (
+          <div data-testid="alignment-by-topic">
+            <p className="mb-2 text-sm font-extrabold">Where you agree, by topic</p>
+            <PolicyBars
+              label="Agreement by policy area"
+              max={5}
+              rows={byPolicyArea.map((area) => ({
+                policyArea: area.policyArea,
+                value: area.percent,
+                detail: `${area.compared} bill${area.compared === 1 ? "" : "s"}`,
+              }))}
+              suffix="%"
+              scale={100}
+            />
+          </div>
         ) : null}
 
         {!compact && stat ? (

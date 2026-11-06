@@ -69,14 +69,14 @@ export function revealOutcome(user: string | null, rep: RevealPosition): RevealO
   return user === rep ? "MATCH" : "DIFFERENT";
 }
 
-/** "Shows up more than 72% of the House", or nothing when there's no data. */
+/** "Higher than 72% of the House", or nothing when there's no data. */
 export function comparedToChamber(
   percentile: number | null | undefined,
   chamberKind: string,
 ): string | null {
   if (percentile === null || percentile === undefined) return null;
   const chamber = chamberKind === "UPPER" ? "Senate" : "House";
-  return `More than ${percentile}% of the ${chamber}`;
+  return `Higher than ${percentile}% of the ${chamber}`;
 }
 
 /** Where someone differs most from you, needing at least two votes in that area to say so. */
@@ -109,4 +109,30 @@ export function recapSentence(input: {
     return `Voted on all ${total} recorded votes in the last ${days} days.`;
   }
   return `Voted on ${votes} of ${total} recorded votes in the last ${days} days, and missed ${missed}.`;
+}
+
+const RECORD_VOTE = /Record Vote Number:\s*(\d+)/i;
+
+/**
+ * Senate votes that bill actions mention, but whose member positions aren't in yet. Actions are
+ * immediate, while positions come from Voteview, which can lag. Odd years are a Congress's first
+ * session.
+ */
+export function missingSenateVotes(
+  actions: { text: string; actionDate: Date }[],
+  rollCalls: { number: number; subSession: number; chamber: { kind: string } }[],
+): number[] {
+  const stored = new Set(
+    rollCalls
+      .filter((rollCall) => rollCall.chamber.kind === "UPPER")
+      .map((rollCall) => `${rollCall.subSession}-${rollCall.number}`),
+  );
+  const missing = new Set<number>();
+  for (const action of actions) {
+    const match = RECORD_VOTE.exec(action.text);
+    if (!match) continue;
+    const session = action.actionDate.getUTCFullYear() % 2 === 1 ? 1 : 2;
+    if (!stored.has(`${session}-${match[1]}`)) missing.add(Number(match[1]));
+  }
+  return [...missing];
 }

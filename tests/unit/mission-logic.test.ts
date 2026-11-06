@@ -10,6 +10,7 @@ import {
   alignmentVerdict,
   biggestDifference,
   comparedToChamber,
+  missingSenateVotes,
   recapSentence,
   revealOutcome,
 } from "@/lib/civic/verdict";
@@ -61,12 +62,38 @@ describe("revealOutcome", () => {
 
 describe("comparedToChamber", () => {
   it("names the right chamber", () => {
-    expect(comparedToChamber(72, "LOWER")).toBe("More than 72% of the House");
-    expect(comparedToChamber(10, "UPPER")).toBe("More than 10% of the Senate");
+    expect(comparedToChamber(72, "LOWER")).toBe("Higher than 72% of the House");
+    expect(comparedToChamber(10, "UPPER")).toBe("Higher than 10% of the Senate");
   });
 
   it("says nothing without data", () => {
     expect(comparedToChamber(null, "LOWER")).toBeNull();
+  });
+});
+
+describe("missingSenateVotes", () => {
+  const action = (text: string, actionDate = "2026-08-08") => ({ text, actionDate: new Date(`${actionDate}T00:00:00Z`) });
+
+  it("finds Senate votes named in actions, whose positions aren't stored", () => {
+    const actions = [action("Passed Senate by Yea-Nay Vote. 90 - 6. Record Vote Number: 228.")];
+    expect(missingSenateVotes(actions, [])).toEqual([228]);
+  });
+
+  it("stays quiet once the vote is stored", () => {
+    const actions = [action("Passed Senate by Yea-Nay Vote. 90 - 6. Record Vote Number: 228.")];
+    const stored = [{ number: 228, subSession: 2, chamber: { kind: "UPPER" } }];
+    expect(missingSenateVotes(actions, stored)).toEqual([]);
+  });
+
+  it("isn't fooled by the same number in the House, or last session", () => {
+    const actions = [action("Passed Senate by Yea-Nay Vote. Record Vote Number: 5.")];
+    expect(missingSenateVotes(actions, [{ number: 5, subSession: 2, chamber: { kind: "LOWER" } }])).toEqual([5]);
+    expect(missingSenateVotes(actions, [{ number: 5, subSession: 1, chamber: { kind: "UPPER" } }])).toEqual([5]);
+  });
+
+  it("repeats a vote only once, and ignores other actions", () => {
+    const text = "Passed Senate. Record Vote Number: 7.";
+    expect(missingSenateVotes([action(text), action(text), action("Read twice.")], [])).toEqual([7]);
   });
 });
 

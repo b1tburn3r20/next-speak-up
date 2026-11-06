@@ -1,12 +1,18 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { EmptyState, PageContainer } from "@/components/app/page-states";
-import { PageHeader } from "@/components/blocks";
+import { Grid, PageHeader } from "@/components/blocks";
 import { MemberCard, stateName } from "@/components/people/member-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { listCurrentMembers, repsForLocation } from "@/lib/civic/people";
+import {
+  countCurrentMembers,
+  listCurrentMembers,
+  repsForLocation,
+  type MemberFilters,
+} from "@/lib/civic/people";
 import { getUserLocation } from "@/lib/civic/users";
 import { STATE_NAMES } from "@/lib/constants/state-names";
 
@@ -15,7 +21,9 @@ export const metadata: Metadata = {
   description: "Every current member of Congress, with how they vote.",
 };
 
-type SearchParams = { q?: string; chamber?: string; state?: string; party?: string };
+type SearchParams = { q?: string; chamber?: string; state?: string; party?: string; page?: string };
+
+const MEMBERS_PER_PAGE = 48;
 
 const SELECT_CLASS =
   "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 text-sm";
@@ -30,11 +38,23 @@ export default async function LegislatorsPage({
     params.chamber === "UPPER" || params.chamber === "LOWER" ? params.chamber : undefined;
   const session = await getServerSession(authOptions);
   const location = session?.user?.id ? await getUserLocation(session.user.id) : null;
-  const [members, yourReps] = await Promise.all([
-    listCurrentMembers({ q: params.q, chamber, state: params.state, party: params.party }),
+  const filters = { q: params.q, chamber, state: params.state, party: params.party } as MemberFilters;
+  const page = Math.max(1, Number(params.page) || 1);
+  const [members, total, yourReps] = await Promise.all([
+    listCurrentMembers(filters, { take: MEMBERS_PER_PAGE, skip: (page - 1) * MEMBERS_PER_PAGE }),
+    countCurrentMembers(filters),
     location ? repsForLocation(location.regionCode, location.districtCode) : [],
   ]);
   const filtering = Boolean(params.q || chamber || params.state || params.party);
+  const pageHref = (target: number) => {
+    const query = new URLSearchParams();
+    if (params.q) query.set("q", params.q);
+    if (chamber) query.set("chamber", chamber);
+    if (params.state) query.set("state", params.state);
+    if (params.party) query.set("party", params.party);
+    query.set("page", String(target));
+    return `/legislators?${query}`;
+  };
   const states = Object.keys(STATE_NAMES).sort((a, b) =>
     stateName(a).localeCompare(stateName(b)),
   );
@@ -43,7 +63,7 @@ export default async function LegislatorsPage({
     <PageContainer>
       <PageHeader
         title="Federal Legislators"
-        description={`${members.length} ${filtering ? "matching" : "current"} members of Congress`}
+        description={`${total} ${filtering ? "matching" : "current"} members of Congress`}
       />
 
       {yourReps.length > 0 && !filtering ? (
@@ -59,8 +79,8 @@ export default async function LegislatorsPage({
         </section>
       ) : null}
 
-      <form className="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto_auto]" role="search">
-        <Input name="q" defaultValue={params.q} placeholder="Search by name" aria-label="Search by name" />
+      <form className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_auto_auto_auto_auto]" role="search">
+        <Input className="col-span-2 sm:col-span-1" name="q" defaultValue={params.q} placeholder="Search by name" aria-label="Search by name" />
         <select name="chamber" defaultValue={chamber ?? ""} aria-label="Chamber" className={SELECT_CLASS}>
           <option value="">Both chambers</option>
           <option value="UPPER">Senate</option>
@@ -80,7 +100,7 @@ export default async function LegislatorsPage({
           <option value="R">Republican</option>
           <option value="I">Independent</option>
         </select>
-        <Button type="submit">Search</Button>
+        <Button className="col-span-2 sm:col-span-1" type="submit">Search</Button>
       </form>
 
       {members.length === 0 ? (
@@ -90,12 +110,33 @@ export default async function LegislatorsPage({
           <EmptyState title="No members yet">Members appear once the data pipeline has run.</EmptyState>
         )
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Grid cols="people">
           {members.map((member) => (
             <MemberCard key={member.id} member={member} />
           ))}
-        </div>
+        </Grid>
       )}
+      {page > 1 || page * MEMBERS_PER_PAGE < total ? (
+        <nav className="flex justify-between gap-3 font-extrabold" aria-label="Member pages" data-testid="member-pages">
+          {page > 1 ? (
+            <Link href={pageHref(page - 1)} className="text-primary hover:underline">
+              Previous
+            </Link>
+          ) : (
+            <span />
+          )}
+          <span className="text-sm font-bold text-muted-foreground">
+            Page {page} of {Math.ceil(total / MEMBERS_PER_PAGE)}
+          </span>
+          {page * MEMBERS_PER_PAGE < total ? (
+            <Link href={pageHref(page + 1)} className="text-primary hover:underline" data-testid="next-members">
+              Next
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
+      ) : null}
     </PageContainer>
   );
 }

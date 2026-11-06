@@ -229,8 +229,8 @@ const PostInfoVoteButtons = ({
               onClick={handleUpvote}
               disabled={isVotingDisabled}
               className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${showUpvoted
-                  ? "text-green-600 bg-green-50 dark:bg-green-950/50 shadow-xs"
-                  : "text-muted-foreground hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950/50"
+                  ? "text-green-600 bg-green-50 shadow-xs"
+                  : "text-muted-foreground hover:text-green-600 hover:bg-green-50"
                 }`}
             >
               <ChevronUp
@@ -266,8 +266,8 @@ const PostInfoVoteButtons = ({
               onClick={handleDownvote}
               disabled={isVotingDisabled}
               className={`flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 ${hasDownvoted && !isUserAuthor
-                  ? "text-red-600 bg-red-50 dark:bg-red-950/50 shadow-xs"
-                  : "text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50"
+                  ? "text-red-600 bg-red-50 shadow-xs"
+                  : "text-muted-foreground hover:text-red-600 hover:bg-red-50"
                 }`}
             >
               <ChevronDown
@@ -291,7 +291,7 @@ const PostInfoVoteButtons = ({
                 <AlertDialogTrigger asChild>
                   <button
                     disabled={isDeleting}
-                    className="flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 ml-1"
+                    className="flex items-center justify-center p-2 rounded-md transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 text-muted-foreground hover:text-red-600 hover:bg-red-50 ml-1"
                   >
                     <Trash2
                       size={18}

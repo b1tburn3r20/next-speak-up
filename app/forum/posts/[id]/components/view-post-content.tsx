@@ -16,7 +16,7 @@ const ViewPostContent = ({ post }: ViewPostContentProps) => {
 
       {/* Responsive content container */}
       <div className="p-3 sm:p-4 lg:p-6 rounded-lg border-2 w-full  overflow-hidden">
-        <article className="prose prose-sm sm:prose-base lg:prose-lg prose-slate dark:prose-invert max-w-none prose-a:text-blue-600 hover:prose-a:underline prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-1 prose-code:rounded-md prose-img:max-w-full prose-img:h-auto">
+        <article className="prose prose-sm sm:prose-base lg:prose-lg prose-slate max-w-none prose-a:text-blue-600 hover:prose-a:underline prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-1 prose-code:rounded-md prose-img:max-w-full prose-img:h-auto">
           {/* Ensure markdown content is responsive */}
           <div className="break-words overflow-wrap-anywhere">
             <ReactMarkdown>{post.body}</ReactMarkdown>

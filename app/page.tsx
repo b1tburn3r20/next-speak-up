@@ -15,7 +15,7 @@ const Page = () => {
   return (
     <div>
       <LandingNavbar>
-        <div className="space-y-12 container mx-auto">
+        <div className="container mx-auto space-y-12 px-4 pb-8">
           <OuterBlock className="mt-24">
             <Hero />
           </OuterBlock>

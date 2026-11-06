@@ -25,9 +25,13 @@ const FAMILY_ICON: Record<PolicyFamily, LucideIcon> = {
   justice: Scale,
 };
 
-export function policyIcon(name: string | null | undefined): LucideIcon {
+export function PolicyIcon({
+  name,
+  ...rest
+}: { name: string | null | undefined } & React.ComponentProps<LucideIcon>) {
   const area = policyAreaByName(name);
-  return area ? FAMILY_ICON[area.family] : CircleHelp;
+  const Icon = area ? FAMILY_ICON[area.family] : CircleHelp;
+  return <Icon {...rest} />;
 }
 
 /** Color, icon, and name together, so the color is never the only signal. */
@@ -42,7 +46,6 @@ export function PolicyChip({
   className?: string;
 }) {
   const style = policyStyle(name);
-  const Icon = policyIcon(name);
   const area = policyAreaByName(name);
   const chip = (
     <span
@@ -54,7 +57,7 @@ export function PolicyChip({
       )}
       style={{ backgroundColor: style.tint }}
     >
-      <Icon className="size-3.5 shrink-0" style={{ color: style.color }} aria-hidden />
+      <PolicyIcon name={name} className="size-3.5 shrink-0" style={{ color: style.color }} aria-hidden />
       <span className="min-w-0 truncate">{name ?? "Not categorized yet"}</span>
     </span>
   );

@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import prisma from "@/prisma/client";
 import {
   alignmentByPolicyArea,
@@ -356,6 +357,15 @@ async function alignmentIsStale(rows: { updatedAt: Date }[], voteCount: number) 
   return rows.some((row) => row.updatedAt.getTime() < newestVote.getTime());
 }
 
+/** Next's after() needs a request. Outside one, such as in a script, just run it now. */
+function runAfterResponse(work: () => Promise<void>) {
+  try {
+    after(work);
+  } catch {
+    void work();
+  }
+}
+
 const ALIGNMENT_SELECT = {
   personId: true,
   policyArea: true,
@@ -378,9 +388,11 @@ export async function getUserMetrics(userId: string) {
   // This takes seconds for an active voter, so nobody waits for it. Their next visit shows the
   // result, and slightly old numbers are better than a slow or broken dashboard.
   if (await alignmentIsStale(storedAlignments, votes.length)) {
-    refreshUserAlignment(userId).catch((error) => {
-      console.error("Alignment refresh failed:", error instanceof Error ? error.message : "unknown");
-    });
+    runAfterResponse(() =>
+      refreshUserAlignment(userId).catch((error) => {
+        console.error("Alignment refresh failed:", error instanceof Error ? error.message : "unknown");
+      }),
+    );
   }
   const reps = location ? await repsForLocation(location.regionCode, location.districtCode) : [];
   return {

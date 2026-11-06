@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { Star } from "lucide-react";
 import { toast } from "sonner";
 import { useLoginStore } from "@/app/navbar/use-login-store";
 import { Button } from "@/components/ui/button";
+import { useCivicStore } from "@/stores/use-civic-store";
 
 export function FavoriteButton({
   bioguideId,
@@ -15,27 +15,17 @@ export function FavoriteButton({
   signedIn: boolean;
   initialFavorite: boolean;
 }) {
-  const [favorite, setFavorite] = useState(initialFavorite);
-  const [saving, setSaving] = useState(false);
+  const stored = useCivicStore((state) => state.favorites[bioguideId]);
+  const setFavorite = useCivicStore((state) => state.setFavorite);
   const openLogin = useLoginStore((store) => store.setIsLoginDialogOpen);
+  const favorite = stored !== undefined ? stored : initialFavorite;
 
   const toggle = async () => {
     if (!signedIn) return openLogin(true);
-    const next = !favorite;
-    setFavorite(next);
-    setSaving(true);
     try {
-      const response = await fetch("/api/civic/people/favorite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bioguideId, favorite: next }),
-      });
-      if (!response.ok) throw new Error();
+      await setFavorite(bioguideId, !favorite);
     } catch {
-      setFavorite(!next);
       toast.error("That didn't save. Please try again.");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -45,11 +35,10 @@ export function FavoriteButton({
       variant="outline"
       size="sm"
       onClick={toggle}
-      disabled={saving}
       aria-pressed={favorite}
       data-testid="favorite-member"
     >
-      <Star className={`size-4 ${favorite ? "fill-current" : ""}`} aria-hidden />
+      <Star className={`size-4 ${favorite ? "fill-current text-streak" : ""}`} aria-hidden />
       {favorite ? "Saved" : "Save member"}
     </Button>
   );

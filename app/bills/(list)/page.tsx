@@ -52,8 +52,9 @@ export default async function BillsPage({
         <ArrowRight className="size-5 shrink-0 text-primary" aria-hidden />
       </Link>
 
-      <form className="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]" role="search">
+      <form className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_auto_auto_auto]" role="search">
         <Input
+          className="col-span-2 sm:col-span-1"
           name="q"
           defaultValue={params.q}
           placeholder="Search by title or number, like H.R. 1"
@@ -80,7 +81,7 @@ export default async function BillsPage({
             </option>
           ))}
         </select>
-        <Button type="submit">Search</Button>
+        <Button className="col-span-2 sm:col-span-1" type="submit">Search</Button>
       </form>
 
       {bills.length === 0 ? (

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Grid, PageHeader, PageShell, Section } from "@/components/blocks";
 import { NextStepCard } from "@/components/civic/next-step-card";
-import { policyIcon } from "@/components/civic/policy-chip";
+import { PolicyIcon } from "@/components/civic/policy-chip";
 import { POLICY_AREAS, POLICY_FAMILIES, type PolicyFamily } from "@/lib/civic/policy-areas";
 import prisma from "@/prisma/client";
 
@@ -32,7 +32,6 @@ export default async function TopicsPage() {
           <Section key={family} title={label} data-testid="topic-family">
             <Grid cols="cards">
               {areas.map((area) => {
-                const Icon = policyIcon(area.name);
                 const count = countByArea.get(area.name) ?? 0;
                 return (
                   <Link
@@ -45,7 +44,7 @@ export default async function TopicsPage() {
                       className="flex size-11 shrink-0 items-center justify-center rounded-xl"
                       style={{ backgroundColor: tint }}
                     >
-                      <Icon className="size-5" style={{ color }} aria-hidden />
+                      <PolicyIcon name={area.name} className="size-5" style={{ color }} aria-hidden />
                     </span>
                     <span className="min-w-0">
                       <span className="block break-words font-extrabold leading-snug">{area.name}</span>
