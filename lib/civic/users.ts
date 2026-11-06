@@ -176,8 +176,10 @@ export async function comparedVotesFor(userId: string, personId: number): Promis
 /** Recalculates the stored alignment for a user's reps, so dashboards don't have to. */
 export async function refreshUserAlignment(userId: string) {
   const location = await getUserLocation(userId);
-  await prisma.userRepAlignment.deleteMany({ where: { userId } });
-  if (!location) return;
+  if (!location) {
+    await prisma.userRepAlignment.deleteMany({ where: { userId } });
+    return;
+  }
   const reps = await repsForLocation(location.regionCode, location.districtCode);
   const rows = [];
   for (const rep of reps) {
@@ -202,7 +204,12 @@ export async function refreshUserAlignment(userId: string) {
       });
     }
   }
-  if (rows.length > 0) await prisma.userRepAlignment.createMany({ data: rows });
+  // Two tabs can refresh at once. Replacing in one step, and skipping duplicates, means neither
+  // one can see an empty table or fail on the other's rows.
+  await prisma.$transaction([
+    prisma.userRepAlignment.deleteMany({ where: { userId } }),
+    prisma.userRepAlignment.createMany({ data: rows, skipDuplicates: true }),
+  ]);
 }
 
 export async function castBillVote(userId: string, slug: string, position: Position) {
@@ -273,19 +280,108 @@ export function bucketWeeks(dates: Date[], weeks: number, now = new Date()) {
   return buckets;
 }
 
+/** Votes and follows for many bills at once, so a list doesn't run one query per bill. */
+export async function getUserBillStates(userId: string, billIds: number[]) {
+  if (billIds.length === 0) return new Map<number, { position: string | null; following: boolean }>();
+  const [votes, follows] = await Promise.all([
+    prisma.userBillVote.findMany({
+      where: { userId, billId: { in: billIds } },
+      select: { billId: true, position: true },
+    }),
+    prisma.userBillFollow.findMany({
+      where: { userId, billId: { in: billIds }, following: true },
+      select: { billId: true },
+    }),
+  ]);
+  const followed = new Set(follows.map((row) => row.billId));
+  const positions = new Map(votes.map((row) => [row.billId, row.position as string]));
+  return new Map(
+    billIds.map((id) => [
+      id,
+      { position: positions.get(id) ?? null, following: followed.has(id) },
+    ]),
+  );
+}
+
+const DASHBOARD_BILL_SELECT = {
+  id: true,
+  slug: true,
+  title: true,
+  billType: true,
+  number: true,
+  currentStatus: true,
+  latestActionDate: true,
+} as const;
+
+/** The lists on a signed-in dashboard: followed bills, recently viewed, and saved forum posts. */
+export async function getUserDashboardLists(userId: string) {
+  const [followed, viewed, bookmarks] = await Promise.all([
+    prisma.userBillFollow.findMany({
+      where: { userId, following: true },
+      orderBy: { bill: { latestActionDate: "desc" } },
+      take: 6,
+      select: { bill: { select: DASHBOARD_BILL_SELECT } },
+    }),
+    prisma.userBillFollow.findMany({
+      where: { userId, viewedAt: { not: null } },
+      orderBy: { viewedAt: "desc" },
+      take: 5,
+      select: { viewedAt: true, bill: { select: DASHBOARD_BILL_SELECT } },
+    }),
+    prisma.forumPostBookmark.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: { post: { select: { id: true, title: true } } },
+    }),
+  ]);
+  return {
+    followed: followed.map((row) => row.bill),
+    viewed: viewed.map((row) => row.bill),
+    bookmarks: bookmarks.map((row) => row.post),
+  };
+}
+
+/**
+ * Stored alignment goes stale when the pipeline loads new votes, since nothing the user did
+ * triggers a refresh. No stored rows with votes cast may just mean no overlap yet, so that's
+ * checked too.
+ */
+async function alignmentIsStale(rows: { updatedAt: Date }[], voteCount: number) {
+  if (voteCount === 0) return false;
+  if (rows.length === 0) return true;
+  const newest = await prisma.rollCall.aggregate({ _max: { updatedAt: true } });
+  const newestVote = newest._max.updatedAt;
+  if (!newestVote) return false;
+  return rows.some((row) => row.updatedAt.getTime() < newestVote.getTime());
+}
+
+const ALIGNMENT_SELECT = {
+  personId: true,
+  policyArea: true,
+  comparedVotes: true,
+  matchedVotes: true,
+  updatedAt: true,
+} as const;
+
 export async function getUserMetrics(userId: string) {
-  const [votes, following, alignments, location] = await Promise.all([
+  const [votes, following, storedAlignments, location] = await Promise.all([
     prisma.userBillVote.findMany({
       where: { userId },
       select: { position: true, createdAt: true },
     }),
     prisma.userBillFollow.count({ where: { userId, following: true } }),
-    prisma.userRepAlignment.findMany({
-      where: { userId },
-      select: { personId: true, policyArea: true, comparedVotes: true, matchedVotes: true },
-    }),
+    prisma.userRepAlignment.findMany({ where: { userId }, select: ALIGNMENT_SELECT }),
     getUserLocation(userId),
   ]);
+  const alignments = storedAlignments;
+  // This takes seconds for an active voter, so nobody waits for it. Their next visit shows the
+  // result, and slightly old numbers are better than a slow or broken dashboard.
+  if (await alignmentIsStale(storedAlignments, votes.length)) {
+    refreshUserAlignment(userId).catch((error) => {
+      console.error("Alignment refresh failed:", error instanceof Error ? error.message : "unknown");
+    });
+  }
   const reps = location ? await repsForLocation(location.regionCode, location.districtCode) : [];
   return {
     votesCast: votes.length,

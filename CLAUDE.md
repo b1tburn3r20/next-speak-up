@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Coolbills is a civic app for browsing U.S. federal legislation and members of Congress. Users can vote on bills, compare their positions with their representatives, ask AI questions about bills, listen to bills read aloud, and post in a forum. It is a single Next.js 16 App Router app (React 19) using Prisma with MySQL. The repo is `next-speak-up`, the npm package is `next-politics`, and the brand is Coolbills.
+Coolbills is a civic app for browsing U.S. federal legislation and members of Congress. Users can see what's coming up for a House vote, vote on bills themselves, compare their positions with their representatives, ask AI questions about bills, listen to summaries read aloud, and post in a forum. It is a single Next.js 16 App Router app (React 19) using Prisma with MySQL. The repo is `next-speak-up`, the npm package is `next-politics`, and the brand is Coolbills.
 
 ## Rules
 
 - **Never test or call AI or paid services unless the user specifically says to.** That covers Gemini, Lemonfox, SMTP email, and Upstash. Stub them in tests.
 - **Local database only.** Never run migrations, seeds, or pipelines against Railway or any other production database.
-- **Kebab-case file names.** Name all TypeScript files in kebab-case, such as `bill-text-tab.tsx`. Some older files don't follow this yet; rename them when you rework them.
+- **Kebab-case file names.** Name all TypeScript files in kebab-case, such as `bill-text-tab.tsx`.
 
 ## Commands
 
@@ -21,6 +21,7 @@ npm ci --legacy-peer-deps          # install (same flag as the Dockerfile)
 npm run dev                        # dev server with Turbopack, http://localhost:3000
 npm run build                      # production build (standalone output)
 npx tsc --noEmit                   # type check; the build does not do this
+npm run lint                       # ESLint
 
 npm test                           # unit tests (Vitest)
 npx vitest run tests/unit/civic-logic.test.ts   # one unit test file
@@ -28,15 +29,17 @@ npm run test:e2e                   # browser tests at four screen widths (Playwr
 npx playwright test tests/e2e/auth.spec.ts --project=desktop   # one file at one width
 
 npm run db:up                      # start MySQL (the container is defined in ../civic-pipeline)
-npm run db:deploy                  # apply migrations
+npm run db:deploy                  # apply migrations (db:migrate is the same, for Railway)
 npm run db:seed                    # roles, test accounts, generated activity; local only
 npx prisma generate --schema=./prisma                 # after install and after schema changes
 ```
 
 - **Prisma schema flag:** the schema is split across several files, so always pass `--schema=./prisma`. Without it, Prisma reads only `prisma/schema.prisma`, which contains the datasource and no models.
 - **Creating migrations:** `prisma migrate dev` needs an interactive terminal. Otherwise, write the output of `prisma migrate diff --from-schema-datasource ./prisma --to-schema-datamodel ./prisma --script` to a new folder in `prisma/migrations/`, then run `npm run db:deploy`.
-- **Lint:** `npm run lint` calls `next lint`, which Next 16 removed. It needs fixing before it works.
-- **Build checks:** `next.config.mjs` sets `typescript.ignoreBuildErrors` and `tsconfig.json` has `strict: false`. A passing build says nothing about types, so run `tsc` separately. Older code still has type errors; new code shouldn't add any.
+- **Lint:** ESLint stays on version 9, because `eslint-plugin-react` crashes on 10. Three rules are warnings in `eslint.config.mjs`, because older code trips them. New code shouldn't add to those.
+- **Browser tests:** they need MySQL running, migrations applied, the pipeline's data loaded, and `npm run db:seed`. `pages.spec.ts` and `features.spec.ts` expect specific imported records, such as `us-119-hr-2388` and `us-119-s-4465`. `location.spec.ts` calls the live Census geocoder, which is free. Unit tests mock the database and need none of this.
+- **Paid services in tests:** new browser tests should call `blockPaidServices` from `tests/e2e/helpers.ts`. Playwright only blanks the paid keys on a dev server it starts itself, and reuses any already running, so stop your own `npm run dev` first.
+- **Build checks:** `next.config.mjs` sets `typescript.ignoreBuildErrors` and `tsconfig.json` has `strict: false`. A passing build says nothing about types, so run `tsc` separately. It should report no errors.
 - **Test accounts:** `npm run db:seed` creates `test_superadmin`, `test_admin`, `test_supporter`, `test_member`, and `test_newuser`. Their password is `SEED_USER_PASSWORD` in `.env`.
 
 ## Architecture
@@ -45,7 +48,7 @@ npx prisma generate --schema=./prisma                 # after install and after 
 
 Government data arrives through a separate Python project, `../civic-pipeline`, and the app reads the result:
 
-1. Pipelines fetch from Congress.gov, the House Clerk, and Voteview, and store raw responses in the `civic_raw` database.
+1. Pipelines fetch from Congress.gov, the House Clerk, docs.house.gov, and Voteview, and store raw responses in the `civic_raw` database. See `../civic-pipeline/README.md`.
 2. Transforms load those into the app's tables, and accuracy checks record problems in `data_quality_issue`.
 3. Prisma owns the app's schema and migrations. The pipeline reflects the tables rather than defining them, so a column it writes must exist in `prisma/civic.prisma`.
 
@@ -55,18 +58,24 @@ Never change bill, member, or vote data from the app. Fix the transform and re-r
 
 `prisma/civic.prisma` models any level of government (`Jurisdiction`, `LegislativeChamber`, `LegislativeSession`, `District`, `Person`, `OfficeTerm`, `Bill`, `RollCall`), so state data can be added later.
 
-The older federal-only tables in `congress.prisma` and `federal-legislation.prisma` still exist alongside them, and the tables are empty on this branch. Don't build on them. A few names differ to avoid clashes during the overlap: `BillActionEvent` and `BillSummaryVersion`.
+The older federal-only tables in `congress.prisma` and `federal-legislation.prisma` still exist alongside them, and they're empty on this branch. Nothing reads them anymore. They stay until production's data has been moved, so don't build on them. A few names differ to avoid clashes during the overlap: `BillActionEvent` and `BillSummaryVersion`.
+
+This schema v2 work exists only on `overhaul/v2`. `main` still has the old app.
 
 ### Request flow
 
 Pages are server components that call `lib/civic/*` directly, so content is in the first response. Client components call `app/api/civic/*` for writes.
 
-- `lib/civic/alignment.ts`, `location.ts`, and `labels.ts` are pure logic, with no database access. Put new calculations there and test them.
-- `lib/civic/bills.ts`, `people.ts`, and `users.ts` hold the queries.
-- Older services in `lib/services/` still back the forum, permissions, and settings. Other old services and their API routes are only used by the disconnected AI code below.
+- `lib/civic/alignment.ts`, `location.ts`, `labels.ts`, `floor-logic.ts`, `bill-text-logic.ts`, and `member-record.ts` are pure logic, with no database access. Put new calculations there and test them.
+- `lib/civic/bills.ts`, `people.ts`, `users.ts`, and `floor.ts` hold the queries.
+- Services in `lib/services/` back the forum, permissions, settings, and password login.
+- **Stored alignment:** `UserRepAlignment` holds each user's agreement with their reps. `getUserMetrics` recalculates it when new votes have arrived since.
 
 ### Accuracy rules that were learned the hard way
 
+- **Same-day actions:** a bill's actions are ordered by `position`, which comes from the API. Don't sort them by time, because only House actions have one.
+- **Floor listings:** a bill on the schedule "may be considered". Don't describe that as a vote that will happen. `floorOutcome` only counts House action since the bill was scheduled.
+- **Bill text versions:** `pickLatestTextVersion` holds the order. An Enrolled Bill has no date from the API.
 - **Final votes:** alignment only compares a user's vote with a member's latest final vote on a bill, using `isFinalVote`. Amendments and procedural votes don't count.
 - **Missed votes:** a member who didn't vote isn't counted as disagreeing with a user.
 - **District maps:** after an election, the Census's "current" maps move to the next Congress, weeks before its members take office. `censusVintage` picks the map for the sitting Congress. Add an entry to `VINTAGE_BY_CONGRESS` when needed.
@@ -91,12 +100,12 @@ Use `checkRateLimit(endpoint, role, identifier)` and `getUserRole(session)` from
 
 | Feature | Service | Location | Status |
 | --- | --- | --- | --- |
-| Bill Q&A | Google Gemini (paid) | `app/api/bills/ai/route.ts`, `lib/ai/prompts.ts` | Not on the new bill page |
-| Text-to-speech | Lemonfox (paid) | `app/api/bills/tts/route.ts` | Not on the new bill page |
-| Email | SMTP via Nodemailer | `lib/email-services.ts` | Not tested |
+| Bill Q&A | Google Gemini (paid) | `app/api/civic/bills/ask/route.ts`, `lib/ai/bill-chat.ts` | On the bill page; never called for real yet |
+| Read-aloud | Lemonfox (paid) | `app/api/civic/bills/listen/route.ts`, `lib/ai/bill-chat.ts` | On the bill page; never called for real yet |
+| Email | SMTP via Nodemailer | `lib/email-services.ts`, used by the landing page's contact form | Not tested |
 | District lookup | Census geocoder (free) | `lib/civic/location.ts` | Live |
 
-The chat and read-aloud UI, in `app/federal/bills/[billId]/` and `app/bills/[id]/components/`, was kept but no page uses it. It expects the old tables, so it needs porting to schema v2 before it can be reconnected.
+Both paid routes need a signed-in user, and use text from the database, never text from the browser. Tests stub them. `GEMINI_MODEL` sets the Gemini model, and the default is an older preview that may need replacing the first time it's used.
 
 ### Frontend layout
 
@@ -115,14 +124,14 @@ Local variables go in `.env` at the repo root, which is gitignored. Use `.env` r
 
 Needed locally: `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `CONGRESS_API_KEY`, `RATE_LIMITING_DISABLED`, `SEED_USER_PASSWORD`.
 
-Paid services, only for when they're being used: `GOOGLE_API_KEY`, `LEMONFOX_API_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SECURE`, `EMAIL_USER`, `EMAIL_PASS`.
+Paid services, only for when they're being used: `GOOGLE_API_KEY`, `GEMINI_MODEL`, `LEMONFOX_API_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SECURE`, `EMAIL_USER`, `EMAIL_PASS`.
 
 `docker-compose.yaml` also passes `GEMINI_API_KEY` and `OPENAI_API_KEY`, but the app code does not read them.
 
 ## Deployment
 
-The app deploys to Railway from the `Dockerfile` as a standalone Next.js server (`node server.js`). `docker-compose.yaml` adds a local MySQL 8 service. These configs have mismatches to be aware of when changing deployment:
+The app deploys to Railway from the `Dockerfile` as a standalone Next.js server (`node server.js`). `railway.json` runs `npm run db:migrate` and health checks `/api/health`.
 
-- `railway.json` runs `npm run db:migrate`, but `package.json` has no such script.
-- `railway.json` health checks `/api/health`, but no such route exists.
-- `docker-compose.yaml` runs `prisma migrate deploy` without `--schema=./prisma`.
+Local development uses `mysql:latest` from `../civic-pipeline/docker-compose.yaml`, through `npm run db:up`. This repo's `docker-compose.yaml` has its own `mysql:8.0` service on the same port, so don't run both.
+
+Before public launch: add email verification and password reset, turn rate limiting back on with Upstash, and write the script that moves production's data to schema v2.

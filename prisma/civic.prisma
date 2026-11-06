@@ -104,6 +104,7 @@ model LegislativeChamber {
   terms        OfficeTerm[]
   rollCalls    RollCall[]
   originBills  Bill[]
+  floorItems FloorScheduleItem[]
 
   @@unique([jurisdictionId, kind])
   @@map("legislative_chamber")
@@ -124,6 +125,7 @@ model LegislativeSession {
   jurisdiction Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
   bills        Bill[]
   rollCalls    RollCall[]
+  floorItems FloorScheduleItem[]
 
   @@unique([jurisdictionId, identifier])
   @@index([jurisdictionId, isCurrent])
@@ -261,6 +263,8 @@ model Bill {
   rollCalls     RollCall[]
   userVotes     UserBillVote[]
   follows       UserBillFollow[]
+  floorItems    FloorScheduleItem[]
+  textContents  BillTextContent[]
 
   @@unique([sessionId, billType, number])
   // Keyset pagination for "recent bills" lists
@@ -369,6 +373,59 @@ model BillTextVersion {
 
   @@unique([billId, versionType])
   @@map("bill_text_version")
+}
+
+// A version's text. Separate so bill lists never load it, and keyed by version type because
+// bill_text_version rows are replaced on every reload.
+model BillTextContent {
+  billId      Int
+  versionType String   @db.VarChar(120)
+  text        String   @db.MediumText
+  contentHash String   @db.Char(64)
+  sourceUrl   String?  @db.VarChar(500)
+  fetchedAt   DateTime
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@id([billId, versionType])
+  @@map("bill_text_content")
+}
+
+// What a chamber's leadership says may come up for a vote. Works for any chamber, although only
+// the House publishes this as data.
+model FloorScheduleItem {
+  id              Int       @id @default(autoincrement())
+  chamberId       Int
+  sessionId       Int
+  // The Monday of that week
+  weekOf          DateTime  @db.Date
+  sourceItemId    String    @db.VarChar(40)
+  // SUSPENSION, RULE, or OTHER
+  category        String    @db.VarChar(20)
+  legislationRef  String    @db.VarChar(120)
+  title           String    @db.Text
+  billSlug        String?   @db.VarChar(80)
+  billId          Int?
+  // What's being considered, when it isn't the bill itself: "Senate amendments to"
+  stage           String?   @db.VarChar(120)
+  documentUrl     String?   @db.VarChar(500)
+  sortOrder       Int       @default(0)
+  addedAt         DateTime?
+  removedAt       DateTime?
+  sourceUrl       String?   @db.VarChar(500)
+  sourceUpdatedAt DateTime?
+  asOf            DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  chamber LegislativeChamber @relation(fields: [chamberId], references: [id], onDelete: Cascade)
+  session LegislativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  bill    Bill?              @relation(fields: [billId], references: [id], onDelete: SetNull)
+
+  @@unique([chamberId, weekOf, sourceItemId])
+  @@index([weekOf, removedAt])
+  @@index([billId, weekOf])
+  @@map("floor_schedule_item")
 }
 
 // Every version is kept, so a new CRS summary adds a row instead of replacing the old one.

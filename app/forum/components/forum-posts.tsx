@@ -8,10 +8,10 @@ const ForumPosts = async () => {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
   const userRole = session?.user?.role?.name;
-  const posts: FullLandingForumPost[] = await getAllPosts(
+  const posts = (await getAllPosts(
     userId,
     userRole || "Guest"
-  );
+  )) as unknown as FullLandingForumPost[];
 
   return (
     <div className="w-full">

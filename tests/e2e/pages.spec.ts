@@ -66,11 +66,11 @@ test("a member page shows attendance and party voting", async ({ page }) => {
 test("signed-in users see their reps, including an at-large seat", async ({ page }) => {
   await loginAs(page, "test_member");
   await page.goto("/dashboard");
-  const reps = page.getByTestId("dashboard-reps");
+  const reps = page.getByRole("main").getByTestId("dashboard-reps");
   await expect(reps.getByTestId("member-card")).toHaveCount(3);
   await expect(reps).toContainText("Hageman");
   await expect(reps).toContainText("Barrasso");
-  await expect(page.getByTestId("user-metrics")).toBeVisible();
+  await expect(page.getByRole("main").getByTestId("user-metrics")).toBeVisible();
 });
 
 test("voting on a bill saves, shows on the dashboard, and can be undone", async ({ page }) => {
@@ -85,7 +85,7 @@ test("voting on a bill saves, shows on the dashboard, and can be undone", async 
     await page.waitForLoadState("networkidle");
   }
   await page.goto("/dashboard");
-  const before = Number(await page.getByTestId("votes-cast").textContent());
+  const before = Number(await page.getByRole("main").getByTestId("votes-cast").textContent());
 
   await page.goto(SAMPLE_BILL);
   await page.getByTestId("vote-support").click();
@@ -95,7 +95,7 @@ test("voting on a bill saves, shows on the dashboard, and can be undone", async 
   await page.reload();
   await expect(page.getByTestId("vote-support")).toHaveAttribute("aria-pressed", "true");
   await page.goto("/dashboard");
-  await expect(page.getByTestId("votes-cast")).toHaveText(String(before + 1));
+  await expect(page.getByRole("main").getByTestId("votes-cast")).toHaveText(String(before + 1));
 
   await page.goto(SAMPLE_BILL);
   await page.getByTestId("vote-support").click();
@@ -142,7 +142,7 @@ test("a new user can onboard by picking a state and district", async ({ page }) 
   await page.reload();
   await expect(page.getByTestId("onboarding")).toBeHidden();
   await page.goto("/dashboard");
-  await expect(page.getByTestId("dashboard-reps")).toContainText("Hageman");
+  await expect(page.getByRole("main").getByTestId("dashboard-reps")).toContainText("Hageman");
 });
 
 test("skipping onboarding always works", async ({ page }) => {
@@ -221,9 +221,9 @@ test("changing state in the older settings form updates your reps", async ({ pag
   // Onboarding picks up from the saved location, and shows the right people.
   await expect(page.getByTestId("onboarding-reps")).toContainText("Barrasso");
   await page.getByTestId("onboarding-skip").click();
-  await expect(page.getByTestId("dashboard-reps")).toContainText("Barrasso");
+  await expect(page.getByRole("main").getByTestId("dashboard-reps")).toContainText("Barrasso");
   // With only a state, you see your senators, not somebody else's House member.
-  await expect(page.getByTestId("dashboard-reps").getByTestId("member-card")).toHaveCount(2);
+  await expect(page.getByRole("main").getByTestId("dashboard-reps").getByTestId("member-card")).toHaveCount(2);
 });
 
 test("the old bill section redirects to the new one", async ({ page }) => {

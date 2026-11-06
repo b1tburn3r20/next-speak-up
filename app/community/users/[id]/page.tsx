@@ -58,7 +58,7 @@ const Page = async ({ params }: PageProps) => {
         <div className="text-center py-8">
           <h1 className="text-2xl font-bold text-gray-900">User Not Found</h1>
           <p className="text-gray-600 mt-2">
-            The user you're looking for doesn't exist.
+            The user you&apos;re looking for doesn&apos;t exist.
           </p>
         </div>
       </div>

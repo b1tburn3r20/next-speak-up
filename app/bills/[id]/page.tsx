@@ -5,10 +5,16 @@ import { getServerSession } from "next-auth";
 import sanitizeHtml from "sanitize-html";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { BillActionButtons } from "@/components/bills/bill-action-buttons";
+import { BillAskAi } from "@/components/bills/bill-ask-ai";
+import { BillListenButton } from "@/components/bills/bill-listen-button";
+import { ShareButton } from "@/components/bills/share-button";
+import { FloorCategoryPill } from "@/components/bills/upcoming-bill-card";
 import { BillStatusBadge, formatDate } from "@/components/bills/bill-card";
 import { RollCallCard } from "@/components/bills/roll-call-card";
 import { EmptyState, PageContainer, Panel } from "@/components/app/page-states";
-import { getBill, getPartyBreakdowns, getPositionsFor } from "@/lib/civic/bills";
+import { getBill, getPartyBreakdowns, getPositionsFor, hasBillText } from "@/lib/civic/bills";
+import { getBillFloorItem } from "@/lib/civic/floor";
+import { weekLabel } from "@/lib/civic/floor-logic";
 import {
   BILL_STAGES,
   billLabel,
@@ -29,6 +35,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: bill.title.slice(0, 160),
   };
 }
+
+const SUMMARY_SANITIZE = {
+  allowedTags: ["p", "strong", "em", "b", "i", "ul", "ol", "li", "br"],
+  allowedAttributes: {},
+};
 
 function BillProgress({ status }: { status: BillStatusValue }) {
   const reached = billStageIndex(status);
@@ -63,6 +74,10 @@ export default async function BillPage({ params }: PageProps) {
     recordBillView(userId, bill.id).catch(() => undefined);
   }
 
+  const [floorItem, textAvailable] = await Promise.all([
+    getBillFloorItem(bill.id),
+    hasBillText(bill.id),
+  ]);
   const rollCallIds = bill.rollCalls.map((rollCall) => rollCall.id);
   const reps = location ? await repsForLocation(location.regionCode, location.districtCode) : [];
   const [breakdowns, repPositions] = await Promise.all([
@@ -76,7 +91,8 @@ export default async function BillPage({ params }: PageProps) {
 
   const sponsors = bill.sponsorships.filter((item) => item.kind === "SPONSOR");
   const cosponsors = bill.sponsorships.filter((item) => item.kind === "COSPONSOR");
-  const summary = bill.summaries[0];
+  const [summary, ...olderSummaries] = bill.summaries;
+  const label = billLabel(bill.billType, bill.number);
 
   return (
     <PageContainer>
@@ -87,10 +103,15 @@ export default async function BillPage({ params }: PageProps) {
           </Link>
         </nav>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold">{billLabel(bill.billType, bill.number)}</span>
+          <span className="font-semibold">{label}</span>
           <BillStatusBadge status={bill.currentStatus} />
           {bill.lawNumber ? (
             <span className="text-sm text-muted-foreground">Public Law {bill.lawNumber}</span>
+          ) : null}
+          {bill.policyArea ? (
+            <span className="text-sm text-muted-foreground" data-testid="bill-policy-area">
+              {bill.policyArea}
+            </span>
           ) : null}
         </div>
         <h1 className="break-words text-xl font-semibold sm:text-2xl">{bill.title}</h1>
@@ -98,12 +119,28 @@ export default async function BillPage({ params }: PageProps) {
         <p className="text-sm text-muted-foreground">
           Latest action, {formatDate(bill.latestActionDate)}: {bill.latestActionText ?? "None yet"}
         </p>
-        <BillActionButtons
-          slug={bill.slug}
-          signedIn={Boolean(userId)}
-          initialPosition={state?.position ?? null}
-          initialFollowing={state?.following ?? false}
-        />
+        {floorItem ? (
+          <div
+            className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/50 p-3 text-sm"
+            data-testid="floor-notice"
+          >
+            <strong>On the House floor schedule: {weekLabel(floorItem.weekOf, new Date())}.</strong>
+            <FloorCategoryPill category={floorItem.category} />
+            {floorItem.stage ? <span>{floorItem.stage} this bill.</span> : null}
+            <span className="text-muted-foreground">
+              A vote may happen, so now&apos;s the time to weigh in.
+            </span>
+          </div>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          <BillActionButtons
+            slug={bill.slug}
+            signedIn={Boolean(userId)}
+            initialPosition={state?.position ?? null}
+            initialFollowing={state?.following ?? false}
+          />
+          <ShareButton title={`${label}: ${bill.title}`} />
+        </div>
       </header>
 
       <Panel aria-labelledby="summary-heading">
@@ -122,12 +159,35 @@ export default async function BillPage({ params }: PageProps) {
               data-testid="bill-summary"
               className="prose prose-sm max-w-none break-words dark:prose-invert"
               dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(summary.text, {
-                  allowedTags: ["p", "strong", "em", "b", "i", "ul", "ol", "li", "br"],
-                  allowedAttributes: {},
-                }),
+                __html: sanitizeHtml(summary.text, SUMMARY_SANITIZE),
               }}
             />
+            <div className="mt-3">
+              <BillListenButton slug={bill.slug} signedIn={Boolean(userId)} />
+            </div>
+            {olderSummaries.length > 0 ? (
+              <details className="mt-3 text-sm" data-testid="older-summaries">
+                <summary className="cursor-pointer font-medium">
+                  Earlier versions ({olderSummaries.length})
+                </summary>
+                <div className="mt-2 space-y-3">
+                  {olderSummaries.map((older) => (
+                    <div key={older.id} className="border-l-2 pl-3">
+                      <p className="mb-1 text-xs text-muted-foreground">
+                        {older.actionDesc ?? "Earlier version"}
+                        {older.actionDate ? `, ${formatDate(older.actionDate)}` : ""}
+                      </p>
+                      <div
+                        className="prose prose-sm max-w-none break-words dark:prose-invert"
+                        dangerouslySetInnerHTML={{
+                          __html: sanitizeHtml(older.text, SUMMARY_SANITIZE),
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </details>
+            ) : null}
           </>
         ) : (
           <p className="text-sm text-muted-foreground" data-testid="no-summary">
@@ -136,6 +196,20 @@ export default async function BillPage({ params }: PageProps) {
           </p>
         )}
       </Panel>
+
+      {textAvailable ? (
+        <Panel aria-labelledby="ask-heading">
+          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="ask-heading" className="font-semibold">
+              Ask about this bill
+            </h2>
+            <Link href={`/bills/${bill.slug}/text`} className="text-sm underline" data-testid="bill-text-link">
+              Read the full text
+            </Link>
+          </div>
+          <BillAskAi slug={bill.slug} signedIn={Boolean(userId)} />
+        </Panel>
+      ) : null}
 
       <Panel aria-labelledby="votes-heading">
         <h2 id="votes-heading" className="mb-3 font-semibold">
@@ -161,6 +235,7 @@ export default async function BillPage({ params }: PageProps) {
                   notVoting: rollCall.totalNotVoting,
                 }}
                 parties={breakdowns.get(rollCall.id) ?? []}
+                membersHref={`/bills/${bill.slug}/votes/${rollCall.id}`}
                 yourReps={repPositions
                   .filter((position) => position.rollCallId === rollCall.id)
                   .map((position) => ({
@@ -201,9 +276,33 @@ export default async function BillPage({ params }: PageProps) {
               );
             })}
           </ul>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {cosponsors.length} cosponsor{cosponsors.length === 1 ? "" : "s"}
-          </p>
+          {cosponsors.length > 0 ? (
+            <details className="mt-2 text-sm" data-testid="cosponsors">
+              <summary className="cursor-pointer text-muted-foreground">
+                {cosponsors.length} cosponsor{cosponsors.length === 1 ? "" : "s"}
+              </summary>
+              <ul className="mt-1 max-h-64 space-y-1 overflow-y-auto">
+                {cosponsors.map(({ person }) => {
+                  const bioguide = bioguideOf(person);
+                  const term = person.terms[0];
+                  return (
+                    <li key={person.fullName} className="break-words">
+                      {bioguide ? (
+                        <Link href={`/legislators/federal/${bioguide}`} className="underline">
+                          {person.fullName}
+                        </Link>
+                      ) : (
+                        person.fullName
+                      )}
+                      {term ? ` (${partyLabel(term.party)}, ${term.regionCode})` : ""}
+                    </li>
+                  );
+                })}
+              </ul>
+            </details>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">No cosponsors</p>
+          )}
           {bill.subjects.length > 0 ? (
             <>
               <h3 className="mb-1 mt-4 text-sm font-semibold">Topics</h3>

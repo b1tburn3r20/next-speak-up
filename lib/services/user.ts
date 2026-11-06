@@ -95,9 +95,6 @@ export const userService = {
   async deleteUser(userId: string) {
     // First delete related records
     await Promise.all([
-      prisma.favoritedCongressMember.deleteMany({
-        where: { userId },
-      }),
       prisma.session.deleteMany({
         where: { userId },
       }),
@@ -376,8 +373,8 @@ export const getSoftUserByIdWithMetrics = async (userId: string) => {
           forumPostUpvotes: true,
           forumCommentUpvotes: true,
           forumPostBookmarks: true,
-          userVotes: true,
-          favoritedMembers: true,
+          billVotes: true,
+          personFavorites: true,
         },
       },
     },
@@ -443,8 +440,8 @@ export const getSoftUserByIdWithMetrics = async (userId: string) => {
       bookmarksMade: user._count.forumPostBookmarks,
 
       // Platform engagement
-      billVotes: user._count.userVotes,
-      favoritedMembers: user._count.favoritedMembers,
+      billVotes: user._count.billVotes,
+      favoritedMembers: user._count.personFavorites,
 
       // Calculated ratios (avoid division by zero)
       avgViewsPerPost:

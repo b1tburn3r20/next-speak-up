@@ -4,7 +4,7 @@
 import { motion, HTMLMotionProps } from "framer-motion";
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
-interface OuterBlockProps extends HTMLMotionProps<"div"> { }
+type OuterBlockProps = HTMLMotionProps<"div">;
 
 const OuterBlock = ({ className, children, ...rest }: OuterBlockProps) => {
   return (

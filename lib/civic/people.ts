@@ -1,7 +1,8 @@
 import { cache } from "react";
 import { Prisma } from "@prisma/client";
 import prisma from "@/prisma/client";
-import { computeMemberStats, majorityPosition, type Position } from "./alignment";
+import { computeMemberStats, isFinalVote, majorityPosition, type Position } from "./alignment";
+import { summarizeSponsoredBills } from "./member-record";
 
 const CURRENT_TERM = {
   where: { isCurrent: true },
@@ -144,11 +145,12 @@ export async function getMemberVotingStats(personId: number, party: string | nul
   );
 }
 
-export async function getMemberRecentVotes(personId: number, take = 15) {
+export async function getMemberRecentVotes(personId: number, take = 15, skip = 0) {
   return prisma.rollCallPosition.findMany({
     where: { personId },
     orderBy: { rollCall: { occurredAt: "desc" } },
     take,
+    skip,
     select: {
       position: true,
       rollCall: {
@@ -192,4 +194,99 @@ export async function getMemberSponsoredBills(personId: number, take = 10) {
     prisma.billSponsorship.count({ where: { personId, kind: "COSPONSOR" } }),
   ]);
   return { items: items.map((item) => item.bill), sponsored, cosponsored };
+}
+
+const VOTES_PER_PAGE = 25;
+
+/** A member's votes, one page at a time. Asks for one extra row to learn if there's a next page. */
+export async function getMemberVotePage(personId: number, page: number) {
+  const current = Math.max(1, page);
+  const rows = await getMemberRecentVotes(personId, VOTES_PER_PAGE + 1, (current - 1) * VOTES_PER_PAGE);
+  return { votes: rows.slice(0, VOTES_PER_PAGE), page: current, hasNext: rows.length > VOTES_PER_PAGE };
+}
+
+/** What a member's sponsored bills are about, and how far they got. */
+export async function getMemberLegislativeRecord(personId: number) {
+  const bills = await prisma.billSponsorship.findMany({
+    where: { personId, kind: "SPONSOR" },
+    select: { bill: { select: { policyArea: true, currentStatus: true } } },
+  });
+  return summarizeSponsoredBills(bills.map((row) => row.bill));
+}
+
+/** Whether this user has saved this member. */
+export async function isMemberFavorite(userId: string, personId: number) {
+  const row = await prisma.userPersonFavorite.findUnique({
+    where: { userId_personId: { userId, personId } },
+    select: { personId: true },
+  });
+  return row !== null;
+}
+
+export async function setMemberFavorite(userId: string, bioguide: string, favorite: boolean) {
+  const person = await getMemberByBioguide(bioguide);
+  if (!person) return false;
+  if (favorite) {
+    await prisma.userPersonFavorite.upsert({
+      where: { userId_personId: { userId, personId: person.id } },
+      update: {},
+      create: { userId, personId: person.id },
+    });
+  } else {
+    await prisma.userPersonFavorite.deleteMany({ where: { userId, personId: person.id } });
+  }
+  return true;
+}
+
+export async function listFavoriteMembers(userId: string) {
+  const rows = await prisma.userPersonFavorite.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    select: { person: { select: MEMBER_SELECT } },
+  });
+  return rows.map((row) => row.person);
+}
+
+/** Your reps' latest recorded votes, newest first. */
+export async function getRepsRecentVotes(personIds: number[], take = 8) {
+  if (personIds.length === 0) return [];
+  return prisma.rollCallPosition.findMany({
+    where: { personId: { in: personIds } },
+    orderBy: { rollCall: { occurredAt: "desc" } },
+    take,
+    select: {
+      position: true,
+      person: { select: { fullName: true } },
+      rollCall: {
+        select: {
+          id: true,
+          question: true,
+          occurredAt: true,
+          legislationRef: true,
+          bill: { select: { slug: true, title: true, billType: true, number: true } },
+        },
+      },
+    },
+  });
+}
+
+/** Votes on final passage, which say more about a member than procedural votes do. */
+export async function getMemberKeyVotes(personId: number, take = 8) {
+  const rows = await prisma.rollCallPosition.findMany({
+    where: { personId, rollCall: { billId: { not: null } } },
+    orderBy: { rollCall: { occurredAt: "desc" } },
+    take: 150,
+    select: {
+      position: true,
+      rollCall: {
+        select: {
+          id: true,
+          question: true,
+          occurredAt: true,
+          bill: { select: { slug: true, title: true, billType: true, number: true } },
+        },
+      },
+    },
+  });
+  return rows.filter((row) => isFinalVote(row.rollCall.question)).slice(0, take);
 }

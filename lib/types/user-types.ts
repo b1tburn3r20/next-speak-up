@@ -1,7 +1,6 @@
 import { Session } from "next-auth";
 
-export interface AuthSession extends Session {
-}
+export type AuthSession = Session;
 // In your user-types file
 export type UserSessionRole = {
   id: number;

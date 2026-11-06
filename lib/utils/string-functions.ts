@@ -36,7 +36,7 @@ export function toPascalCase(text: string): string {
 export function formatBillText(rawText: string): string {
   if (!rawText) return "";
 
-  let text = rawText
+  const text = rawText
     // Remove HTML tags
     .replace(/<[^>]*>/g, "")
     // Remove XML-style tags
@@ -262,7 +262,7 @@ export function formatIsoDate(
   hideDate = false
 ) {
   const date = new Date(isoString);
-  const month = date.toLocaleString("en", { month: length });
+  const month = date.toLocaleString("en", { month: length as "short" | "long" });
   const day = date.getDate();
 
   // Function to get proper ordinal suffix

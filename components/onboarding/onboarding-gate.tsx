@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,11 @@ type SuggestedBill = { slug: string; title: string; billType: string; number: nu
 export function OnboardingGate() {
   const { data: session, update } = useSession();
   const [dismissed, setDismissed] = useState(false);
-  const [step, setStep] = useState<"location" | "reps" | "vote">("location");
+  // Null until the user moves on. The session often loads after the first render, so the first
+  // step is worked out from it each time instead of being stored.
+  const [chosenStep, setStep] = useState<"location" | "reps" | "vote" | null>(null);
+  const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState<string | null>(null);
   const [reps, setReps] = useState<Rep[]>([]);
   const [bills, setBills] = useState<SuggestedBill[]>([]);
   const [loadError, setLoadError] = useState(false);
@@ -28,6 +33,7 @@ export function OnboardingGate() {
   const needsOnboarding = Boolean(session?.user?.needsOnboarding);
 
   const hasSavedState = Boolean(session?.user?.state);
+  const hasUsername = Boolean(session?.user?.username);
 
   const loadReps = useCallback(async (query: string) => {
     setLoadError(false);
@@ -42,12 +48,14 @@ export function OnboardingGate() {
     }
   }, []);
 
+  const [skippedUsername, setSkippedUsername] = useState(false);
+  const afterUsername = hasSavedState ? "reps" : "location";
+  // Google accounts start without a username, and that comes first if it's needed.
+  const step = chosenStep ?? (hasUsername || skippedUsername ? afterUsername : "username");
+
   // Someone who already has a location only needs the remaining steps.
   useEffect(() => {
-    if (needsOnboarding && hasSavedState) {
-      setStep("reps");
-      loadReps("");
-    }
+    if (needsOnboarding && hasSavedState) loadReps("");
   }, [needsOnboarding, hasSavedState, loadReps]);
 
   const complete = async () => {
@@ -55,6 +63,27 @@ export function OnboardingGate() {
     // Skipping must always work, even if this save fails. They'd just see it again next visit.
     await fetch("/api/civic/onboarding/complete", { method: "POST" }).catch(() => undefined);
     await update().catch(() => undefined);
+  };
+
+  const saveUsername = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setUsernameError(null);
+    try {
+      const response = await fetch("/api/user/set-username", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        setUsernameError(data?.error ?? "That username didn't work. Please try another.");
+        return;
+      }
+      await update().catch(() => undefined);
+      setStep(afterUsername);
+    } catch {
+      setUsernameError("That didn't save. Please try again.");
+    }
   };
 
   const onResolved = async (location: ResolvedLocation) => {
@@ -67,6 +96,40 @@ export function OnboardingGate() {
   return (
     <Dialog open onOpenChange={(open) => (!open ? complete() : undefined)}>
       <DialogContent data-testid="onboarding" className="max-h-[90dvh] overflow-y-auto">
+        {step === "username" ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Pick a username</DialogTitle>
+              <DialogDescription>This is how you&apos;ll appear in the forum.</DialogDescription>
+            </DialogHeader>
+            <form className="space-y-2 font-normal" onSubmit={saveUsername}>
+              <Input
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                maxLength={30}
+                aria-label="Username"
+                data-testid="onboarding-username"
+              />
+              {usernameError ? (
+                <p role="alert" className="text-sm text-destructive">
+                  {usernameError}
+                </p>
+              ) : null}
+              <Button type="submit" disabled={!username.trim()} data-testid="onboarding-username-save">
+                Continue
+              </Button>
+            </form>
+            <button
+              type="button"
+              className="w-fit text-sm underline"
+              onClick={() => setSkippedUsername(true)}
+              data-testid="onboarding-username-later"
+            >
+              Choose one later
+            </button>
+          </>
+        ) : null}
+
         {step === "location" ? (
           <>
             <DialogHeader>

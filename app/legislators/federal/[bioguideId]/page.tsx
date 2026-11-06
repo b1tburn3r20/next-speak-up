@@ -6,17 +6,24 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { AsOfNote, EmptyState, PageContainer, Panel } from "@/components/app/page-states";
 import { BillStatusBadge, formatDate } from "@/components/bills/bill-card";
 import { MemberPhoto, stateName } from "@/components/people/member-card";
+import { FavoriteButton } from "@/components/people/favorite-button";
 import { computeAlignment } from "@/lib/civic/alignment";
 import { billLabel, partyLabel, positionLabel, roleLabel, seatLabel } from "@/lib/civic/labels";
 import {
   getMemberByBioguide,
-  getMemberRecentVotes,
+  getMemberKeyVotes,
+  getMemberLegislativeRecord,
   getMemberSponsoredBills,
+  getMemberVotePage,
   getMemberVotingStats,
+  isMemberFavorite,
 } from "@/lib/civic/people";
 import { comparedVotesFor } from "@/lib/civic/users";
 
-type PageProps = { params: Promise<{ bioguideId: string }> };
+type PageProps = {
+  params: Promise<{ bioguideId: string }>;
+  searchParams?: Promise<{ page?: string }>;
+};
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const member = await getMemberByBioguide((await params).bioguideId);
@@ -33,18 +40,24 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
   );
 }
 
-export default async function MemberPage({ params }: PageProps) {
-  const member = await getMemberByBioguide((await params).bioguideId);
+export default async function MemberPage({ params, searchParams }: PageProps) {
+  const { bioguideId } = await params;
+  const pageNumber = Number((await searchParams)?.page) || 1;
+  const member = await getMemberByBioguide(bioguideId);
   if (!member) notFound();
 
   const current = member.terms.find((term) => term.isCurrent) ?? member.terms[0];
   const session = await getServerSession(authOptions);
-  const [stats, recentVotes, sponsored, compared] = await Promise.all([
+  const [stats, votePage, sponsored, compared, record, keyVotes, favorite] = await Promise.all([
     getMemberVotingStats(member.id, current?.party ?? null),
-    getMemberRecentVotes(member.id),
+    getMemberVotePage(member.id, pageNumber),
     getMemberSponsoredBills(member.id),
     session?.user?.id ? comparedVotesFor(session.user.id, member.id) : [],
+    getMemberLegislativeRecord(member.id),
+    getMemberKeyVotes(member.id),
+    session?.user?.id ? isMemberFavorite(session.user.id, member.id) : false,
   ]);
+  const recentVotes = votePage.votes;
   const alignment = computeAlignment(compared);
   const hasLaggingVotes = recentVotes.some((vote) => vote.rollCall.source === "VOTEVIEW");
 
@@ -62,6 +75,11 @@ export default async function MemberPage({ params }: PageProps) {
               {current.isCurrent ? "" : " (former)"}
             </p>
           ) : null}
+          <FavoriteButton
+            bioguideId={bioguideId}
+            signedIn={Boolean(session?.user?.id)}
+            initialFavorite={favorite}
+          />
           <div className="flex flex-wrap gap-x-3 text-sm">
             {member.websiteUrl ? (
               <a href={member.websiteUrl} className="underline" target="_blank" rel="noreferrer">
@@ -94,6 +112,29 @@ export default async function MemberPage({ params }: PageProps) {
           }
         />
       </div>
+
+      {keyVotes.length > 0 ? (
+        <Panel aria-labelledby="key-votes-heading">
+          <h2 id="key-votes-heading" className="mb-2 font-semibold">
+            Votes on passing bills
+          </h2>
+          <ul className="divide-y text-sm" data-testid="member-key-votes">
+            {keyVotes.map(({ position, rollCall }) => (
+              <li key={rollCall.id} className="flex items-start justify-between gap-3 py-2">
+                <p className="min-w-0 break-words">
+                  {rollCall.bill ? (
+                    <Link href={`/bills/${rollCall.bill.slug}`} className="underline">
+                      {billLabel(rollCall.bill.billType, rollCall.bill.number)}
+                    </Link>
+                  ) : null}{" "}
+                  <span className="text-muted-foreground">{rollCall.bill?.title}</span>
+                </p>
+                <span className="shrink-0 font-medium">{positionLabel(position)}</span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      ) : null}
 
       <Panel aria-labelledby="votes-heading">
         <h2 id="votes-heading" className="mb-2 font-semibold">
@@ -128,6 +169,22 @@ export default async function MemberPage({ params }: PageProps) {
         ) : (
           <EmptyState title="No recorded votes loaded for this member" />
         )}
+        {votePage.page > 1 || votePage.hasNext ? (
+          <nav className="mt-2 flex justify-between text-sm" aria-label="Vote pages" data-testid="vote-pages">
+            {votePage.page > 1 ? (
+              <Link href={`?page=${votePage.page - 1}`} className="underline">
+                Newer votes
+              </Link>
+            ) : (
+              <span />
+            )}
+            {votePage.hasNext ? (
+              <Link href={`?page=${votePage.page + 1}`} className="underline">
+                Older votes
+              </Link>
+            ) : null}
+          </nav>
+        ) : null}
         {hasLaggingVotes ? (
           <div className="mt-2">
             <AsOfNote
@@ -142,6 +199,30 @@ export default async function MemberPage({ params }: PageProps) {
         <h2 id="sponsored-heading" className="mb-2 font-semibold">
           Sponsored bills
         </h2>
+        {record.sponsored > 0 ? (
+          <div className="mb-3 space-y-2" data-testid="member-record">
+            <p className="text-sm">
+              Of {record.sponsored} sponsored in the loaded data, {record.advanced} moved past
+              committee and {record.becameLaw} became law
+              {record.lawPercent !== null ? ` (${record.lawPercent}%)` : ""}.
+            </p>
+            {record.byPolicyArea.length > 0 ? (
+              <ul className="grid gap-1 sm:grid-cols-2">
+                {record.byPolicyArea.map((area) => (
+                  <li key={area.policyArea} className="text-xs">
+                    <div className="flex justify-between gap-2">
+                      <span className="min-w-0 truncate">{area.policyArea}</span>
+                      <span className="shrink-0">{area.count}</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div className="h-full bg-chart-1" style={{ width: `${area.percent}%` }} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
         {sponsored.items.length > 0 ? (
           <ul className="divide-y text-sm">
             {sponsored.items.map((bill) => (

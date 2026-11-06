@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 import { CircleCheck, CircleX, Loader2, Smile } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { debounce } from "lodash";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -81,10 +81,7 @@ const CreatePermission = () => {
   };
 
   // Debounce the API call to avoid too many requests
-  const debouncedCheck = useCallback(
-    debounce(checkIfPermissionIsAvailable, 500),
-    []
-  );
+  const debouncedCheck = useMemo(() => debounce(checkIfPermissionIsAvailable, 500), []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;

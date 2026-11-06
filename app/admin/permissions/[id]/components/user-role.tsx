@@ -13,7 +13,7 @@ import {
 import { Role, User } from "@prisma/client";
 import { Check, Plus, Replace } from "lucide-react";
 import { useEffect, useState } from "react";
-const UserRole = ({ user }: { user: User }) => {
+const UserRole = ({ user }: { user: User & { role?: { name: string } | null } }) => {
   const userRole = useRolesStore((store) => store.userRole);
   const setUserRole = useRolesStore((store) => store.setUserRole);
   const setRoles = useRolesStore((store) => store.setRoles);
@@ -123,10 +123,10 @@ const UserRole = ({ user }: { user: User }) => {
       </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Update {user.name}'s role</DialogTitle>
+          <DialogTitle>Update {user.name}&apos;s role</DialogTitle>
           <DialogDescription>
             A user can only have one role at a time so be cautious when
-            switching a user's permission.
+            switching a user&apos;s permission.
           </DialogDescription>
         </DialogHeader>
         <div className="h-[350px] p-2 bg-muted/50 space-y-2 rounded-lg overflow-y-auto">

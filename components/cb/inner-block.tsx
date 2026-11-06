@@ -2,7 +2,7 @@
 import { motion, HTMLMotionProps } from "framer-motion";
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
-interface InnerBlockProps extends HTMLMotionProps<"div"> { }
+type InnerBlockProps = HTMLMotionProps<"div">;
 
 const InnerBlock = ({ className, children, ...rest }: InnerBlockProps) => {
   return (

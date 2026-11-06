@@ -43,7 +43,10 @@ export default async function BillsPage({
       <div>
         <h1 className="text-2xl font-semibold">Bills</h1>
         <p className="text-sm text-muted-foreground">
-          Federal legislation, most recently active first.
+          Federal legislation, most recently active first.{" "}
+          <Link href="/bills/upcoming" className="underline" data-testid="upcoming-link">
+            See what&apos;s coming up for a vote
+          </Link>
         </p>
       </div>
 

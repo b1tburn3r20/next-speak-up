@@ -5,7 +5,7 @@ import { Metadata } from "next";
 import ViewPostContent from "./components/view-post-content";
 import ViewPostInfo from "./components/view-post-info";
 import { incrementPostViews } from "@/lib/services/forum-service";
-import { AuthSession, UserSession } from "@/lib/types/user-types";
+import { AuthSession } from "@/lib/types/user-types";
 
 type PageProps = {
   params: { id: string };

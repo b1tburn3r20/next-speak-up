@@ -2,14 +2,13 @@
 import {
   Book,
   Briefcase,
+  CalendarClock,
   Group,
   Home,
   Key,
   LayoutDashboard,
   LucideIcon,
   Settings,
-  Smile,
-  Users,
 } from "lucide-react";
 
 export type NavItem = {
@@ -32,10 +31,9 @@ export const navItems: NavItem[] = [
     label: "Bills",
   },
   {
-    href: "/dev/add-contacts",
-    icon: Smile,
-    label: "Add Contacts to Legislators",
-    requiredRoles: ["Admin", "Super Admin"]
+    href: "/bills/upcoming",
+    icon: CalendarClock,
+    label: "Upcoming Votes",
   },
   // {
   //   href: "/forum",

@@ -270,7 +270,7 @@ const ManageRoleList = ({ roles, allPermissions }: ManageRoleProps) => {
           <RoleContainer key={role.id} role={role} />
         ))}
       </div>
-      <EditRoleDialog />
+      {EditRoleDialog()}
     </>
   );
 };

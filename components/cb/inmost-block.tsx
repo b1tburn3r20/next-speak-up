@@ -3,7 +3,7 @@ import { motion, HTMLMotionProps } from "framer-motion";
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
 
-interface InmostBlockProps extends HTMLMotionProps<"div"> { }
+type InmostBlockProps = HTMLMotionProps<"div">;
 
 const InmostBlock = ({ className, children, ...rest }: InmostBlockProps) => {
   return (

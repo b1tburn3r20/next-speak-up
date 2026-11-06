@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import Modals from "@/components/cb/modals";
 import { TopProgressBar } from "@/components/app/top-progress-bar";
 import { OnboardingGate } from "@/components/onboarding/onboarding-gate";
+import { SiteFooter } from "@/components/app/site-footer";
 import { THEME_VALUES } from "@/components/app/theme-values";
 
 const InstrumentSans = Instrument_Sans({ subsets: ['latin'], variable: '--font-geist' });
@@ -77,6 +78,7 @@ export default function RootLayout({
               <main className="">
                 {children}
               </main>
+              <SiteFooter />
             </Navbar>
             <Toaster />
             <OnboardingGate />

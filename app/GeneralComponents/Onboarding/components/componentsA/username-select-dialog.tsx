@@ -259,7 +259,7 @@ const UsernameSelectDialog = ({
         <DialogHeader>
           <DialogTitle>New around here?</DialogTitle>
           <DialogDescription className="p-2 text-muted-foreground bg-accent italic rounded-lg">
-            Before you can do that you'll need a username. Think of something
+            Before you can do that you&apos;ll need a username. Think of something
             unique and give it a whirl!
           </DialogDescription>
         </DialogHeader>

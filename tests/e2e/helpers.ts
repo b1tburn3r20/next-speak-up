@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { expect, type Page } from "@playwright/test";
 
 // These routes call paid services. No test may ever reach them.
-const PAID_ROUTES = /\/api\/(bills\/ai|bills\/tts|send-email|bug-report|feature-suggestion)/;
+const PAID_ROUTES = /\/api\/(civic\/bills\/(ask|listen)|send-email)/;
 
 export async function blockPaidServices(page: Page) {
   await page.route(PAID_ROUTES, (route) =>

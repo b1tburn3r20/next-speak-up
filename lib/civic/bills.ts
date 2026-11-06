@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { Prisma } from "@prisma/client";
 import prisma from "@/prisma/client";
+import { pickLatestTextVersion } from "./bill-text-logic";
 import { majorityPosition } from "./alignment";
 import type { BillStatusValue } from "./labels";
 
@@ -230,4 +231,90 @@ export async function getPositionsFor(rollCallIds: number[], personIds: number[]
     where: { rollCallId: { in: rollCallIds }, personId: { in: personIds } },
     select: { rollCallId: true, personId: true, position: true },
   });
+}
+
+/** The newest stored text of a bill. Lists never load this, because a bill can run to megabytes. */
+export const getBillText = cache(async (slug: string) => {
+  const bill = await prisma.bill.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      billType: true,
+      number: true,
+      textVersions: {
+        select: { versionType: true, issuedOn: true, htmlUrl: true, pdfUrl: true },
+      },
+    },
+  });
+  if (!bill) return null;
+  const latest = pickLatestTextVersion(bill.textVersions);
+  const content = latest
+    ? await prisma.billTextContent.findUnique({
+        where: { billId_versionType: { billId: bill.id, versionType: latest.versionType } },
+        select: { text: true, fetchedAt: true },
+      })
+    : null;
+  return { bill, latest, text: content?.text ?? null, fetchedAt: content?.fetchedAt ?? null };
+});
+
+export type RollCallMemberFilters = { party?: string; position?: string; state?: string };
+
+/** One recorded vote with every member's position, for its own page. */
+export async function getRollCallDetail(
+  slug: string,
+  rollCallId: number,
+  filters: RollCallMemberFilters = {},
+) {
+  const rollCall = await prisma.rollCall.findFirst({
+    where: { id: rollCallId, bill: { slug } },
+    select: {
+      id: true,
+      question: true,
+      result: true,
+      occurredAt: true,
+      number: true,
+      subSession: true,
+      source: true,
+      asOf: true,
+      totalYea: true,
+      totalNay: true,
+      totalPresent: true,
+      totalNotVoting: true,
+      chamber: { select: { shortName: true } },
+      bill: { select: { slug: true, title: true, billType: true, number: true } },
+    },
+  });
+  if (!rollCall) return null;
+  const position =
+    filters.position && ["YEA", "NAY", "PRESENT", "NOT_VOTING"].includes(filters.position)
+      ? (filters.position as "YEA" | "NAY" | "PRESENT" | "NOT_VOTING")
+      : undefined;
+  const members = await prisma.rollCallPosition.findMany({
+    where: {
+      rollCallId,
+      ...(position ? { position } : {}),
+      ...(filters.party ? { party: filters.party } : {}),
+      ...(filters.state ? { regionCode: filters.state } : {}),
+    },
+    orderBy: [{ regionCode: "asc" }, { person: { sortName: "asc" } }],
+    select: {
+      position: true,
+      party: true,
+      regionCode: true,
+      person: {
+        select: {
+          fullName: true,
+          identifiers: { where: { scheme: "bioguide" }, select: { value: true } },
+        },
+      },
+    },
+  });
+  return { rollCall, members };
+}
+
+export async function hasBillText(billId: number): Promise<boolean> {
+  const count = await prisma.billTextContent.count({ where: { billId } });
+  return count > 0;
 }

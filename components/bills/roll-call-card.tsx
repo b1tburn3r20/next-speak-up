@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { partyLabel, positionLabel } from "@/lib/civic/labels";
 import type { PartyBreakdown } from "@/lib/civic/bills";
 import { AsOfNote } from "@/components/app/page-states";
@@ -15,6 +16,8 @@ export type RollCallCardProps = {
   totals: { yea: number; nay: number; present: number; notVoting: number };
   parties: PartyBreakdown[];
   yourReps?: { name: string; position: string }[];
+  /** Where to see every member's vote. */
+  membersHref?: string;
 };
 
 function ResultBar({ yea, nay }: { yea: number; nay: number }) {
@@ -45,6 +48,11 @@ export function RollCallCard(props: RollCallCardProps) {
         </p>
       </div>
       {props.result ? <p className="text-sm">{props.result}</p> : null}
+      {props.membersHref ? (
+        <Link href={props.membersHref} className="text-sm underline" data-testid="roll-call-members-link">
+          See how every member voted
+        </Link>
+      ) : null}
       <ResultBar yea={totals.yea} nay={totals.nay} />
       <p className="text-sm">
         <strong>{totals.yea}</strong> yes · <strong>{totals.nay}</strong> no ·{" "}

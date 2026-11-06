@@ -5,9 +5,12 @@ const prismaMock = vi.hoisted(() => ({
   bill: { findMany: vi.fn(), findUnique: vi.fn() },
   userBillVote: { findMany: vi.fn(), upsert: vi.fn(), deleteMany: vi.fn() },
   rollCallPosition: { findMany: vi.fn() },
-  userRepAlignment: { deleteMany: vi.fn(), createMany: vi.fn() },
+  userRepAlignment: { deleteMany: vi.fn(), createMany: vi.fn(), findMany: vi.fn() },
   userLocation: { findFirst: vi.fn() },
   person: { findMany: vi.fn() },
+  userBillFollow: { count: vi.fn() },
+  rollCall: { aggregate: vi.fn() },
+  $transaction: vi.fn((operations: unknown[]) => Promise.all(operations)),
 }));
 vi.mock("@/prisma/client", () => ({ default: prismaMock }));
 vi.mock("react", async (original) => ({
@@ -22,7 +25,13 @@ import {
   listBills,
   parseBillSearch,
 } from "@/lib/civic/bills";
-import { bucketWeeks, castBillVote, comparedVotesFor } from "@/lib/civic/users";
+import {
+  bucketWeeks,
+  castBillVote,
+  comparedVotesFor,
+  getUserMetrics,
+  refreshUserAlignment,
+} from "@/lib/civic/users";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -187,5 +196,61 @@ describe("bucketWeeks", () => {
 
   it("ignores votes outside the window", () => {
     expect(bucketWeeks([daysAgo(365)], 4, now).every((bucket) => bucket.votes === 0)).toBe(true);
+  });
+});
+
+describe("stored alignment", () => {
+  const OLD = new Date("2026-01-01T00:00:00Z");
+  const NEW = new Date("2026-06-01T00:00:00Z");
+
+  beforeEach(() => {
+    prismaMock.userBillFollow.count.mockResolvedValue(0);
+    prismaMock.userLocation.findFirst.mockResolvedValue(null);
+    prismaMock.userBillVote.findMany.mockResolvedValue([{ position: "YEA", createdAt: NEW }]);
+    prismaMock.userRepAlignment.deleteMany.mockResolvedValue({ count: 0 });
+    prismaMock.userRepAlignment.createMany.mockResolvedValue({ count: 0 });
+  });
+
+  it("refreshes when the pipeline has loaded newer votes", async () => {
+    prismaMock.userRepAlignment.findMany.mockResolvedValue([{ updatedAt: OLD }]);
+    prismaMock.rollCall.aggregate.mockResolvedValue({ _max: { updatedAt: NEW } });
+    await getUserMetrics("u1");
+    await vi.waitFor(() => expect(prismaMock.userRepAlignment.deleteMany).toHaveBeenCalled());
+  });
+
+  it("leaves fresh numbers alone", async () => {
+    prismaMock.userRepAlignment.findMany.mockResolvedValue([{ updatedAt: NEW }]);
+    prismaMock.rollCall.aggregate.mockResolvedValue({ _max: { updatedAt: OLD } });
+    await getUserMetrics("u1");
+    expect(prismaMock.userRepAlignment.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("doesn't recalculate for someone who hasn't voted", async () => {
+    prismaMock.userBillVote.findMany.mockResolvedValue([]);
+    prismaMock.userRepAlignment.findMany.mockResolvedValue([]);
+    await getUserMetrics("u1");
+    expect(prismaMock.userRepAlignment.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("still shows the dashboard if a refresh fails", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    prismaMock.userRepAlignment.findMany.mockResolvedValue([{ updatedAt: OLD }]);
+    prismaMock.rollCall.aggregate.mockResolvedValue({ _max: { updatedAt: NEW } });
+    prismaMock.userRepAlignment.deleteMany.mockRejectedValueOnce(new Error("Deadlock"));
+    await expect(getUserMetrics("u1")).resolves.toMatchObject({ votesCast: 1 });
+    await vi.waitFor(() => expect(console.error).toHaveBeenCalled());
+  });
+
+  it("replaces rows in one step, tolerating an overlapping refresh", async () => {
+    prismaMock.userLocation.findFirst.mockResolvedValue({
+      regionCode: "WY",
+      district: { code: "AL" },
+    });
+    prismaMock.person.findMany.mockResolvedValue([]);
+    await refreshUserAlignment("u1");
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(prismaMock.userRepAlignment.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skipDuplicates: true }),
+    );
   });
 });
