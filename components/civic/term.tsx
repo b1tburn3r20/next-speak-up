@@ -13,7 +13,7 @@ export function Term({ id, children }: { id: string; children: React.ReactNode }
       <PopoverTrigger
         type="button"
         data-testid={`term-${id}`}
-        className="cursor-help rounded-sm border-b-2 border-dotted border-primary/60 font-inherit text-left hover:bg-primary-tint"
+        className="tap cursor-help rounded-sm border-b-2 border-dotted border-primary/60 font-inherit text-left hover:bg-primary-tint"
       >
         {children}
       </PopoverTrigger>

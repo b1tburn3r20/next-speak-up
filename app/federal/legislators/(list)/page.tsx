@@ -18,7 +18,7 @@ import { STATE_NAMES } from "@/lib/constants/state-names";
 import { routes } from "@/lib/routes";
 
 export const metadata: Metadata = {
-  title: "Federal Legislators",
+  title: "Legislators",
   description: "Every current member of Congress, with how they vote.",
 };
 
@@ -63,7 +63,7 @@ export default async function LegislatorsPage({
   return (
     <PageContainer>
       <PageHeader
-        title="Federal Legislators"
+        title="Legislators"
         description={`${total} ${filtering ? "matching" : "current"} members of Congress`}
       />
 
@@ -101,7 +101,7 @@ export default async function LegislatorsPage({
           <option value="R">Republican</option>
           <option value="I">Independent</option>
         </select>
-        <Button className="col-span-2 sm:col-span-1" type="submit">Search</Button>
+        <Button type="submit">Search</Button>
       </form>
 
       {members.length === 0 ? (
@@ -130,7 +130,7 @@ export default async function LegislatorsPage({
             Page {page} of {Math.ceil(total / MEMBERS_PER_PAGE)}
           </span>
           {page * MEMBERS_PER_PAGE < total ? (
-            <Link href={pageHref(page + 1)} className="text-primary hover:underline" data-testid="next-members">
+            <Link href={pageHref(page + 1)} className="tap text-primary hover:underline" data-testid="next-members">
               Next
             </Link>
           ) : (

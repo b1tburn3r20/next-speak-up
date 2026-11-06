@@ -6,6 +6,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { userService } from "@/lib/services/user";
 import { SettingsForm } from "./components/settings-form";
+import { NextStepCard } from "@/components/civic/next-step-card";
+import { routes } from "@/lib/routes";
 
 
 export const metadata: Metadata = {
@@ -36,6 +38,17 @@ export default async function SettingsPage() {
           householdIncome={user.householdIncome}
         />
       </OuterBlock>
+      <NextStepCard
+        label="Choose what you follow"
+        step={{
+          id: "settings-topics",
+          title: "Topics you track",
+          description: "Bills on these topics come first when you vote.",
+          href: routes.federal.topics,
+          cta: "Change my topics",
+          tone: "primary",
+        }}
+      />
     </PageShell>
   );
 }

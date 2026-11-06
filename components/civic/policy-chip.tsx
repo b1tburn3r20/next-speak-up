@@ -62,5 +62,5 @@ export function PolicyChip({
       <span className="min-w-0 truncate">{name ?? "Not categorized yet"}</span>
     </span>
   );
-  return link && area ? <Link href={topicPath(area.slug)}>{chip}</Link> : chip;
+  return link && area ? <Link href={topicPath(area.slug)} className="tap inline-flex max-w-full">{chip}</Link> : chip;
 }

@@ -119,7 +119,7 @@ export function RepReportCard({ data, compact = false }: { data: RepCardData; co
             {recap.latestBill ? (
               <span className="mt-1 block" data-testid="rep-latest-bill">
                 <span className="font-bold">Their latest bill: </span>
-                <Link href={billPath(recap.latestBill.slug)} className="font-semibold text-primary hover:underline">
+                <Link href={billPath(recap.latestBill.slug)} className="tap font-semibold text-primary hover:underline">
                   {recap.latestBill.label}
                 </Link>{" "}
                 <span className="line-clamp-2 text-muted-foreground">{recap.latestBill.title}</span>
@@ -162,7 +162,7 @@ export function RepReportCard({ data, compact = false }: { data: RepCardData; co
       </Stack>
       <Link
         href={href}
-        className="mt-3 inline-flex items-center gap-1 text-sm font-extrabold text-primary hover:underline"
+        className="tap mt-3 inline-flex items-center gap-1 text-sm font-extrabold text-primary hover:underline"
       >
         See the full report card
         <ArrowRight className="size-4" aria-hidden />

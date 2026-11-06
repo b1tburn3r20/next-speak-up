@@ -108,7 +108,7 @@ export function SettingsForm({
     <form onSubmit={onSubmit} className="space-y-6">
       {/* Identity */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Name</label>
+        <label className="text-sm font-bold">Name</label>
         <div className="flex gap-2">
           <Input
             placeholder="Your name"
@@ -118,7 +118,7 @@ export function SettingsForm({
           {formValues.name && (
             <Button
               type="button"
-              variant="destructive"
+              variant="ghost"
               size="icon"
               onClick={() => handleClear("name")}
               aria-label="Clear name"
@@ -130,7 +130,7 @@ export function SettingsForm({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Username</label>
+        <label className="text-sm font-bold">Username</label>
         <div className="flex gap-2">
           <Input
             placeholder="Username"
@@ -140,7 +140,7 @@ export function SettingsForm({
           {formValues.username && (
             <Button
               type="button"
-              variant="destructive"
+              variant="ghost"
               size="icon"
               onClick={() => handleClear("username")}
               aria-label="Clear username"
@@ -153,13 +153,13 @@ export function SettingsForm({
 
       {/* Location */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">State</label>
+        <label className="text-sm font-bold">State</label>
         <div className="flex gap-2">
           <Select
             value={formValues.state || ""}
             onValueChange={(val) => handleChange("state", val)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-11 w-full min-w-0 flex-1">
               <SelectValue placeholder="Select a state" />
             </SelectTrigger>
             <SelectContent>
@@ -173,7 +173,7 @@ export function SettingsForm({
           {formValues.state && (
             <Button
               type="button"
-              variant="destructive"
+              variant="ghost"
               size="icon"
               onClick={() => handleClear("state")}
               aria-label="Clear state"
@@ -185,7 +185,7 @@ export function SettingsForm({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">District</label>
+        <label className="text-sm font-bold">District</label>
         <div className="flex gap-2">
           <DistrictSelect
             state={formValues.state}
@@ -195,7 +195,7 @@ export function SettingsForm({
           {formValues.district && (
             <Button
               type="button"
-              variant="destructive"
+              variant="ghost"
               size="icon"
               onClick={() => handleClear("district")}
               aria-label="Clear district"
@@ -208,13 +208,13 @@ export function SettingsForm({
 
       {/* Demographics */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">Age Range</label>
+        <label className="text-sm font-bold">Age range</label>
         <div className="flex gap-2">
           <Select
             value={formValues.ageRange || ""}
             onValueChange={(val) => handleChange("ageRange", val as AgeRange)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-11 w-full min-w-0 flex-1">
               <SelectValue placeholder="Select age range" />
             </SelectTrigger>
             <SelectContent>
@@ -228,7 +228,7 @@ export function SettingsForm({
           {formValues.ageRange && (
             <Button
               type="button"
-              variant="destructive"
+              variant="ghost"
               size="icon"
               onClick={() => handleClear("ageRange")}
               aria-label="Clear age range"
@@ -240,13 +240,13 @@ export function SettingsForm({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium">Household Income</label>
+        <label className="text-sm font-bold">Household income</label>
         <div className="flex gap-2">
           <Select
             value={formValues.householdIncome || ""}
             onValueChange={(val) => handleChange("householdIncome", val as IncomeRange)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-11 w-full min-w-0 flex-1">
               <SelectValue placeholder="Select household income" />
             </SelectTrigger>
             <SelectContent>
@@ -260,7 +260,7 @@ export function SettingsForm({
           {formValues.householdIncome && (
             <Button
               type="button"
-              variant="destructive"
+              variant="ghost"
               size="icon"
               onClick={() => handleClear("householdIncome")}
               aria-label="Clear household income"

@@ -133,6 +133,17 @@ test.describe("relative dates", () => {
     await expect(when).toHaveText(/^Became law /);
   });
 
+  test("a small date has a thumb-sized target", async ({ page }) => {
+    await page.goto("/federal/bills");
+    const box = await page.getByTestId("bill-card").first().getByTestId("relative-date").boundingBox();
+    expect(box).not.toBeNull();
+    const hit = await page.evaluate(
+      ([x, y]) => document.elementFromPoint(x, y)?.closest('[data-testid="relative-date"]') !== null,
+      [box!.x + box!.width / 2, box!.y - 8],
+    );
+    expect(hit).toBe(true);
+  });
+
   test("hovering shows the exact date, after a moment", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name.startsWith("phone"), "phones tap instead");
     await page.goto("/federal/bills");

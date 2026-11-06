@@ -61,7 +61,7 @@ export function RelativeDate({
             data-testid="relative-date"
             className={cn(
               // Sits above a card's full-size link, so tapping it doesn't open the bill.
-              "relative z-10 inline w-fit cursor-help rounded text-left font-semibold underline decoration-dotted decoration-1 underline-offset-4 focus-visible:outline-2 focus-visible:outline-primary",
+              "tap relative z-10 inline w-fit cursor-help rounded text-left font-semibold underline decoration-dotted decoration-1 underline-offset-4 focus-visible:outline-2 focus-visible:outline-primary",
               className,
             )}
           >

@@ -16,7 +16,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <nav aria-label="Footer" className="flex flex-wrap gap-x-4 gap-y-1">
           {LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="underline-offset-2 hover:underline">
+            <Link key={link.href} href={link.href} className="inline-block py-2.5 underline-offset-2 hover:underline">
               {link.label}
             </Link>
           ))}

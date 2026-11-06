@@ -108,7 +108,7 @@ export function UpcomingBillCard({
             href={item.documentUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex w-fit items-center gap-1 text-sm font-bold text-primary hover:underline"
+            className="tap inline-flex w-fit items-center gap-1 text-sm font-bold text-primary hover:underline"
           >
             <FileText className="size-4" aria-hidden />
             Text going to the floor

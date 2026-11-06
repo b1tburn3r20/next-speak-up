@@ -49,7 +49,7 @@ export function PageHeader({
     <header className="space-y-2">
       {back ? (
         <nav>
-          <Link href={back.href} className="text-sm font-bold text-primary hover:underline">
+          <Link href={back.href} className="tap text-sm font-bold text-primary hover:underline">
             ← {back.label}
           </Link>
         </nav>
@@ -87,7 +87,7 @@ export function Section({
             {action ? (
               <Link
                 href={action.href}
-                className="shrink-0 text-sm font-bold text-primary hover:underline"
+                className="tap shrink-0 text-sm font-bold text-primary hover:underline"
               >
                 {action.label}
               </Link>

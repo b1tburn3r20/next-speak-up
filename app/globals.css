@@ -272,3 +272,18 @@
   animation: none;
   mix-blend-mode: normal;
 }
+
+/* Makes a small inline link or button at least 44px tall to a thumb, without changing how it looks. */
+.tap {
+  position: relative;
+}
+
+.tap::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 44px;
+  transform: translateY(-50%);
+}
