@@ -45,9 +45,12 @@
     "app/new/production/troubleshoot-devices/UnlockingTroubleshoot",
     "app/new/pdfs/components/MyDocument.js",
     "app/bills/[id]/components/BillSummaries.mdx",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    ".next-test/types/**/*.ts",
+    ".next-test/dev/types/**/*.ts"
   ],
   "exclude": [
+    ".next-test",
     "node_modules"
   ]
 }

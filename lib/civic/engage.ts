@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import prisma from "@/prisma/client";
 import { revealOutcome, type RevealOutcome, type RevealPosition } from "./verdict";
 import { BILL_CARD_SELECT, type BillListItem } from "./bills";
+import { OPEN_STATUSES } from "./bill-outlook";
 import { easternToday, mondayOf } from "./floor-logic";
 import { billLabel, roleLabel } from "./labels";
 import { bioguideOf, repsForLocation } from "./people";
@@ -23,13 +24,18 @@ export type QueueItem = {
 const VOTED = { position: { in: ["YEA", "NAY"] } } satisfies Prisma.RollCallPositionWhereInput;
 
 /** Bills your reps have cast a final vote on, and you haven't weighed in on. Newest first. */
-export async function getPulseItems(userId: string, repIds: number[], take = 5): Promise<QueueItem[]> {
+export async function getPulseItems(
+  userId: string,
+  repIds: number[],
+  take = 5,
+  billWhere: Prisma.BillWhereInput = {},
+): Promise<QueueItem[]> {
   if (repIds.length === 0) return [];
   // Over-fetches because a bill can have several final votes, like the House and the Senate.
   const rows = await prisma.rollCall.findMany({
     where: {
       isFinalVote: true,
-      bill: { userVotes: { none: { userId } } },
+      bill: { ...billWhere, userVotes: { none: { userId } } },
       positions: { some: { personId: { in: repIds }, ...VOTED } },
     },
     orderBy: { occurredAt: { sort: "desc", nulls: "last" } },
@@ -77,7 +83,11 @@ export async function countPulse(userId: string, repIds: number[]): Promise<numb
   });
 }
 
-/** What's next in a voting session: your reps' votes, then upcoming bills, then recent ones. */
+/**
+ * What's next in a voting session. Bills where a voice can still count come first: what's scheduled,
+ * then your reps' votes on undecided bills, then undecided bills on your topics, then the rest.
+ * Decided bills stay in, because they still show whether your reps represent you, but they don't lead.
+ */
 export async function getVoteQueue(
   userId: string | null,
   repIds: number[],
@@ -86,11 +96,13 @@ export async function getVoteQueue(
   topics: string[] = [],
 ): Promise<QueueItem[]> {
   const notVoted: Prisma.BillWhereInput = userId ? { userVotes: { none: { userId } } } : {};
-  const pulse = userId ? await getPulseItems(userId, repIds, limit) : [];
-  const seen = new Set(pulse.map((item) => item.bill.id));
-  const items = [...pulse];
+  const open: Prisma.BillWhereInput = { currentStatus: { in: [...OPEN_STATUSES] } };
+  const seen = new Set<number>();
+  const items: QueueItem[] = [];
+  const room = () => limit - items.length;
 
-  if (items.length < limit) {
+  const addFloor = async () => {
+    if (room() <= 0) return;
     const floor = await prisma.floorScheduleItem.findMany({
       where: {
         weekOf: { gte: mondayOf(easternToday(now)) },
@@ -103,26 +115,30 @@ export async function getVoteQueue(
       select: { bill: { select: BILL_CARD_SELECT } },
     });
     for (const { bill } of floor) {
-      if (bill && !seen.has(bill.id) && items.length < limit) {
+      if (bill && !seen.has(bill.id) && room() > 0) {
         seen.add(bill.id);
         items.push({ bill, reason: "FLOOR", reps: [], occurredAt: null });
       }
     }
-  }
+  };
 
-  // Bills with a recorded vote and a summary make the best questions. Topics they track go first.
-  const addRecent = async (policyAreas?: string[]) => {
-    if (items.length >= limit) return;
+  const addPulse = async (billWhere: Prisma.BillWhereInput = {}) => {
+    if (room() <= 0 || !userId) return;
+    // Asks for extra, since some may already be in the queue.
+    for (const item of await getPulseItems(userId, repIds, limit + seen.size, billWhere)) {
+      if (!seen.has(item.bill.id) && room() > 0) {
+        seen.add(item.bill.id);
+        items.push(item);
+      }
+    }
+  };
+
+  const addRecent = async (where: Prisma.BillWhereInput) => {
+    if (room() <= 0) return;
     const recent = await prisma.bill.findMany({
-      where: {
-        ...notVoted,
-        id: { notIn: [...seen] },
-        summaries: { some: {} },
-        rollCalls: { some: { isFinalVote: true } },
-        ...(policyAreas ? { policyArea: { in: policyAreas } } : {}),
-      },
+      where: { ...notVoted, id: { notIn: [...seen] }, summaries: { some: {} }, ...where },
       orderBy: [{ latestActionDate: { sort: "desc", nulls: "last" } }, { id: "desc" }],
-      take: limit - items.length,
+      take: room(),
       select: BILL_CARD_SELECT,
     });
     for (const bill of recent) {
@@ -130,8 +146,16 @@ export async function getVoteQueue(
       items.push({ bill, reason: "RECENT", reps: [], occurredAt: null });
     }
   };
-  if (topics.length > 0) await addRecent(topics);
-  await addRecent();
+
+  const hasFinalVote: Prisma.BillWhereInput = { rollCalls: { some: { isFinalVote: true } } };
+  await addFloor();
+  await addPulse(open);
+  if (topics.length > 0) await addRecent({ ...open, policyArea: { in: topics } });
+  // Ones with a recorded vote make the best questions, because there's something to compare.
+  await addRecent({ ...open, ...hasFinalVote });
+  await addRecent(open);
+  await addPulse();
+  await addRecent(hasFinalVote);
   return items;
 }
 

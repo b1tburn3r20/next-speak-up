@@ -3,6 +3,8 @@ import { expect, type Locator, type Page } from "@playwright/test";
 import { PAID_ROUTES } from "./paid-routes";
 
 
+export const BASE_URL = "http://localhost:3100";
+
 export async function blockPaidServices(page: Page) {
   await page.route(PAID_ROUTES, (route) =>
     route.fulfill({ status: 503, json: { error: "Blocked in tests" } }),
@@ -26,7 +28,7 @@ export function seedPassword(): string {
 /** Logs in through the real API, so tests that aren't about login stay fast. */
 export async function loginAs(page: Page, username: string) {
   const response = await page.request.post("/api/account/login", {
-    headers: { origin: "http://localhost:3000" },
+    headers: { origin: BASE_URL },
     data: { identifier: username, password: seedPassword() },
   });
   expect(response.ok()).toBeTruthy();

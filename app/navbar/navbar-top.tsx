@@ -1,11 +1,13 @@
 "use client"
+import { Hud } from "@/components/civic/hud";
+import type { HudProgress } from "@/lib/civic/progress";
 import { SearchButton } from "@/components/search/search-dialog";
 import Image from "next/image";
 import { useNavbarStore } from "./use-navbar-store";
 import SideBlock from "@/components/cb/side-block";
 import Link from "next/link";
 
-const NavbarTop = () => {
+const NavbarTop = ({ hud }: { hud: HudProgress | null }) => {
 
   const navCollapsed = useNavbarStore((f) => f.navCollapsed);
 
@@ -17,13 +19,14 @@ const NavbarTop = () => {
             <Link href={"/"}>
               <SideBlock>
                 <Image height={25} width={25} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/icon.png"} />
-                <Image height={29} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} style={{ width: 100, height: "auto" }} />
+                <Image height={29} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} style={{ width: 100, height: "auto" }} loading="eager" />
               </SideBlock>
             </Link>
           )
         }
       </div>
-      <div className="flex gap-2 items-center ">
+      <div className="flex gap-4 items-center ">
+        {hud ? <Hud initial={hud} /> : null}
         <SearchButton />
       </div>
     </div>

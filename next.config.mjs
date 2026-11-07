@@ -60,6 +60,8 @@ const nextConfig = {
   },
 
   output: 'standalone',
+  // Lets browser tests run a second dev server beside `npm run dev`.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
 };
 
 // Apply both MDX and removeImports configurations

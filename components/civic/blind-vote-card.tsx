@@ -3,6 +3,8 @@ import { BillActionButtons } from "@/components/bills/bill-action-buttons";
 import { BillStatusBadge, SponsorLine } from "@/components/bills/bill-card";
 import { RelativeDate } from "@/components/app/relative-date";
 import { OuterBlock, Stack } from "@/components/blocks";
+import { AfterVote } from "@/components/civic/after-vote";
+import { BillOutlookCard } from "@/components/civic/bill-outlook-card";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { RevealPanel } from "@/components/civic/reveal-panel";
 import { MemberPhoto } from "@/components/people/member-photo";
@@ -50,8 +52,11 @@ export function BlindVoteCard({
         ) : null}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="font-extrabold">{billLabel(bill.billType, bill.number)}</span>
-          <BillStatusBadge status={bill.currentStatus} />
           <PolicyChip name={bill.policyArea} link />
+          {/* Where it stands waits until after the vote. */}
+          <AfterVote slug={bill.slug} initialPosition={initialPosition}>
+            <BillStatusBadge status={bill.currentStatus} />
+          </AfterVote>
         </div>
         <h3 className="break-words text-lg font-extrabold leading-snug">
           <Link href={billPath(bill.slug)} className="hover:underline">
@@ -77,6 +82,9 @@ export function BlindVoteCard({
           showFollow={false}
           size="lg"
         />
+        <AfterVote slug={bill.slug} initialPosition={initialPosition}>
+          <BillOutlookCard status={bill.currentStatus} />
+        </AfterVote>
         <RevealPanel slug={bill.slug} signedIn={signedIn} initialPosition={initialPosition} />
       </Stack>
     </OuterBlock>

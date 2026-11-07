@@ -31,7 +31,7 @@ export default async function RepsPage() {
       followingCount: 0,
     });
     return (
-      <PageShell width="narrow">
+      <PageShell>
         <PageHeader
           title="Your reps' report cards"
           description="Sign in to see your representative and senators, and whether they vote the way you would."

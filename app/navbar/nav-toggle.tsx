@@ -52,7 +52,7 @@ const NavToggle = () => {
             <Link href={"/"}>
               <SideBlock>
                 <Image height={25} width={25} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/icon.png"} />
-                <Image height={25} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} />
+                <Image height={25} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} style={{ width: 100, height: "auto" }} loading="eager" />
               </SideBlock>
             </Link>
 

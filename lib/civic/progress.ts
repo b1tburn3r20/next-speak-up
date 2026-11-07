@@ -4,7 +4,43 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const DAILY_GOAL = 3;
 export const XP_PER_VOTE = 10;
-const XP_PER_LEVEL = 100;
+export const XP_PER_LEVEL = 100;
+
+/** What each action earns. Support and Oppose earn the same. */
+export const XP_AMOUNTS = {
+  VOTE: XP_PER_VOTE,
+  AHEAD_OF_VOTE: 5,
+  DAILY_GOAL: 20,
+  CONTACTED_REP: 25,
+  ATTENDED_EVENT: 50,
+} as const;
+
+/** Everything the bar on every page needs. */
+export type HudProgress = {
+  userId: string;
+  xp: number;
+  level: number;
+  levelPercent: number;
+  xpToNextLevel: number;
+  streak: number;
+  votesCast: number;
+  votedToday: number;
+  dailyGoal: number;
+};
+
+export function levelFor(xp: number) {
+  const safe = Math.max(0, xp);
+  return {
+    level: Math.floor(safe / XP_PER_LEVEL) + 1,
+    levelPercent: safe % XP_PER_LEVEL,
+    xpToNextLevel: XP_PER_LEVEL - (safe % XP_PER_LEVEL),
+  };
+}
+
+/** A calendar day in Eastern time, like "2026-11-06". */
+export function dateKey(date: Date, timeZone = "America/New_York"): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+}
 
 export type Badge = { id: string; label: string; description: string; earned: boolean };
 
@@ -47,7 +83,60 @@ export function computeStreak(votes: Date[], now: Date, timeZone = "America/New_
   return streak;
 }
 
+export function computeHud(input: {
+  userId: string;
+  xp: number;
+  votesCast: number;
+  voteDates: Date[];
+  now: Date;
+  timeZone?: string;
+}): HudProgress {
+  const { voteDates, now, timeZone = "America/New_York" } = input;
+  const today = dayNumber(now, timeZone);
+  return {
+    userId: input.userId,
+    xp: input.xp,
+    ...levelFor(input.xp),
+    streak: computeStreak(voteDates, now, timeZone),
+    votesCast: input.votesCast,
+    votedToday: voteDates.filter((vote) => dayNumber(vote, timeZone) === today).length,
+    dailyGoal: DAILY_GOAL,
+  };
+}
+
+/**
+ * The bar's next state right after a vote, before the server answers. `change` is +1 for a new vote
+ * and -1 for an undo. The server's answer replaces this, so it only has to be right about what shows
+ * in the next fraction of a second.
+ */
+export function applyVote(progress: HudProgress, change: number): HudProgress {
+  if (change === 0) return progress;
+  const votedToday = Math.max(0, progress.votedToday + change);
+  const crossedGoal = change > 0 && progress.votedToday < progress.dailyGoal && votedToday >= progress.dailyGoal;
+  const uncrossedGoal = change < 0 && progress.votedToday >= progress.dailyGoal && votedToday < progress.dailyGoal;
+  const bonus = crossedGoal ? XP_AMOUNTS.DAILY_GOAL : uncrossedGoal ? -XP_AMOUNTS.DAILY_GOAL : 0;
+  const xp = Math.max(0, progress.xp + change * XP_PER_VOTE + bonus);
+  // Today's first vote starts a streak, or continues one that was waiting on today.
+  const startedToday = change > 0 && progress.votedToday === 0;
+  const clearedToday = change < 0 && votedToday === 0;
+  const streak = startedToday ? progress.streak + 1 : clearedToday ? Math.max(0, progress.streak - 1) : progress.streak;
+  return { ...progress, xp, ...levelFor(xp), votesCast: Math.max(0, progress.votesCast + change), votedToday, streak };
+}
+
+/** What just happened that's worth celebrating, comparing before and after. */
+export function celebrate(before: HudProgress, after: HudProgress): string | null {
+  if (after.level > before.level) return `Level ${after.level}!`;
+  if (before.votedToday < before.dailyGoal && after.votedToday >= after.dailyGoal) return "Daily goal met!";
+  for (const [votes, label] of [[1, "First vote"], [10, "Regular"], [50, "Civic regular"]] as const) {
+    if (before.votesCast < votes && after.votesCast >= votes) return `Badge earned: ${label}`;
+  }
+  if (before.streak < 7 && after.streak >= 7) return "Badge earned: Full week";
+  return null;
+}
+
 export function computeProgress(input: {
+  /** From the XP ledger. Left out, it's worked out from votes alone. */
+  xp?: number;
   voteDates: Date[];
   now: Date;
   repsFound: boolean;
@@ -58,7 +147,7 @@ export function computeProgress(input: {
 }): UserProgress {
   const { voteDates, now, timeZone = "America/New_York" } = input;
   const votesCast = voteDates.length;
-  const xp = votesCast * XP_PER_VOTE;
+  const xp = input.xp ?? votesCast * XP_PER_VOTE;
   const today = dayNumber(now, timeZone);
   const votedToday = voteDates.filter((vote) => dayNumber(vote, timeZone) === today).length;
   const streak = computeStreak(voteDates, now, timeZone);
@@ -96,9 +185,7 @@ export function computeProgress(input: {
   return {
     votesCast,
     xp,
-    level: Math.floor(xp / XP_PER_LEVEL) + 1,
-    levelPercent: xp % XP_PER_LEVEL,
-    xpToNextLevel: XP_PER_LEVEL - (xp % XP_PER_LEVEL),
+    ...levelFor(xp),
     streak,
     votedToday,
     dailyGoal: DAILY_GOAL,

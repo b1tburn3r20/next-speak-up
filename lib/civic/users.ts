@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import prisma from "@/prisma/client";
+import { awardVoteXp, removeVoteXp } from "./xp";
 import {
   alignmentByPolicyArea,
   computeAlignment,
@@ -238,10 +239,15 @@ export async function refreshUserAlignment(userId: string) {
 export async function castBillVote(userId: string, slug: string, position: Position) {
   const bill = await prisma.bill.findUnique({ where: { slug }, select: { id: true } });
   if (!bill) return false;
-  await prisma.userBillVote.upsert({
-    where: { userId_billId: { userId, billId: bill.id } },
-    update: { position },
-    create: { userId, billId: bill.id, position },
+  await prisma.$transaction(async (tx) => {
+    const key = { userId_billId: { userId, billId: bill.id } };
+    const existing = await tx.userBillVote.findUnique({ where: key, select: { billId: true } });
+    await tx.userBillVote.upsert({
+      where: key,
+      update: { position },
+      create: { userId, billId: bill.id, position },
+    });
+    if (!existing) await awardVoteXp(tx, userId, bill.id);
   });
   await refreshUserAlignment(userId);
   return true;
@@ -250,8 +256,22 @@ export async function castBillVote(userId: string, slug: string, position: Posit
 export async function removeBillVote(userId: string, slug: string) {
   const bill = await prisma.bill.findUnique({ where: { slug }, select: { id: true } });
   if (!bill) return false;
-  await prisma.userBillVote.deleteMany({ where: { userId, billId: bill.id } });
+  await prisma.$transaction(async (tx) => {
+    await tx.userBillVote.deleteMany({ where: { userId, billId: bill.id } });
+    await removeVoteXp(tx, userId, bill.id);
+  });
   await refreshUserAlignment(userId);
+  return true;
+}
+
+export async function skipBillGate(userId: string, slug: string) {
+  const bill = await prisma.bill.findUnique({ where: { slug }, select: { id: true } });
+  if (!bill) return false;
+  await prisma.userBillSkip.upsert({
+    where: { userId_billId: { userId, billId: bill.id } },
+    update: {},
+    create: { userId, billId: bill.id },
+  });
   return true;
 }
 
@@ -276,7 +296,7 @@ export async function recordBillView(userId: string, billId: number) {
 }
 
 export async function getUserBillState(userId: string, billId: number) {
-  const [vote, follow] = await Promise.all([
+  const [vote, follow, skip] = await Promise.all([
     prisma.userBillVote.findUnique({
       where: { userId_billId: { userId, billId } },
       select: { position: true },
@@ -285,8 +305,16 @@ export async function getUserBillState(userId: string, billId: number) {
       where: { userId_billId: { userId, billId } },
       select: { following: true },
     }),
+    prisma.userBillSkip.findUnique({
+      where: { userId_billId: { userId, billId } },
+      select: { billId: true },
+    }),
   ]);
-  return { position: vote?.position ?? null, following: follow?.following ?? false };
+  return {
+    position: vote?.position ?? null,
+    following: follow?.following ?? false,
+    skippedGate: Boolean(skip),
+  };
 }
 
 /** Weeks of activity, oldest first, with quiet weeks filled in as zero. */

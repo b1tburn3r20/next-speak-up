@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import type { Session } from "next-auth";
+import type { HudProgress } from "@/lib/civic/progress";
 import NavUser from "@/components/nav-user";
 import { useUserStore } from "@/app/admin/stores/use-user-store";
 import { useAppStore } from "@/app/stores/use-app-store";
@@ -18,6 +19,7 @@ import { MobileNavbar } from "./mobile-navbar";
 interface ClientNavbarProps {
   visibleNavHrefs: string[];
   session: Session | null;
+  hud: HudProgress | null;
   userRole?: string;
   children: React.ReactNode;
 }
@@ -26,7 +28,7 @@ interface ClientNavbarProps {
  * One layout for every screen size. CSS decides which navigation shows, so the page content
  * renders right away from the server rather than waiting for JavaScript to measure the window.
  */
-const ClientNavbar = ({ visibleNavHrefs, userRole, children }: ClientNavbarProps) => {
+const ClientNavbar = ({ visibleNavHrefs, userRole, hud, children }: ClientNavbarProps) => {
   const setNavState = useNavbarStore((store) => store.setNavCollapsed);
   const setActiveUserRole = useUserStore((store) => store.setActiveUserRole);
   const setIsMobile = useAppStore((store) => store.setIsMobile);
@@ -68,9 +70,9 @@ const ClientNavbar = ({ visibleNavHrefs, userRole, children }: ClientNavbarProps
       <SearchDialog />
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="hidden md:block">
-          <NavbarTop />
+          <NavbarTop hud={hud} />
         </div>
-        <MobileNavbar items={visibleNavItems} />
+        <MobileNavbar items={visibleNavItems} hud={hud} />
         <div className="flex-1 overflow-auto">
           <div onClick={() => setNavState(true)} className="min-h-full">
             {children}

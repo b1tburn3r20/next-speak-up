@@ -39,6 +39,13 @@ model User {
   locations       UserLocation[]
   policyTopics    UserPolicyTopic[]
   billVotes       UserBillVote[]
+  billGateSkips   UserBillSkip[]
+  xpEvents        XpEvent[]
+  civicActions    CivicAction[]
+  // Off unless they choose it, because being listed shows they use this app, and their state.
+  leaderboardOptIn    Boolean   @default(false)
+  // Set by a moderator. They stay off the board even if opted in.
+  leaderboardHiddenAt DateTime?
   billFollows     UserBillFollow[]
   personFavorites UserPersonFavorite[]
   repAlignments   UserRepAlignment[]

@@ -10,9 +10,11 @@ import type { NavItem as NavItemData } from "../../data/navbar-data";
 import NavItem from "../nav-item";
 import { BottomNav } from "./bottom-nav";
 import { SearchButton } from "@/components/search/search-dialog";
+import { Hud, HudStrip } from "@/components/civic/hud";
+import type { HudProgress } from "@/lib/civic/progress";
 
 /** The top bar and slide-out menu, shown only below the medium breakpoint. */
-export function MobileNavbar({ items }: { items: NavItemData[] }) {
+export function MobileNavbar({ items, hud }: { items: NavItemData[]; hud: HudProgress | null }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -25,9 +27,11 @@ export function MobileNavbar({ items }: { items: NavItemData[] }) {
             alt=""
             src="/images/assets/logo.png"
             style={{ width: 100, height: "auto" }}
+            loading="eager"
           />
         </Link>
         <div className="flex items-center gap-1">
+          {hud ? <Hud initial={hud} /> : null}
           <SearchButton compact />
           <Button
             variant="ghost"
@@ -41,6 +45,7 @@ export function MobileNavbar({ items }: { items: NavItemData[] }) {
           </Button>
         </div>
       </div>
+      {hud ? <HudStrip initial={hud} /> : null}
 
       {open ? (
         <>

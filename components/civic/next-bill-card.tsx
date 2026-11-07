@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { BillWhen } from "@/components/bills/bill-when";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { buttonVariants } from "@/components/ui/button";
 import type { QueueItem } from "@/lib/civic/engage";
@@ -10,7 +9,7 @@ import { billPath } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 const REASON: Record<QueueItem["reason"], string> = {
-  REP_VOTED: "Your rep just voted on this",
+  REP_VOTED: "Your rep voted on this. Did you agree?",
   FLOOR: "Coming up in the House",
   RECENT: "Your next bill",
 };
@@ -41,9 +40,6 @@ export function NextBillCard({ item }: { item: QueueItem }) {
           {digest.lead}
         </p>
       ) : null}
-      <p>
-        <BillWhen bill={bill} />
-      </p>
       <span className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}>
         Vote on this bill
         <ArrowRight className="size-4" aria-hidden />

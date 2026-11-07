@@ -30,7 +30,7 @@ function respondWith(reps: unknown[] = [REP]) {
 }
 
 beforeEach(() => {
-  useCivicStore.setState({ votes: {}, follows: {}, favorites: {}, reveals: {}, voteDelta: 0, reward: null });
+  useCivicStore.setState({ votes: {}, follows: {}, favorites: {}, reveals: {}, reward: null });
   fetchMock.mockReset();
   respondWith();
   vi.stubGlobal("fetch", fetchMock);
@@ -92,7 +92,7 @@ describe("voting", () => {
       fireEvent.click(screen.getByTestId("vote-support"));
     });
     expect(screen.getByTestId("vote-support").getAttribute("aria-pressed")).toBe("false");
-    expect(useCivicStore.getState().voteDelta).toBe(0);
+    expect(useCivicStore.getState().reward).toBeNull();
     expect(useCivicStore.getState().reward).toBeNull();
   });
 
@@ -102,7 +102,7 @@ describe("voting", () => {
       fireEvent.click(screen.getByTestId("vote-support"));
     });
     expect(useCivicStore.getState().reward).toBeNull();
-    expect(useCivicStore.getState().voteDelta).toBe(0);
+    expect(useCivicStore.getState().reward).toBeNull();
   });
 });
 

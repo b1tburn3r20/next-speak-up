@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { blockPaidServices, seedPassword } from "./helpers";
+import { blockPaidServices, seedPassword, BASE_URL } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await blockPaidServices(page);
@@ -12,7 +12,7 @@ async function session(page) {
 
 test("logging in creates a real database session NextAuth recognizes", async ({ page }) => {
   const response = await page.request.post("/api/account/login", {
-    headers: { origin: "http://localhost:3000" },
+    headers: { origin: BASE_URL },
     data: { identifier: "test_member", password: seedPassword() },
   });
   expect(response.status()).toBe(200);
@@ -24,7 +24,7 @@ test("logging in creates a real database session NextAuth recognizes", async ({ 
 
 test("session responses never include a password hash", async ({ page }) => {
   await page.request.post("/api/account/login", {
-    headers: { origin: "http://localhost:3000" },
+    headers: { origin: BASE_URL },
     data: { identifier: "test_member", password: seedPassword() },
   });
   const text = await (await page.request.get("/api/auth/session")).text();
@@ -34,14 +34,14 @@ test("session responses never include a password hash", async ({ page }) => {
 
 test("logging in also works with an email address", async ({ page }) => {
   const response = await page.request.post("/api/account/login", {
-    headers: { origin: "http://localhost:3000" },
+    headers: { origin: BASE_URL },
     data: { identifier: "TEST_MEMBER@coolbills.test", password: seedPassword() },
   });
   expect(response.status()).toBe(200);
 });
 
 test("a wrong password and an unknown user get the same answer", async ({ page }) => {
-  const headers = { origin: "http://localhost:3000" };
+  const headers = { origin: BASE_URL };
   const wrong = await page.request.post("/api/account/login", {
     headers,
     data: { identifier: "test_member", password: "wrong password" },
@@ -67,7 +67,7 @@ test("signing up creates a Member who is logged in, and duplicates are refused",
   page,
 }) => {
   const username = `e2e_${Date.now()}`;
-  const headers = { origin: "http://localhost:3000" };
+  const headers = { origin: BASE_URL };
   const data = { username, email: `${username}@coolbills.test`, password: "a good password" };
   const created = await page.request.post("/api/account/signup", { headers, data });
   expect(created.status()).toBe(201);
@@ -82,7 +82,7 @@ test("signing up creates a Member who is logged in, and duplicates are refused",
 
 test("weak signup details are refused", async ({ page }) => {
   const response = await page.request.post("/api/account/signup", {
-    headers: { origin: "http://localhost:3000" },
+    headers: { origin: BASE_URL },
     data: { username: "ok_name", email: "ok@coolbills.test", password: "short" },
   });
   expect(response.status()).toBe(400);
@@ -90,7 +90,7 @@ test("weak signup details are refused", async ({ page }) => {
 
 test("signing out through NextAuth ends a password session", async ({ page }) => {
   await page.request.post("/api/account/login", {
-    headers: { origin: "http://localhost:3000" },
+    headers: { origin: BASE_URL },
     data: { identifier: "test_member", password: seedPassword() },
   });
   expect((await session(page)).user).toBeTruthy();

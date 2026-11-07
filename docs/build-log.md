@@ -40,3 +40,7 @@ All [acceptance criteria](acceptance-criteria.md) are met on the data loaded so 
 ## Controls moved to the kit (2026-11-06)
 
 Native selects, inputs, buttons, details, and tables moved to `components/ui`, which is now restyled to match the app. Added `OptionSelect`, `Disclosure`, `Progress`, `Kbd`, and a `choice` button. ESLint now rejects native controls outside the kit. The roll call page's state filter became a dropdown, so it can't take an invalid state.
+
+## Vote first and the XP ledger (2026-11-07)
+
+Bill pages ask for a vote before showing status, with a skip link. The queue now leads with bills still in play. XP moved to a ledger, with a bar on every page. Returning to the dashboard after voting used to count those votes twice, because it added them to server numbers that already included them. Browser tests now run their own server on port 3100.

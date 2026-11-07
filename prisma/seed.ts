@@ -3,6 +3,7 @@
 import { PrismaClient, VotePosition } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { ensureRbac } from "./rbac";
+import { backfillXp } from "./xp-backfill";
 
 const STATE_NAMES: Record<string, string> = {
   TX: "Texas",
@@ -178,6 +179,8 @@ async function main() {
         });
       }
     }
+
+    await backfillXp(prisma);
 
     console.log(
       `Seeded ${ROLES.length} roles, ${users.length} users, votes on ${bills.length} bills.`,

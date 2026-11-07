@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { blockPaidServices, expectNoHorizontalOverflow, loginAs } from "./helpers";
+import { blockPaidServices, expectNoHorizontalOverflow, loginAs, BASE_URL } from "./helpers";
 
 const SAMPLE_BILL = "/federal/bills/us-119-hr-2388";
 const SAMPLE_MEMBER = "/federal/legislators/T000193";
@@ -174,7 +174,7 @@ test("site search finds members and bills, and goes to them", async ({ page }, t
 test("changing state in the older settings form updates your reps", async ({ page }) => {
   const username = `e2e_st_${Date.now()}`;
   await page.request.post("/api/account/signup", {
-    headers: { origin: "http://localhost:3000" },
+    headers: { origin: BASE_URL },
     data: { username, email: `${username}@coolbills.test`, password: "a good password" },
   });
   const response = await page.request.patch("/api/user/settings/state", {

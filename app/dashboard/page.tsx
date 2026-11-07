@@ -26,6 +26,7 @@ import { billLabel } from "@/lib/civic/labels";
 import { computeNextSteps } from "@/lib/civic/next-steps";
 import { listFavoriteMembers } from "@/lib/civic/people";
 import { computeProgress } from "@/lib/civic/progress";
+import { getHudProgress } from "@/lib/civic/xp";
 import { getUserBillStates, getUserDashboardLists, getUserMetrics, getUserTopics } from "@/lib/civic/users";
 import { NextBillCard } from "@/components/civic/next-bill-card";
 import { RepWorkCard } from "@/components/civic/rep-work-card";
@@ -164,7 +165,9 @@ export default async function DashboardPage() {
     getVoteQueue(userId, repIds, 1, now, topics),
   ]);
   const nextBill = queue[0];
+  const hud = await getHudProgress(userId, now);
   const progress = computeProgress({
+    xp: hud.xp,
     voteDates: facts.voteDates,
     now,
     repsFound: reps.length > 0,
@@ -195,13 +198,7 @@ export default async function DashboardPage() {
         <h1 className="break-words text-2xl font-extrabold leading-tight sm:text-3xl">
           {name ? `Welcome back, ${name}` : "Welcome back"}
         </h1>
-        <ProgressStrip
-          streak={progress.streak}
-          xp={progress.xp}
-          level={progress.level}
-          votedToday={progress.votedToday}
-          dailyGoal={progress.dailyGoal}
-        />
+        <ProgressStrip initial={hud} />
       </header>
 
       {metrics.reps.length === 0 ? <NextStepCard step={steps[0]} /> : null}

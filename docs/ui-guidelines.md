@@ -78,6 +78,16 @@ People relate to relative times. Show every date with `RelativeDate` from `compo
 
 A role has many permissions. **Code asks about a permission, never a role's name**: `can(session, "users.manage")` in a page or component, and `requirePermission("users.manage")` in an API route. Hiding a button protects nothing, so a route must always check. The catalog is `PERMISSIONS` in `lib/auth/permissions.ts`. Rate limits are the one exception: they're tiers, set by role.
 
+## Vote first
+
+Someone signed in who hasn't voted on a bill sees `VoteGateCard`: what it is, what it does, and Support or Oppose, with a small link to read on without voting. The server doesn't send where it stands until they choose. Signed-out visitors and search engines see the whole page, because they can't vote.
+
+Any card that asks for a vote keeps status inside `AfterVote`. After a vote, `BillOutlookCard` says what the status means for them. An already-passed bill still matters, because it shows whether their reps represent them. Lists for browsing, like `/federal/bills`, keep status, because people filter by it.
+
+## XP
+
+The bar on every page, `Hud`, is the one place progress lives. Read it with `useProgress`, which takes the server's value for the first paint. The `XpEvent` ledger is the truth, and every action has one fixed reward in `XP_AMOUNTS`. Support and Oppose always earn the same: the app never rewards a side. Never reward voting in a real election.
+
 ## Components
 
 Build every control from `components/ui`, and customize it there, so a change reaches everywhere at once. ESLint rejects a native `select`, `textarea`, `input`, `button`, `label`, `table`, `progress`, `details`, or `kbd` outside that folder.

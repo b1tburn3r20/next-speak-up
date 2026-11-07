@@ -14,7 +14,11 @@ import { BillListenButton } from "@/components/bills/bill-listen-button";
 import { RollCallCard } from "@/components/bills/roll-call-card";
 import { ShareButton } from "@/components/bills/share-button";
 import { FloorCategoryPill } from "@/components/bills/upcoming-bill-card";
-import { Flex, OuterBlock, PageShell, Section, Stack } from "@/components/blocks";
+import { VoteGateCard } from "@/components/bills/vote-gate-card";
+import { VoteResultAnchor } from "@/components/bills/vote-result-anchor";
+import { Flex, OuterBlock, PageShell, Section, Stack, WithRail } from "@/components/blocks";
+import { AfterVote } from "@/components/civic/after-vote";
+import { BillOutlookCard } from "@/components/civic/bill-outlook-card";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { RevealPanel } from "@/components/civic/reveal-panel";
@@ -115,11 +119,7 @@ export default async function BillPage({ params }: PageProps) {
     recordBillView(userId, bill.id).catch(() => undefined);
   }
 
-  const [floorItem, textAvailable, breakdowns] = await Promise.all([
-    getBillFloorItem(bill.id),
-    hasBillText(bill.id),
-    getPartyBreakdowns(bill.rollCalls.map((rollCall) => rollCall.id)),
-  ]);
+  const [floorItem, textAvailable] = await Promise.all([getBillFloorItem(bill.id), hasBillText(bill.id)]);
 
   const sponsors = bill.sponsorships.filter((item) => item.kind === "SPONSOR");
   const cosponsors = bill.sponsorships.filter((item) => item.kind === "COSPONSOR");
@@ -127,11 +127,32 @@ export default async function BillPage({ params }: PageProps) {
   const digest = buildDigest(summary?.text);
   const label = billLabel(bill.billType, bill.number);
   const area = policyAreaByName(bill.policyArea);
+
+  // Vote first, then find out. Signed-out visitors and search engines can't vote, so they see it all.
+  if (userId && !state?.position && !state?.skippedGate) {
+    return (
+      <PageShell width="narrow">
+        <VoteGateCard
+          slug={bill.slug}
+          label={label}
+          title={bill.title}
+          policyArea={bill.policyArea}
+          explanation={area?.explanation ?? null}
+          digest={digest}
+          textHref={textAvailable ? billTextPath(bill.slug) : null}
+          floorNotice={floorItem ? weekLabel(floorItem.weekOf, new Date()) : null}
+          sponsor={sponsors[0] ? <PersonRow sponsorship={sponsors[0]} size={44} /> : null}
+        />
+      </PageShell>
+    );
+  }
+
+  const breakdowns = await getPartyBreakdowns(bill.rollCalls.map((rollCall) => rollCall.id));
   const hasFinalVote = bill.rollCalls.length > 0;
   const pendingSenateVotes = missingSenateVotes(bill.actions, bill.rollCalls);
 
   return (
-    <PageShell width="narrow">
+    <PageShell>
       <header className="space-y-3">
         <nav>
           <Link href={routes.federal.bills} className="text-sm font-bold text-primary hover:underline">
@@ -155,7 +176,9 @@ export default async function BillPage({ params }: PageProps) {
         <BillProgress status={bill.currentStatus as BillStatusValue} />
       </header>
 
-      <OuterBlock className="space-y-3" aria-labelledby="digest-heading" data-testid="digest">
+      <WithRail
+        lead={
+          <OuterBlock className="space-y-3" aria-labelledby="digest-heading" data-testid="digest">
         <h2 id="digest-heading" className="flex items-center gap-1.5 text-sm font-extrabold uppercase tracking-wide text-muted-foreground">
           <Sparkles className="size-4 text-primary" aria-hidden />
           In short
@@ -205,8 +228,11 @@ export default async function BillPage({ params }: PageProps) {
           ) : null}
         </Flex>
       </OuterBlock>
-
-      <OuterBlock className="space-y-3" data-testid="your-vote">
+        }
+        rail={
+          <>
+          <VoteResultAnchor slug={bill.slug} />
+          <OuterBlock className="space-y-3" data-testid="your-vote">
         {floorItem ? (
           <div className="space-y-1 rounded-xl bg-primary-tint p-3" data-testid="floor-notice">
             <p className="font-extrabold">On the House floor schedule: {weekLabel(floorItem.weekOf, new Date())}</p>
@@ -225,6 +251,9 @@ export default async function BillPage({ params }: PageProps) {
           initialFollowing={state?.following ?? false}
           size="lg"
         />
+        <AfterVote slug={bill.slug} initialPosition={state?.position ?? null}>
+          <BillOutlookCard status={bill.currentStatus} />
+        </AfterVote>
         <RevealPanel
           slug={bill.slug}
           signedIn={Boolean(userId)}
@@ -234,7 +263,9 @@ export default async function BillPage({ params }: PageProps) {
           <ShareButton title={`${label}: ${bill.title}`} />
         </Flex>
       </OuterBlock>
-
+          </>
+        }
+      >
       <Section title="Who's behind it">
         <OuterBlock className="space-y-3">
           <p className="text-sm font-extrabold text-muted-foreground">
@@ -422,6 +453,7 @@ export default async function BillPage({ params }: PageProps) {
           </a>
         </p>
       ) : null}
+      </WithRail>
     </PageShell>
   );
 }

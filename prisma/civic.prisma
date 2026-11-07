@@ -181,6 +181,7 @@ model Person {
   positions    RollCallPosition[]
   favoritedBy  UserPersonFavorite[]
   alignments   UserRepAlignment[]
+  civicActions CivicAction[]
   memberStat   MemberStat?
   policyStats  MemberPolicyStat[]
 
@@ -264,6 +265,8 @@ model Bill {
   summaries     BillSummaryVersion[]
   rollCalls     RollCall[]
   userVotes     UserBillVote[]
+  gateSkips     UserBillSkip[]
+  civicActions  CivicAction[]
   follows       UserBillFollow[]
   floorItems    FloorScheduleItem[]
   textContents  BillTextContent[]
@@ -531,6 +534,70 @@ model UserLocation {
   @@id([userId, jurisdictionId])
   @@index([districtId])
   @@map("user_location")
+}
+
+// Chose to read a bill without voting first, so it stops asking.
+model UserBillSkip {
+  userId    String
+  billId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@id([userId, billId])
+  @@index([billId])
+  @@map("user_bill_skip")
+}
+
+enum XpKind {
+  VOTE
+  AHEAD_OF_VOTE
+  DAILY_GOAL
+  CONTACTED_REP
+  ATTENDED_EVENT
+}
+
+// One row per reward. The unique key means repeating an action can't earn twice.
+model XpEvent {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  kind      XpKind
+  amount    Int
+  // What it was for: a bill id, a date, or an event
+  refKey    String   @db.VarChar(80)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind, refKey])
+  @@index([userId, createdAt])
+  @@index([createdAt, userId])
+  @@map("xp_event")
+}
+
+enum CivicActionKind {
+  CONTACTED_REP
+  ATTENDED_EVENT
+}
+
+// Something a person says they did. Always self-reported, and never shown as verified.
+model CivicAction {
+  id        Int             @id @default(autoincrement())
+  userId    String
+  kind      CivicActionKind
+  billId    Int?
+  personId  Int?
+  createdAt DateTime        @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bill   Bill?   @relation(fields: [billId], references: [id], onDelete: SetNull)
+  person Person? @relation(fields: [personId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([billId])
+  @@index([personId])
+  @@map("civic_action")
 }
 
 model UserBillVote {

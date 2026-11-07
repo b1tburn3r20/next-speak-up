@@ -6,8 +6,9 @@
 // - The server renders first paint from the database, and components take that as an initial
 //   value. This store only holds what's changed since. It's never written during server rendering,
 //   because a module-level store would be shared between users there.
+import { useEffect } from "react";
 import { create } from "zustand";
-import { XP_PER_VOTE } from "@/lib/civic/progress";
+import { applyVote, celebrate, XP_AMOUNTS, type HudProgress } from "@/lib/civic/progress";
 
 export type Choice = "YEA" | "NAY";
 
@@ -28,7 +29,13 @@ export type RevealState =
   | { status: "error"; message: string }
   | { status: "ready"; reps: RepReveal[] };
 
-export type Reward = { id: number; xp: number; message: string };
+export type Reward = {
+  id: number;
+  xp: number;
+  message: string;
+  /** Something bigger than XP, like a new level. It gets confetti. */
+  celebration: string | null;
+};
 
 type CivicState = {
   votes: Record<string, Choice | null>;
@@ -37,8 +44,17 @@ type CivicState = {
   /** Policy areas started or stopped since the page loaded. */
   topics: Record<string, boolean>;
   reveals: Record<string, RevealState>;
-  /** Votes cast or undone since this page was loaded, added to the server's numbers. */
-  voteDelta: number;
+  /**
+   * The one copy of streak, level, and XP. Seeded once by the server, moved right away on a vote, and
+   * replaced by the server's answer. Server pages must not add votes on top of their own numbers, or
+   * returning to a page counts them twice.
+   */
+  progress: HudProgress | null;
+  /** The bill just voted on from its gate, so the next render can bring the result into view. */
+  justVoted: string | null;
+  setJustVoted: (slug: string | null) => void;
+  seedProgress: (progress: HudProgress) => void;
+  setProgress: (progress: HudProgress) => void;
   reward: Reward | null;
   /** How many of your reps' votes you haven't weighed in on. Null until loaded. */
   pulseCount: number | null;
@@ -53,7 +69,7 @@ type CivicState = {
   clearReward: () => void;
 };
 
-async function postJson(url: string, body: unknown): Promise<void> {
+async function postJson(url: string, body: unknown): Promise<Record<string, unknown> | null> {
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -65,6 +81,7 @@ async function postJson(url: string, body: unknown): Promise<void> {
     const data = await response.json().catch(() => null);
     throw new Error(data?.error ?? "That didn't save. Please try again.");
   }
+  return response.json().catch(() => null);
 }
 
 let pulseRequest: Promise<void> | null = null;
@@ -76,7 +93,13 @@ export const useCivicStore = create<CivicState>((set, get) => ({
   favorites: {},
   topics: {},
   reveals: {},
-  voteDelta: 0,
+  progress: null,
+  justVoted: null,
+  setJustVoted: (slug) => set({ justVoted: slug }),
+  seedProgress: (progress) => {
+    if (get().progress?.userId !== progress.userId) set({ progress });
+  },
+  setProgress: (progress) => set({ progress }),
   reward: null,
   pulseCount: null,
 
@@ -102,23 +125,32 @@ export const useCivicStore = create<CivicState>((set, get) => ({
 
   castVote: async (slug, choice, previous) => {
     const change = (choice === null ? 0 : 1) - (previous === null ? 0 : 1);
+    const before = get().progress;
+    const after = before ? applyVote(before, change) : null;
     set((state) => ({
       votes: { ...state.votes, [slug]: choice },
-      voteDelta: state.voteDelta + change,
+      progress: after ?? state.progress,
       reward:
         change > 0
-          ? { id: ++rewardId, xp: XP_PER_VOTE, message: `+${XP_PER_VOTE} XP` }
+          ? {
+              id: ++rewardId,
+              xp: after && before ? after.xp - before.xp : XP_AMOUNTS.VOTE,
+              message: `+${after && before ? after.xp - before.xp : XP_AMOUNTS.VOTE} XP`,
+              celebration: before && after ? celebrate(before, after) : null,
+            }
           : state.reward,
     }));
     try {
-      await postJson("/api/civic/bills/vote", { slug, position: choice });
+      const data = await postJson("/api/civic/bills/vote", { slug, position: choice });
+      // The server's numbers include bonuses this tab can't know about.
+      if (data?.progress) set({ progress: data.progress as HudProgress });
       // Voting may clear one of your reps' votes. The server knows which.
       if (change !== 0) get().loadPulseCount(true);
       return true;
     } catch (error) {
       set((state) => ({
         votes: { ...state.votes, [slug]: previous },
-        voteDelta: state.voteDelta - change,
+        progress: before,
         reward: null,
       }));
       throw error;
@@ -188,3 +220,14 @@ export const useCivicStore = create<CivicState>((set, get) => ({
 
   clearReward: () => set({ reward: null }),
 }));
+
+/**
+ * Progress for whoever's signed in. Until the store has it, this is the server's value, so it's right
+ * in the first paint. It ignores another account's numbers, in case someone switches without a reload.
+ */
+export function useProgress(initial: HudProgress): HudProgress {
+  const stored = useCivicStore((state) => state.progress);
+  const seed = useCivicStore((state) => state.seedProgress);
+  useEffect(() => seed(initial), [seed, initial]);
+  return stored?.userId === initial.userId ? stored : initial;
+}

@@ -296,3 +296,33 @@ html {
 html body[data-scroll-locked] {
   margin-right: 0 !important;
 }
+
+/* XP rises toward the bar at the top of the page. */
+@keyframes xp-fly {
+  0% {
+    opacity: 0;
+    transform: translate(0, 12px) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1.05);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(min(38vw, 30rem), -4.5rem) scale(0.6);
+  }
+}
+
+.animate-xp-fly {
+  animation: xp-fly 1100ms ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-xp-fly {
+    animation: none;
+  }
+}

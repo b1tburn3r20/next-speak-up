@@ -1,8 +1,8 @@
 // Federal routes, relative dates, onboarding, the tailored dashboard, search, and permissions.
 import { expect, test, type Page } from "@playwright/test";
-import { blockPaidServices, chooseOption, loginAs } from "./helpers";
+import { blockPaidServices, chooseOption, loginAs, BASE_URL } from "./helpers";
 
-const ORIGIN = { origin: "http://localhost:3000" };
+const ORIGIN = { origin: BASE_URL };
 
 test.beforeEach(async ({ page }) => {
   await blockPaidServices(page);
@@ -165,7 +165,7 @@ test.describe("relative dates", () => {
       hasTouch: true,
       isMobile: true,
       viewport: { width: 390, height: 800 },
-      baseURL: "http://localhost:3000",
+      baseURL: BASE_URL,
     });
     const page = await context.newPage();
     await page.goto("/federal/bills");
@@ -266,7 +266,7 @@ test.describe("onboarding", () => {
     const context = await browser.newContext({
       geolocation: { latitude: 41.14, longitude: -104.82 },
       permissions: ["geolocation"],
-      baseURL: "http://localhost:3000",
+      baseURL: BASE_URL,
     });
     const page = await context.newPage();
     await blockPaidServices(page);
@@ -303,7 +303,7 @@ test.describe("onboarding", () => {
 
   test("signed out goes home", async ({ page }) => {
     await page.goto("/onboarding");
-    await expect(page).toHaveURL(/localhost:3000\/$/);
+    await expect(page).toHaveURL(/localhost:3100\/$/);
   });
 
   test("rejects a topic that doesn't exist", async ({ page }) => {
@@ -326,7 +326,8 @@ test.describe("dashboard", () => {
     const next = main.getByTestId("next-bill");
     await expect(next).toBeVisible();
     await expect(next.getByRole("heading")).not.toBeEmpty();
-    await expect(next.getByTestId("relative-date")).toBeVisible();
+    // Where a bill stands waits until after the vote.
+    await expect(next.getByTestId("relative-date")).toHaveCount(0);
 
     const work = main.getByTestId("dashboard-rep-work").getByTestId("rep-work");
     await expect(work).toHaveCount(3);

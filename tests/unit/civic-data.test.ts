@@ -3,16 +3,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const prismaMock = vi.hoisted(() => ({
   bill: { findMany: vi.fn(), findUnique: vi.fn() },
-  userBillVote: { findMany: vi.fn(), upsert: vi.fn(), deleteMany: vi.fn() },
+  userBillVote: { findMany: vi.fn(), findUnique: vi.fn(), upsert: vi.fn(), deleteMany: vi.fn() },
   rollCallPosition: { findMany: vi.fn() },
   userRepAlignment: { deleteMany: vi.fn(), createMany: vi.fn(), findMany: vi.fn() },
   userLocation: { findFirst: vi.fn() },
   person: { findMany: vi.fn() },
   userBillFollow: { count: vi.fn() },
   rollCall: { aggregate: vi.fn() },
-  $transaction: vi.fn((operations: unknown[]) => Promise.all(operations)),
+  // Takes a list of operations, or a callback that receives the transaction client.
+  $transaction: vi.fn((work: unknown): Promise<unknown> =>
+    typeof work === "function" ? work(prismaMock) : Promise.all(work as unknown[]),
+  ),
 }));
 vi.mock("@/prisma/client", () => ({ default: prismaMock }));
+// The ledger has its own tests. This file is about votes and alignment.
+vi.mock("@/lib/civic/xp", () => ({ awardVoteXp: vi.fn(), removeVoteXp: vi.fn() }));
 vi.mock("react", async (original) => ({
   ...(await original<typeof import("react")>()),
   cache: <T,>(fn: T) => fn,

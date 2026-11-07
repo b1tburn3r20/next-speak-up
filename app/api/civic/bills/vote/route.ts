@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { checkRateLimit, getUserRole } from "@/lib/ratelimiter";
 import { castBillVote, removeBillVote } from "@/lib/civic/users";
+import { getHudProgress } from "@/lib/civic/xp";
 
 const voteSchema = z.object({
   slug: z.string().min(1).max(80),
@@ -30,5 +31,5 @@ export async function POST(request: NextRequest) {
   if (!found) {
     return NextResponse.json({ error: "Bill not found." }, { status: 404 });
   }
-  return NextResponse.json({ position });
+  return NextResponse.json({ position, progress: await getHudProgress(session.user.id) });
 }

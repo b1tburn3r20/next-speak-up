@@ -24,7 +24,7 @@ export function PageShell({
     <div
       className={cn(
         "mx-auto w-full space-y-8 px-4 pb-8 pt-5 sm:px-6 sm:pt-8",
-        width === "narrow" ? "max-w-2xl" : "max-w-5xl",
+        width === "narrow" ? "max-w-2xl" : "max-w-7xl",
         className,
       )}
       {...rest}
@@ -62,6 +62,34 @@ export function PageHeader({
         {action}
       </div>
     </header>
+  );
+}
+
+/**
+ * The main column and a side rail that stays in view on a large screen. On a phone everything is
+ * one column in order: `lead`, then `rail`, then `children`.
+ */
+export function WithRail({
+  lead,
+  rail,
+  className,
+  children,
+}: {
+  lead?: React.ReactNode;
+  rail: React.ReactNode;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn("grid gap-8 lg:grid-cols-[minmax(0,1fr)_23rem] lg:grid-rows-[auto_1fr]", className)}>
+      {lead ? <div className="min-w-0 lg:col-start-1 lg:row-start-1">{lead}</div> : null}
+      <aside className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
+        {rail}
+      </aside>
+      <div className={cn("min-w-0 space-y-8 lg:col-start-1", lead ? "lg:row-start-2" : "lg:row-span-2 lg:row-start-1")}>
+        {children}
+      </div>
+    </div>
   );
 }
 

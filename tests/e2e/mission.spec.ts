@@ -1,6 +1,6 @@
 // The product's promises, from docs/acceptance-criteria.md.
 import { expect, test, type Page } from "@playwright/test";
-import { blockPaidServices, chooseOption, expectNoHorizontalOverflow, loginAs } from "./helpers";
+import { blockPaidServices, chooseOption, expectNoHorizontalOverflow, loginAs, BASE_URL } from "./helpers";
 
 const main = (page: Page) => page.getByRole("main");
 
@@ -8,18 +8,18 @@ async function newUser(page: Page, tag: string, state = "WY") {
   // Usernames have a length limit, so only the tag's start and a short random part are used.
   const username = `e2e_${tag.slice(0, 5)}_${Math.random().toString(36).slice(2, 10)}`;
   const response = await page.request.post("/api/account/signup", {
-    headers: { origin: "http://localhost:3000" },
+    headers: { origin: BASE_URL },
     data: { username, email: `${username}@coolbills.test`, password: "a good password" },
   });
   expect(response.status()).toBe(201);
   const done = await page.request.patch("/api/civic/onboarding", {
-    headers: { origin: "http://localhost:3000" },
+    headers: { origin: BASE_URL },
     data: { complete: true },
   });
   expect(done.ok()).toBeTruthy();
   if (state) {
     const saved = await page.request.post("/api/civic/location", {
-      headers: { origin: "http://localhost:3000" },
+      headers: { origin: BASE_URL },
       data: { mode: "manual", regionCode: state, districtCode: "AL" },
     });
     expect(saved.ok(), "location saved").toBeTruthy();
@@ -47,6 +47,13 @@ test.describe("voting before finding out", () => {
 
   test("a bill page's HTML has no rep positions for a signed-in user who hasn't voted", async ({ page }) => {
     await newUser(page, "billblind");
+    const gated = await (await page.request.get("/federal/bills/us-119-s-4465")).text();
+    expect(gated).toContain("vote-gate");
+    expect(gated).not.toContain("reveal-row");
+    // Choosing to read on still doesn't show how they voted.
+    await page.goto("/federal/bills/us-119-s-4465");
+    await page.getByTestId("gate-skip").click();
+    await expect(page.getByTestId("reveal-hidden")).toBeVisible();
     const html = await (await page.request.get("/federal/bills/us-119-s-4465")).text();
     expect(html).toContain("reveal-hidden");
     expect(html).not.toContain("reveal-row");
@@ -167,10 +174,11 @@ test.describe("the dashboard", () => {
     const count = async () => (await (await page.request.get("/api/civic/pulse")).json()).count;
     const before = await count();
     expect(before).toBeGreaterThan(0);
-    await page.goto("/vote");
+    // The queue leads with scheduled bills, so this picks one your reps actually voted on.
+    await page.goto("/dashboard");
     await page.waitForLoadState("networkidle");
     const saved = page.waitForResponse("**/api/civic/bills/vote");
-    await page.getByTestId("vote-support").click();
+    await page.getByTestId("pulse").getByTestId("vote-support").first().click();
     await saved;
     expect(await count()).toBe(before - 1);
     await expect(dot).toBeVisible();

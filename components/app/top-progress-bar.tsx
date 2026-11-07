@@ -117,7 +117,7 @@ export function TopProgressBar() {
         }`}
       >
         <div
-          className={`h-full bg-oppose shadow-[0_0_8px_var(--oppose)] motion-reduce:transition-none ${
+          className={`h-full bg-primary shadow-[0_0_8px_var(--primary)] motion-reduce:transition-none ${
             percent === 0 ? "" : "transition-[width] duration-200 ease-out"
           }`}
           style={{ width: `${percent}%` }}

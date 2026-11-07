@@ -51,7 +51,8 @@ npx prisma generate --schema=./prisma                 # after install and after 
 - **Creating migrations:** `prisma migrate dev` needs an interactive terminal. Otherwise, write the output of `prisma migrate diff --from-schema-datasource ./prisma --to-schema-datamodel ./prisma --script` to a new folder in `prisma/migrations/`, then run `npm run db:deploy`.
 - **Lint:** ESLint stays on version 9, because `eslint-plugin-react` crashes on 10. Three rules are warnings in `eslint.config.mjs`, because older code trips them. New code shouldn't add to those.
 - **Browser tests:** they need MySQL running, migrations applied, the pipeline's data loaded, and `npm run db:seed`. `pages.spec.ts` and `features.spec.ts` expect specific imported records, such as `us-119-hr-2388` and `us-119-s-4465`. `location.spec.ts` calls the live Census geocoder, which is free. Unit tests mock the database and need none of this.
-- **Paid services in tests:** new browser tests should call `blockPaidServices` from `tests/e2e/helpers.ts`. Playwright only blanks the paid keys on a dev server it starts itself, and reuses any already running, so stop your own `npm run dev` first.
+- **Paid services in tests:** new browser tests should call `blockPaidServices` from `tests/e2e/helpers.ts`. Playwright starts its own dev server on port 3100 with paid keys blanked, in `.next-test`, so it runs beside `npm run dev` on 3000.
+- **After a schema change:** a running `npm run dev` holds the old Prisma client, and on Windows it locks the engine file, so stop it before `prisma generate`.
 - **Build checks:** `next.config.mjs` sets `typescript.ignoreBuildErrors` and `tsconfig.json` has `strict: false`. A passing build says nothing about types, so run `tsc` separately. It should report no errors.
 - **Test accounts:** `npm run db:seed` creates `test_superadmin`, `test_admin`, `test_supporter`, `test_member`, and `test_newuser`. Their password is `SEED_USER_PASSWORD` in `.env`.
 
@@ -123,6 +124,8 @@ Both paid routes need a signed-in user, and use text from the database, never te
 ### Frontend layout
 
 - **Navigation:** `app/navbar/varients/client-navbar.tsx` uses one layout with CSS breakpoints. Don't branch on screen size in JavaScript to choose page content, because that blocks server rendering. Links are in `app/data/navbar-data.ts`, and `activeNavHref` picks the one active link.
+- **Vote first:** a signed-in user who hasn't voted on a bill gets `VoteGateCard`, and the server doesn't send the bill's status until they vote or skip. Cards that ask for a vote keep status inside `AfterVote`.
+- **XP:** `lib/civic/xp.ts` writes the `XpEvent` ledger, and its unique key stops an action earning twice. `useProgress` is the one copy on the client. Server pages must not add votes to their own numbers.
 - **Dates:** show them with `RelativeDate`. `billMoment` and `floorMoment` choose what to say about a bill.
 - **Search:** `lib/search/registry.ts` lists the providers, and `/api/search/[provider]` runs one at a time. See `docs/ui-guidelines.md`.
 - **Onboarding:** `/onboarding`. `OnboardingGate` sends new accounts there.
