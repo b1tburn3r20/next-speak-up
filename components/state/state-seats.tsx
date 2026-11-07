@@ -4,6 +4,7 @@ import { Grid, OuterBlock } from "@/components/blocks";
 import { RepReportCard } from "@/components/civic/rep-report-card";
 import type { RepRecap } from "@/lib/civic/engage";
 import type { MemberCard } from "@/lib/civic/people";
+import { chamberName, type ChamberKind, type StateConfig } from "@/lib/civic/states";
 import { stateRoutes } from "@/lib/routes";
 
 type Score = {
@@ -14,20 +15,20 @@ type Score = {
 };
 
 export type SeatWithScore = {
-  chamber: "UPPER" | "LOWER";
+  chamber: ChamberKind;
   code: string | null;
   member: MemberCard | null;
   score: Score | null;
 };
 
-const CHAMBER = { LOWER: "Iowa House", UPPER: "Iowa Senate" };
-
-/** Their state representative and senator. An empty seat says so, rather than disappearing. */
+/** Someone's state representative and senator. An empty seat says so, rather than disappearing. */
 export function StateSeats({
+  state,
   seats,
   compact = false,
   recaps,
 }: {
+  state: StateConfig;
   seats: SeatWithScore[];
   compact?: boolean;
   recaps?: Map<number, RepRecap>;
@@ -36,9 +37,9 @@ export function StateSeats({
     return (
       <OuterBlock data-testid="seats-unknown">
         <p className="text-sm">
-          We know you&apos;re in Iowa, but not your districts.{" "}
-          <Link href={stateRoutes.home} className="font-bold text-primary hover:underline">
-            Choose them
+          Your congressional district doesn&apos;t tell us your {chamberName(state, "LOWER")} and {state.chambers.UPPER.name} districts.{" "}
+          <Link href={stateRoutes(state.key).home} className="font-bold text-primary hover:underline">
+            Find them
           </Link>{" "}
           to see your state legislators.
         </p>
@@ -58,12 +59,12 @@ export function StateSeats({
           <OuterBlock key={seat.chamber} className="space-y-2" data-testid="seat-empty">
             <UserRoundX className="size-6 text-muted-foreground" aria-hidden />
             <p className="font-extrabold">
-              {CHAMBER[seat.chamber]}
+              {chamberName(state, seat.chamber)}
               {seat.code ? `, District ${seat.code}` : ""}
             </p>
             <p className="text-sm text-muted-foreground">
               {seat.code
-                ? "This seat is empty right now. The Legislature lists nobody sitting in it."
+                ? "This seat is empty right now. Nobody is listed as sitting in it."
                 : "Choose your district to see who holds this seat."}
             </p>
           </OuterBlock>

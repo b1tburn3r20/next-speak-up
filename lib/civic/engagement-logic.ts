@@ -1,5 +1,5 @@
 // Quests, the policy chart, and the anonymous split. No database access here.
-import { routes, stateRoutes } from "@/lib/routes";
+import { routes } from "@/lib/routes";
 
 /** How someone voted on bills in one policy area. It's about these bills, not the whole topic. */
 export type PolicyLean = { area: string; support: number; oppose: number };
@@ -61,8 +61,8 @@ export function computeQuests(input: {
   topicVotesToday: number;
   trackedTopics: number;
   dailyGoalXp: number;
-  /** Only for Iowans. */
-  iowaVotesToday?: number;
+  /** Only for people in a state we cover. */
+  stateVotes?: { name: string; href: string; today: number };
 }): Quest[] {
   const quest = (id: string, title: string, current: number, goal: number, href: string, bonusXp?: number): Quest => ({
     id,
@@ -79,9 +79,9 @@ export function computeQuests(input: {
     input.trackedTopics > 0
       ? quest("your-topic", "Vote on a topic you track", input.topicVotesToday, 1, routes.vote)
       : quest("pick-topics", "Pick a topic to track", 0, 1, routes.federal.topics),
-    ...(input.iowaVotesToday === undefined
-      ? []
-      : [quest("iowa-bill", "Vote on an Iowa bill", input.iowaVotesToday, 1, stateRoutes.bills)]),
+    ...(input.stateVotes
+      ? [quest("state-bill", `Vote on a bill from ${input.stateVotes.name}`, input.stateVotes.today, 1, input.stateVotes.href)]
+      : []),
   ];
 }
 

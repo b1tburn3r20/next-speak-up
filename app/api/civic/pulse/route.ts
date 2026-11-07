@@ -14,7 +14,7 @@ export async function GET() {
   const location = await getUserLocation(userId);
   if (!location) return NextResponse.json({ count: 0 });
   const reps = await repsForLocation(location.regionCode, location.districtCode);
-  const stateRepIds = location.regionCode === "IA" ? await getStateRepIds(userId) : [];
+  const stateRepIds = await getStateRepIds(userId);
   const count = await countPulse(userId, [...reps.map((rep) => rep.id), ...stateRepIds]);
   return NextResponse.json({ count });
 }

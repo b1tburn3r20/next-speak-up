@@ -75,14 +75,14 @@ export default async function RepsPage() {
       ) : (
         <FindReps />
       )}
-      {metrics.location?.regionCode === "IA" ? (
+      {metrics.userState ? (
         <Section
-          title="Your Statehouse"
-          description="They vote for you in Des Moines. Scores stay separate for each person, and never blend Washington and Iowa together."
-          action={{ href: stateRoutes.home, label: "All of Iowa" }}
+          title="Your statehouse"
+          description={`They vote for you in ${metrics.userState.name}'s capitol. Scores stay separate for each person, and never blend Washington and your state together.`}
+          action={{ href: stateRoutes(metrics.userState.key).home, label: `All of ${metrics.userState.name}` }}
           data-testid="reps-statehouse"
         >
-          <StateSeats seats={metrics.stateSeats} recaps={recaps} />
+          <StateSeats state={metrics.userState} seats={metrics.stateSeats} recaps={recaps} />
         </Section>
       ) : null}
       <Section title="Sharpen your scores">

@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import prisma from "@/prisma/client";
 import { computeMemberStats, isFinalVote, majorityPosition, type Position } from "./alignment";
 import { summarizeSponsoredBills } from "./member-record";
+import { STATES, stateOfScheme } from "./states";
 
 const CURRENT_TERM = {
   where: { isCurrent: true },
@@ -20,7 +21,7 @@ const CURRENT_TERM = {
 
 /** The IDs that lead to someone's page, whichever government they're in. */
 export const PAGE_IDENTIFIERS = {
-  where: { scheme: { in: ["bioguide", "iowa_legis"] } },
+  where: { scheme: { in: ["bioguide", ...STATES.map((state) => state.personScheme)] } },
   select: { scheme: true, value: true },
 } satisfies Prisma.Person$identifiersArgs;
 
@@ -45,11 +46,12 @@ export type MemberFilters = {
   jurisdiction?: string;
 };
 
-/** What `memberPath` takes: a Bioguide ID, or "ia:123" for an Iowa legislator. */
+/** What `memberPath` takes: a Bioguide ID, or "ia:123" for a state legislator. */
 export function memberKeyOf(person: { identifiers: { scheme?: string; value: string }[] }): string | null {
   const identifier = person.identifiers[0];
   if (!identifier) return null;
-  return identifier.scheme === "iowa_legis" ? `ia:${identifier.value}` : identifier.value;
+  const state = identifier.scheme ? stateOfScheme(identifier.scheme) : null;
+  return state ? `${state.key}:${identifier.value}` : identifier.value;
 }
 
 function memberWhere(filters: MemberFilters): Prisma.PersonWhereInput {

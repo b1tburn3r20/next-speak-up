@@ -2,6 +2,6 @@ import { RollCallPage, rollCallMetadata, type RollCallPageProps } from "@/compon
 
 export const metadata = rollCallMetadata;
 
-export default function IowaRollCallPage(props: RollCallPageProps) {
+export default function StateRollCallPage(props: RollCallPageProps) {
   return <RollCallPage {...props} />;
 }

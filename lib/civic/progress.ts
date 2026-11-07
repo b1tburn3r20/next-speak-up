@@ -165,8 +165,8 @@ export function computeProgress(input: {
   bestMatchCompared: number;
   floorVotes: number;
   policyAreasVoted: number;
-  /** Only for Iowans. Attending is self-reported, and the badge says so. */
-  iowa?: { votes: number; attended: number; councilAttended: number; seatsFound: boolean };
+  /** Only for people in a state we cover. Attending is self-reported, and the badges say so. */
+  state?: { stateName: string; votes: number; attended: number; cityAttended: number; seatsFound: boolean };
   timeZone?: string;
 }): UserProgress {
   const { voteDates, now, timeZone = "America/New_York" } = input;
@@ -205,12 +205,12 @@ export function computeProgress(input: {
       earned: input.policyAreasVoted >= 5,
     },
     { id: "fifty-votes", label: "Civic regular", description: "Cast 50 votes", earned: votesCast >= 50 },
-    ...(input.iowa
+    ...(input.state
       ? [
-          { id: "know-your-people", label: "Know your people", description: "Found your Iowa legislators", earned: input.iowa.seatsFound },
-          { id: "statehouse-regular", label: "Statehouse regular", description: "Voted on 10 Iowa bills", earned: input.iowa.votes >= 10 },
-          { id: "showed-up", label: "Showed up", description: "Said you went to a statehouse meeting", earned: input.iowa.attended >= 1 },
-          { id: "city-hall-regular", label: "City Hall regular", description: "Said you went to a City Council meeting", earned: input.iowa.councilAttended >= 1 },
+          { id: "know-your-people", label: "Know your people", description: `Found your ${input.state.stateName} legislators`, earned: input.state.seatsFound },
+          { id: "statehouse-regular", label: "Statehouse regular", description: `Voted on 10 bills from ${input.state.stateName}`, earned: input.state.votes >= 10 },
+          { id: "showed-up", label: "Showed up", description: "Said you went to a statehouse meeting", earned: input.state.attended >= 1 },
+          { id: "city-hall-regular", label: "City Hall regular", description: "Said you went to a city council meeting", earned: input.state.cityAttended >= 1 },
         ]
       : []),
   ];

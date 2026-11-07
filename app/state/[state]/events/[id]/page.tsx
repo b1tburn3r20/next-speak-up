@@ -10,12 +10,21 @@ import { OuterBlock, PageSpacer, Section, WithRail } from "@/components/blocks";
 import { AttendButton } from "@/components/state/attend-button";
 import { eventWhen } from "@/components/state/event-card";
 import { buttonVariants } from "@/components/ui/button";
-import { existingBills } from "@/lib/civic/bills";
+import { findStateBills } from "@/lib/civic/bills";
 import { canReportAttendance, EVENT_KIND_LABELS, howToTakePart, type EventKind } from "@/lib/civic/state-logic";
 import { getEvent, hasReportedAttending } from "@/lib/civic/state";
+import { stateByKey } from "@/lib/civic/states";
 import { billPath, stateRoutes } from "@/lib/routes";
 
-type PageProps = { params: Promise<{ id: string }> };
+type PageProps = { params: Promise<{ state: string; id: string }> };
+
+async function eventFrom(params: PageProps["params"]) {
+  const { state: key, id: raw } = await params;
+  const state = stateByKey(key);
+  const id = eventId(raw);
+  if (!state || !id) return { state, event: null };
+  return { state, event: await getEvent(state, id) };
+}
 
 function eventId(raw: string): number | null {
   const id = Number(raw);
@@ -23,26 +32,19 @@ function eventId(raw: string): number | null {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const id = eventId((await params).id);
-  const event = id ? await getEvent(id) : null;
+  const { event } = await eventFrom(params);
   return { title: event?.title ?? "Meeting not found" };
 }
 
-/** "HF 100" becomes the bill's slug, when it's a bill we have. Study bills usually aren't. */
-function itemSlug(title: string): string | null {
-  const match = title.match(/^([A-Z]+) (\d+)$/);
-  return match ? `ia-91-${match[1].toLowerCase()}-${match[2]}` : null;
-}
 
 async function EventBody({ params }: PageProps) {
-  const id = eventId((await params).id);
-  const event = id ? await getEvent(id) : null;
-  if (!event) notFound();
+  const { state, event } = await eventFrom(params);
+  if (!state || !event) notFound();
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
   const now = new Date();
   const [known, reported] = await Promise.all([
-    existingBills(event.items.flatMap((item) => itemSlug(item.title) ?? [])),
+    findStateBills(state, event.items.map((item) => item.title)),
     userId ? hasReportedAttending(userId, event.id) : Promise.resolve(false),
   ]);
   const canceled = event.status === "CANCELED";
@@ -53,7 +55,7 @@ async function EventBody({ params }: PageProps) {
   return (
     <PageSpacer>
       <header className="space-y-1">
-        <Link href={stateRoutes.events} className="text-sm font-bold text-primary hover:underline">
+        <Link href={stateRoutes(state.key).events} className="text-sm font-bold text-primary hover:underline">
           ← All meetings
         </Link>
         <p className="text-sm font-extrabold text-muted-foreground">
@@ -62,7 +64,7 @@ async function EventBody({ params }: PageProps) {
         <h1 className="break-words text-2xl font-extrabold leading-tight sm:text-3xl" data-testid="event-title">
           {event.title}
         </h1>
-        <p className="font-bold" data-testid="event-when">{eventWhen(event)}</p>
+        <p className="font-bold" data-testid="event-when">{eventWhen(event, state.timeZone)}</p>
         {!event.hasTime ? (
           <p className="text-sm text-muted-foreground">The agenda&apos;s file name only gives the day, so check the agenda for the time.</p>
         ) : null}
@@ -117,10 +119,10 @@ async function EventBody({ params }: PageProps) {
             <OuterBlock>
               <ul className="flex flex-wrap gap-2">
                 {event.items.map((item) => {
-                  const slug = itemSlug(item.title);
+                  const slug = known.get(item.title);
                   return (
                     <li key={item.id} className="rounded-full bg-muted px-3 py-1 text-sm font-bold">
-                      {slug && known.has(slug) ? (
+                      {slug ? (
                         <Link href={billPath(slug)} className="text-primary hover:underline">
                           {item.title}
                         </Link>
@@ -160,9 +162,8 @@ async function EventBody({ params }: PageProps) {
   );
 }
 
-export default async function IowaEventPage(props: PageProps) {
-  const id = eventId((await props.params).id);
-  if (!id || !(await getEvent(id))) notFound();
+export default async function StateEventPage(props: PageProps) {
+  if (!(await eventFrom(props.params)).event) notFound();
   return (
     <Suspense fallback={<DetailEventSkeleton />}>
       <EventBody {...props} />

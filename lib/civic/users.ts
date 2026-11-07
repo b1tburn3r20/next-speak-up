@@ -9,7 +9,8 @@ import {
   type Position,
 } from "./alignment";
 import { repsForLocation } from "./people";
-import { clearStateLocation, getStateLocation, getStateSeats } from "./state";
+import { clearOtherStateLocations, getStateLocation, getStateSeats, getUserStateLocation } from "./state";
+import { stateByRegion } from "./states";
 import { normalizeDistrict } from "./location";
 import { STATE_NAMES } from "@/lib/constants/state-names";
 
@@ -95,7 +96,7 @@ export async function saveUserLocation(
       },
     }),
   ]);
-  if (regionCode !== "IA") await clearStateLocation(userId);
+  await clearOtherStateLocations(userId, regionCode);
   await refreshUserAlignment(userId);
   return true;
 }
@@ -216,7 +217,7 @@ export async function refreshUserAlignment(userId: string) {
     await prisma.userRepAlignment.deleteMany({ where: { userId } });
     return;
   }
-  const stateSeats = await getStateSeats(await getStateLocation(userId));
+  const stateSeats = await getStateSeats(await getUserStateLocation(userId));
   const reps = [
     ...(await repsForLocation(location.regionCode, location.districtCode)),
     ...stateSeats.flatMap((seat) => (seat.member ? [seat.member] : [])),
@@ -461,7 +462,8 @@ export async function getUserMetrics(userId: string) {
     );
   }
   const reps = location ? await repsForLocation(location.regionCode, location.districtCode) : [];
-  const stateLocation = await getStateLocation(userId);
+  const userState = stateByRegion(location?.regionCode);
+  const stateLocation = userState ? await getStateLocation(userId, userState) : null;
   const stateSeats = await getStateSeats(stateLocation);
   const scoreFor = (rep: (typeof reps)[number]) => {
     const rows = alignments.filter((row) => row.personId === rep.id);
@@ -485,6 +487,7 @@ export async function getUserMetrics(userId: string) {
     };
   };
   return {
+    userState,
     stateLocation,
     stateSeats: stateSeats.map((seat) => ({ ...seat, score: seat.member ? scoreFor(seat.member) : null })),
     votesCast: votes.length,

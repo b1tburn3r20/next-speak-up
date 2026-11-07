@@ -121,7 +121,17 @@ function RepList({ reps }: { reps: Rep[] }) {
   );
 }
 
-function RepsFound({ reps, stateReps, onContinue }: { reps: Rep[]; stateReps: Rep[]; onContinue: () => void }) {
+function RepsFound({
+  reps,
+  stateReps,
+  stateName,
+  onContinue,
+}: {
+  reps: Rep[];
+  stateReps: Rep[];
+  stateName: string | null;
+  onContinue: () => void;
+}) {
   return (
     <div className="space-y-4" data-testid="onboarding-reps">
       <div>
@@ -137,7 +147,7 @@ function RepsFound({ reps, stateReps, onContinue }: { reps: Rep[]; stateReps: Re
       <RepList reps={reps} />
       {stateReps.length > 0 ? (
         <div className="space-y-2" data-testid="onboarding-state-reps">
-          <h2 className="font-extrabold">You also have these at the Iowa statehouse</h2>
+          <h2 className="font-extrabold">You also have these at the {stateName} statehouse</h2>
           <RepList reps={stateReps} />
         </div>
       ) : null}
@@ -226,6 +236,7 @@ export function OnboardingFlow({
   const [reps, setReps] = useState<Rep[] | null>(null);
   const [findingReps, setFindingReps] = useState(false);
   const [stateReps, setStateReps] = useState<Rep[]>([]);
+  const [stateName, setStateName] = useState<string | null>(null);
   // Null until they choose for themselves. Until then, it follows their first two answers.
   const [picked, setPicked] = useState<Set<string> | null>(initialTopics.length > 0 ? new Set(initialTopics) : null);
   const [saving, setSaving] = useState(false);
@@ -251,6 +262,7 @@ export function OnboardingFlow({
       const data = await response.json();
       setReps(data.reps);
       setStateReps(data.stateReps ?? []);
+      setStateName(data.stateName ?? null);
     } catch {
       setReps([]);
     } finally {
@@ -289,7 +301,7 @@ export function OnboardingFlow({
           {findingReps ? (
             <RepsRowSkeleton />
           ) : reps ? (
-            <RepsFound reps={reps} stateReps={stateReps} onContinue={() => setStep(2)} />
+            <RepsFound reps={reps} stateReps={stateReps} stateName={stateName} onContinue={() => setStep(2)} />
           ) : (
             <div className="space-y-4">
               <div>

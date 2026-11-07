@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { getVoteQueue } from "@/lib/civic/engage";
 import { repsForLocation } from "@/lib/civic/people";
 import { getStateRepIds } from "@/lib/civic/state";
+import { stateByRegion } from "@/lib/civic/states";
 import { getUserLocation, getUserTopics } from "@/lib/civic/users";
 
 export const metadata: Metadata = {
@@ -24,14 +25,15 @@ export default async function VotePage() {
   const location = userId ? await getUserLocation(userId) : null;
   const reps = location ? await repsForLocation(location.regionCode, location.districtCode) : [];
   const topics = userId ? await getUserTopics(userId) : [];
-  const stateRepIds = userId && location?.regionCode === "IA" ? await getStateRepIds(userId) : [];
+  const userState = stateByRegion(location?.regionCode);
+  const stateRepIds = userId && userState ? await getStateRepIds(userId) : [];
   const queue = await getVoteQueue(
     userId,
     [...reps.map((rep) => rep.id), ...stateRepIds],
     SESSION_LENGTH,
     new Date(),
     topics,
-    { includeIowa: location?.regionCode === "IA" },
+    { state: userState },
   );
 
   return (

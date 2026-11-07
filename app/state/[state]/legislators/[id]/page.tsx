@@ -14,20 +14,28 @@ import { MemberPhoto } from "@/components/people/member-photo";
 import { seatOf } from "@/components/people/seat";
 import { billLabel, partyLabel, positionLabel, roleLabel } from "@/lib/civic/labels";
 import { getMemberRecentVotes, getMemberSponsoredBills, getMemberVotingStats, memberKeyOf } from "@/lib/civic/people";
-import { getIowaLegislator } from "@/lib/civic/state";
+import { getStateLegislator } from "@/lib/civic/state";
+import { stateByKey } from "@/lib/civic/states";
 import { comparedVotesFor } from "@/lib/civic/users";
 import { alignmentByPolicyArea, computeAlignment } from "@/lib/civic/alignment";
 import { billPath, stateRoutes } from "@/lib/routes";
 
-type PageProps = { params: Promise<{ id: string }> };
+type PageProps = { params: Promise<{ state: string; id: string }> };
+
+async function legislatorFrom(params: PageProps["params"]) {
+  const { state: key, id } = await params;
+  const state = stateByKey(key);
+  if (!state) notFound();
+  return { state, member: await getStateLegislator(state, decodeURIComponent(id)) };
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const member = await getIowaLegislator((await params).id);
+  const { member } = await legislatorFrom(params);
   return { title: member?.fullName ?? "Legislator not found" };
 }
 
 async function LegislatorBody({ params }: PageProps) {
-  const member = await getIowaLegislator((await params).id);
+  const { state, member } = await legislatorFrom(params);
   if (!member) notFound();
   const term = member.terms[0];
   const session = await getServerSession(authOptions);
@@ -45,8 +53,8 @@ async function LegislatorBody({ params }: PageProps) {
   return (
     <PageSpacer>
       <header className="space-y-3">
-        <Link href={stateRoutes.legislators} className="text-sm font-bold text-primary hover:underline">
-          ← All Iowa legislators
+        <Link href={stateRoutes(state.key).legislators} className="text-sm font-bold text-primary hover:underline">
+          ← All {state.name} legislators
         </Link>
         <Flex nowrap gap="md" align="center">
           <MemberPhoto name={member.fullName} url={member.imageUrl} party={term?.party} size={96} />
@@ -79,12 +87,12 @@ async function LegislatorBody({ params }: PageProps) {
                   {member.phone}
                 </a>
               ) : (
-                <p className="text-sm text-muted-foreground">The Legislature doesn&apos;t list a Capitol phone for them.</p>
+                <p className="text-sm text-muted-foreground">No office phone is listed for them.</p>
               )}
               {member.websiteUrl ? (
                 <a href={member.websiteUrl} target="_blank" rel="noreferrer" className="tap flex items-center gap-2 font-bold text-primary hover:underline">
                   <ExternalLink className="size-4" aria-hidden />
-                  Their page at the Legislature
+                  Their page at {state.sourceName}
                 </a>
               ) : null}
             </OuterBlock>
@@ -155,7 +163,7 @@ async function LegislatorBody({ params }: PageProps) {
               ))}
             </Stack>
           ) : (
-            <EmptyState title="None listed">Many Iowa bills are written by committees, not one person.</EmptyState>
+            <EmptyState title="None listed">Many {state.name} bills are written by committees, not one person.</EmptyState>
           )}
         </Section>
       </WithRail>
@@ -163,8 +171,8 @@ async function LegislatorBody({ params }: PageProps) {
   );
 }
 
-export default async function IowaLegislatorPage(props: PageProps) {
-  if (!(await getIowaLegislator((await props.params).id))) notFound();
+export default async function StateLegislatorPage(props: PageProps) {
+  if (!(await legislatorFrom(props.params)).member) notFound();
   return (
     <Suspense fallback={<MemberDetailSkeleton />}>
       <LegislatorBody {...props} />

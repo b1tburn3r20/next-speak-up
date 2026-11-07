@@ -37,7 +37,8 @@ Build pages only from `components/blocks`. Don't hand-write spacing, card styles
 
 We cover federal and Iowa. Every screen and model must leave room for more states.
 
-- **State pages:** `/state/ia` is the hub. It says when the Legislature is out rather than showing empty lists, shows who's sitting rather than who just won, and names empty seats. One "Iowa" nav link appears for people located there.
+- **States are data.** A state and its cities come from `lib/civic/states.ts`, and components take one as a prop. Don't write a state's or city's name, chambers, or URL into a component. The nav has one "My State" link to `/state`, which sends people to theirs.
+- **State pages:** `/state/{state}` is the hub. It says when the Legislature is out rather than showing empty lists, shows who's sitting rather than who just won, and names empty seats. One "Iowa" nav link appears for people located there.
 - **Words:** `lib/civic/government.ts` has what differs, like Governor and President. Never write "Congress" in something a state bill can reach.
 
 - **URLs:** a government's pages live under its prefix: `/federal/bills`, and `/state/ia/bills`. Things that belong to the person, not a government, stay at the root: `/dashboard`, `/vote`, `/reps`, `/settings`.

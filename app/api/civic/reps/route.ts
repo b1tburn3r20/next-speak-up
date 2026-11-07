@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getStateLocation, getStateSeats } from "@/lib/civic/state";
+import { chamberName, stateByRegion } from "@/lib/civic/states";
 import { getUserLocation } from "@/lib/civic/users";
 import { roleLabel, seatLabel } from "@/lib/civic/labels";
 import { memberKeyOf, repsForLocation } from "@/lib/civic/people";
@@ -23,9 +24,10 @@ export async function GET(request: NextRequest) {
   const reps = await repsForLocation(state, district);
   const stateName = (STATE_NAMES as Record<string, string>)[state] ?? state;
   const session = await getServerSession(authOptions);
-  const seats =
-    state === "IA" && session?.user?.id ? await getStateSeats(await getStateLocation(session.user.id)) : [];
+  const covered = stateByRegion(state);
+  const seats = covered && session?.user?.id ? await getStateSeats(await getStateLocation(session.user.id, covered)) : [];
   return NextResponse.json({
+    stateName: covered?.name ?? null,
     stateReps: seats.flatMap((seat) => {
       const term = seat.member?.terms[0];
       return seat.member
@@ -37,7 +39,7 @@ export async function GET(request: NextRequest) {
               bioguide: memberKeyOf(seat.member),
               party: term?.party ?? null,
               role: term ? roleLabel(term.role) : "",
-              seat: `Iowa ${seat.chamber === "UPPER" ? "Senate" : "House"}, District ${seat.code}`,
+              seat: `${chamberName(covered!, seat.chamber)}, District ${seat.code}`,
             },
           ]
         : [];

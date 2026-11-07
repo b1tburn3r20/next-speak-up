@@ -1,4 +1,5 @@
 import { seatOf } from "@/components/people/seat";
+import { STATES } from "@/lib/civic/states";
 import { stateName } from "@/components/people/state-name";
 import { partyLabel, roleLabel, seatLabel } from "@/lib/civic/labels";
 import { memberKeyOf, listCurrentMembers } from "@/lib/civic/people";
@@ -62,12 +63,13 @@ export const senatorsProvider: SearchProvider = {
   search: searchChamber("UPPER"),
 };
 
-export const iowaLegislatorsProvider: SearchProvider = {
-  id: "iowa-legislators",
-  label: "Iowa legislators",
+/** One provider per state we cover, so each can be searched, and listed, on its own. */
+export const stateLegislatorProviders: SearchProvider[] = STATES.map((state) => ({
+  id: `${state.key}-legislators`,
+  label: `${state.name} legislators`,
   minQueryLength: 2,
   search: async ({ query, limit }) => {
-    const members = await getRoster("US-IA");
+    const members = await getRoster(state.jurisdiction);
     const results = members.flatMap((member) => {
       const term = member.terms[0];
       const key = memberKeyOf(member);
@@ -90,4 +92,4 @@ export const iowaLegislatorsProvider: SearchProvider = {
     });
     return rankResults(results, limit);
   },
-};
+}));

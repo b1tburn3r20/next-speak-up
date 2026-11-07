@@ -361,3 +361,22 @@ export async function existingBills(slugs: string[]): Promise<Map<string, string
   });
   return new Map(rows.map((row) => [row.slug, billLabel(row.billType, row.number)]));
 }
+
+/** Agendas name bills like "HF 100". This finds which of them we have, in that state's current session. */
+export async function findStateBills(state: { jurisdiction: string }, labels: string[]): Promise<Map<string, string>> {
+  const wanted = labels.flatMap((label) => {
+    const match = label.match(/^([A-Z]+) (\d+)$/);
+    return match ? [{ label, billType: match[1], number: Number(match[2]) }] : [];
+  });
+  if (wanted.length === 0) return new Map();
+  const rows = await prisma.bill.findMany({
+    where: {
+      jurisdiction: { code: state.jurisdiction },
+      session: { isCurrent: true },
+      OR: wanted.map(({ billType, number }) => ({ billType, number })),
+    },
+    select: { slug: true, billType: true, number: true },
+  });
+  const slugs = new Map(rows.map((row) => [`${row.billType} ${row.number}`, row.slug]));
+  return new Map(wanted.flatMap(({ label }) => (slugs.has(label) ? [[label, slugs.get(label) as string] as const] : [])));
+}

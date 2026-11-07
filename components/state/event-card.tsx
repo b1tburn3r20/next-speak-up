@@ -4,22 +4,25 @@ import { OuterBlock } from "@/components/blocks";
 import { EVENT_KIND_LABELS, type EventKind } from "@/lib/civic/state-logic";
 import type { CivicEventRow } from "@/lib/civic/state";
 import { eventPath } from "@/lib/routes";
+import { stateOfJurisdiction } from "@/lib/civic/states";
 
-/** Iowa's time, because that's where you'd have to be. A meeting with no time only names its day. */
-export function eventWhen(event: { startsAt: Date; hasTime: boolean }): string {
+/** In the meeting's own time zone, because that's where you'd have to be. With no time, only the day. */
+export function eventWhen(event: { startsAt: Date; hasTime: boolean }, timeZone: string): string {
   const day = event.startsAt.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
     year: "numeric",
-    timeZone: event.hasTime ? "America/Chicago" : "UTC",
+    timeZone: event.hasTime ? timeZone : "UTC",
   });
   if (!event.hasTime) return day;
-  const time = event.startsAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" });
+  const time = event.startsAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone });
   return `${day}, ${time}`;
 }
 
 export function EventCard({ event }: { event: CivicEventRow }) {
+  const state = stateOfJurisdiction(event.jurisdiction.code);
+  const timeZone = state?.timeZone ?? "UTC";
   const canceled = event.status === "CANCELED";
   return (
     <OuterBlock className="space-y-1.5" data-testid="event-card" data-status={event.status}>
@@ -33,13 +36,13 @@ export function EventCard({ event }: { event: CivicEventRow }) {
         ) : null}
       </p>
       <h3 className="break-words font-extrabold leading-snug">
-        <Link href={eventPath(event.id)} className="hover:underline">
+        <Link href={state ? eventPath(state.key, event.id) : "#"} className="hover:underline">
           {event.title}
         </Link>
       </h3>
       <p className="flex items-center gap-1.5 text-sm">
         <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden />
-        {eventWhen(event)}
+        {eventWhen(event, timeZone)}
       </p>
       {event.location ? (
         <p className="flex items-center gap-1.5 break-words text-sm">

@@ -1,8 +1,10 @@
 // The words and links that differ between governments. Pure, so pages and tests can share it.
+import { stateRoutes } from "@/lib/routes";
 import { BILL_STATUS_LABELS, type BillStatusValue } from "./labels";
+import { stateOfSlug, type StateConfig } from "./states";
 
 export type Government = {
-  /** How bill slugs start: "us", "ia". */
+  /** How bill slugs start: "us", or a state's key. */
   key: string;
   code: string;
   name: string;
@@ -29,23 +31,26 @@ const FEDERAL: Government = {
   lawLabel: (lawNumber) => `Public Law ${lawNumber}`,
 };
 
-const IOWA: Government = {
-  key: "ia",
-  code: "US-IA",
-  name: "Iowa",
-  legislature: "the Iowa Legislature",
-  executive: "Governor",
-  billsHref: "/state/ia/bills",
-  legislatorsHref: "/state/ia/legislators",
-  stages: ["Introduced", "Committee", "Floor", "Both chambers", "Governor", "Law"],
-  sourceName: "the Iowa Legislature",
-  lawLabel: (lawNumber) => lawNumber,
-};
-
-const GOVERNMENTS: Record<string, Government> = { us: FEDERAL, ia: IOWA };
+/** A state's government, built from its entry in lib/civic/states.ts. */
+function stateGovernment(state: StateConfig): Government {
+  const routes = stateRoutes(state.key);
+  return {
+    key: state.key,
+    code: state.jurisdiction,
+    name: state.name,
+    legislature: state.legislature,
+    executive: "Governor",
+    billsHref: routes.bills,
+    legislatorsHref: routes.legislators,
+    stages: ["Introduced", "Committee", "Floor", "Both chambers", "Governor", "Law"],
+    sourceName: state.sourceName,
+    lawLabel: (lawNumber) => lawNumber,
+  };
+}
 
 export function governmentOfSlug(slug: string): Government {
-  return GOVERNMENTS[slug.split("-", 1)[0]] ?? FEDERAL;
+  const state = stateOfSlug(slug);
+  return state ? stateGovernment(state) : FEDERAL;
 }
 
 /** Whether the bill's session is over, which is what stops an unfinished bill from moving. */
@@ -74,14 +79,10 @@ export function billStatusText(status: string, slug?: string, endDate?: Date | n
   return BILL_STATUS_LABELS[status as BillStatusValue] ?? status;
 }
 
-/** The next General Assembly's first day. Iowa's own list gives the 91st's last day as January 10. */
-export const IOWA_NEXT_SESSION = new Date("2027-01-11T06:00:00.000Z");
 
-export function iowaSessionHasStarted(now = new Date()): boolean {
-  return now.getTime() >= IOWA_NEXT_SESSION.getTime();
-}
-
-const IOWA_ACTIONS: [RegExp, string][] = [
+/** Each state's own wording. Only for steps we're sure of. Anything else shows as it's written. */
+const STATE_ACTIONS: Record<string, [RegExp, string][]> = {
+  ia: [
   [/^signed by governor/i, "It's now the law."],
   [/^vetoed by governor/i, "The Governor vetoed it."],
   [/\bitem veto/i, "The Governor signed it, but vetoed some parts."],
@@ -95,9 +96,9 @@ const IOWA_ACTIONS: [RegExp, string][] = [
   [/^committee vote:/i, "The committee voted."],
   [/^introduced, placed on calendar/i, "It's ready for the full chamber to debate."],
   [/^fiscal note/i, "Nonpartisan staff estimated what it would cost."],
-];
+  ],
+};
 
-/** What an Iowa action means. Only for wording we're sure of. Anything else shows as it's written. */
-export function explainIowaAction(text: string): string | null {
-  return IOWA_ACTIONS.find(([pattern]) => pattern.test(text))?.[1] ?? null;
+export function explainStateAction(state: StateConfig, text: string): string | null {
+  return STATE_ACTIONS[state.key]?.find(([pattern]) => pattern.test(text))?.[1] ?? null;
 }

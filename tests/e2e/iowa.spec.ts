@@ -5,7 +5,7 @@ const ORIGIN = { origin: BASE_URL };
 const main = (page: Page) => page.getByRole("main");
 
 /** A new person in Des Moines. Districts are saved by number, so the geocoder isn't called. */
-async function newIowan(page: Page, seats = { lower: "36", upper: "18", inDesMoines: true }) {
+async function newIowan(page: Page, seats: { lower: string; upper: string; city: string | null } = { lower: "36", upper: "18", city: "des-moines" }) {
   const username = `ia_${Math.random().toString(36).slice(2, 10)}`;
   await page.request.post("/api/account/signup", {
     headers: ORIGIN,
@@ -51,15 +51,17 @@ test.describe("federal and state stay apart", () => {
     expect((await page.goto("/state/tx"))?.status()).toBe(404);
     expect((await page.goto("/state/ia/legislators/no-such-person"))?.status()).toBe(404);
     expect((await page.goto("/state/ia/events/999999999"))?.status()).toBe(404);
+    expect((await page.goto("/state/ia/city/springfield"))?.status()).toBe(404);
+    expect((await page.goto("/state/tx/bills"))?.status()).toBe(404);
   });
 });
 
 test.describe("the Iowa hub", () => {
   test("explains the session being out, and links everywhere", async ({ page }) => {
     await page.goto("/state/ia");
-    await expect(main(page).getByTestId("iowa-session-note")).toContainText("out until January 11, 2027");
-    for (const id of ["bills", "legislators", "events", "city"]) {
-      await expect(main(page).getByTestId(`iowa-link-${id}`)).toBeVisible();
+    await expect(main(page).getByTestId("state-session-note")).toContainText("out until January 11, 2027");
+    for (const id of ["bills", "legislators", "events", "city-des-moines"]) {
+      await expect(main(page).getByTestId(`state-link-${id}`)).toBeVisible();
     }
     await expectNoHorizontalOverflow(page);
   });
@@ -72,25 +74,51 @@ test.describe("the Iowa hub", () => {
     await expectNoHorizontalOverflow(page);
   });
 
+  test("someone we only have a congressional district for can look up their seats right there", async ({ page }) => {
+    // Calls the Census geocoder, which is free, like location.spec.ts.
+    const username = `ia_${Math.random().toString(36).slice(2, 10)}`;
+    await page.request.post("/api/account/signup", {
+      headers: ORIGIN,
+      data: { username, email: `${username}@coolbills.test`, password: "a good password" },
+    });
+    await page.request.patch("/api/civic/onboarding", { headers: ORIGIN, data: { complete: true } });
+    await page.request.post("/api/civic/location", { headers: ORIGIN, data: { regionCode: "IA", districtCode: "3" } });
+    await page.goto("/state/ia");
+    await expect(main(page).getByTestId("find-state-seats")).toBeVisible();
+    await expect(page).toHaveURL(/\/state\/ia$/);
+    await main(page).getByPlaceholder("123 Main St, Austin, TX").fill("1007 E Grand Ave, Des Moines, IA 50319");
+    await main(page).getByPlaceholder("123 Main St, Austin, TX").press("Enter");
+    await expect(main(page).getByTestId("state-seats").getByTestId("rep-report-card")).toHaveCount(2, { timeout: 20000 });
+    await expect(main(page).getByTestId("state-seats")).toContainText("Iowa House, District 36");
+    await expect(main(page).getByTestId("find-state-seats")).toHaveCount(0);
+  });
+
   test("says when a seat is empty, rather than hiding it", async ({ page }) => {
-    await newIowan(page, { lower: "38", upper: "11", inDesMoines: false });
+    await newIowan(page, { lower: "38", upper: "11", city: null });
     await page.goto("/state/ia");
     await expect(main(page).getByTestId("seat-empty").first()).toContainText("empty");
   });
 
-  test("the nav link only appears for Iowans", async ({ page }) => {
+  test("the nav's My State link only appears for people in a state we cover, and goes to theirs", async ({ page }) => {
     await page.goto("/dashboard");
-    expect(await page.locator('a[href="/state/ia"]:visible').count()).toBe(0);
+    expect(await page.locator('a[href="/state"]:visible').count()).toBe(0);
     await newIowan(page);
     await page.goto("/dashboard");
-    await expect(page.locator('a[href="/state/ia"]').first()).toBeAttached();
+    await expect(page.locator('a[href="/state"]').first()).toBeAttached();
+    await page.goto("/state");
+    await expect(page).toHaveURL(/\/state\/ia$/);
+  });
+
+  test("the states page lists what we cover for anyone else", async ({ page }) => {
+    await page.goto("/state");
+    await expect(main(page).getByTestId("state-option")).toContainText(["Iowa"]);
   });
 });
 
 test.describe("Iowa's bills", () => {
   test("the list searches by number, and links to the state's pages", async ({ page }) => {
     await page.goto("/state/ia/bills");
-    await expect(main(page).getByTestId("iowa-session-note")).toBeVisible();
+    await expect(main(page).getByTestId("state-session-note")).toBeVisible();
     const first = main(page).locator('a[href^="/state/ia/bills/ia-91-"]').first();
     await expect(first).toBeVisible();
     await expectNoHorizontalOverflow(page);
@@ -129,10 +157,10 @@ test.describe("Iowa's bills", () => {
 test.describe("Iowa's legislators", () => {
   test("lists who's sitting, names the vacancies, and filters", async ({ page }) => {
     await page.goto("/state/ia/legislators");
-    await expect(main(page).getByTestId("iowa-members")).toBeVisible();
+    await expect(main(page).getByTestId("state-members")).toBeVisible();
     expect(await main(page).getByTestId("member-card").count()).toBeGreaterThan(140);
-    await expect(main(page).getByTestId("iowa-vacancies")).toContainText("Senate 11");
-    await expect(main(page).getByTestId("iowa-vacancies")).toContainText("House 38");
+    await expect(main(page).getByTestId("state-vacancies")).toContainText("Senate 11");
+    await expect(main(page).getByTestId("state-vacancies")).toContainText("House 38");
     await page.goto("/state/ia/legislators?chamber=LOWER&district=36");
     await expect(main(page).getByTestId("member-card")).toHaveCount(1);
     await expectNoHorizontalOverflow(page);
@@ -228,13 +256,13 @@ test.describe("across the app", () => {
     await newIowan(page);
     const response = await page.request.patch("/api/civic/location/state", {
       headers: ORIGIN,
-      data: { lower: "999", upper: null, inDesMoines: false },
+      data: { lower: "999", upper: null, city: null },
     });
     expect(response.status()).toBe(400);
   });
 
   test("search finds an Iowa legislator", async ({ request }) => {
-    const response = await request.get("/api/search/iowa-legislators?q=Grassley");
+    const response = await request.get("/api/search/ia-legislators?q=Grassley");
     const { results } = await response.json();
     expect(results[0].href).toMatch(/^\/state\/ia\/legislators\/\d+/);
   });

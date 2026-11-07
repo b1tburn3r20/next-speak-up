@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { billOutlook } from "@/lib/civic/bill-outlook";
-import { billStatusText, diedWithSession, explainIowaAction, governmentOfSlug, sessionHasEnded } from "@/lib/civic/government";
+import { billStatusText, diedWithSession, explainStateAction, governmentOfSlug, sessionHasEnded } from "@/lib/civic/government";
+import { chamberName, cityByGeoid, stateByKey, stateByRegion, stateOfJurisdiction, stateOfSlug, validDistrict, toClientState, STATES, type StateConfig } from "@/lib/civic/states";
+
+const IOWA = stateByKey("ia") as StateConfig;
 import { parseGeographies } from "@/lib/civic/location";
 import { isFinalVote } from "@/lib/civic/alignment";
 import { billPath, memberPath } from "@/lib/routes";
@@ -53,19 +56,19 @@ describe("words for the executive", () => {
 
 describe("Iowa's actions in plain words", () => {
   it("explains the steps it's sure of", () => {
-    expect(explainIowaAction("Passed House, yeas 85, nays 10. H.J. 841.")).toBe("The House passed it.");
-    expect(explainIowaAction("Signed by Governor. S.J. 1054.")).toBe("It's now the law.");
-    expect(explainIowaAction("Vetoed by Governor. H.J. 1236.")).toBe("The Governor vetoed it.");
+    expect(explainStateAction(IOWA, "Passed House, yeas 85, nays 10. H.J. 841.")).toBe("The House passed it.");
+    expect(explainStateAction(IOWA, "Signed by Governor. S.J. 1054.")).toBe("It's now the law.");
+    expect(explainStateAction(IOWA, "Vetoed by Governor. H.J. 1236.")).toBe("The Governor vetoed it.");
   });
 
   it("doesn't mistake being enrolled for a committee step", () => {
-    expect(explainIowaAction("Reported correctly enrolled, signed by Speaker and President, and sent to Governor. H.J. 1164.")).toBe(
+    expect(explainStateAction(IOWA, "Reported correctly enrolled, signed by Speaker and President, and sent to Governor. H.J. 1164.")).toBe(
       "The Legislature passed it, and sent it to the Governor.",
     );
   });
 
   it("leaves anything else as it's written", () => {
-    expect(explainIowaAction("Explanation of vote. H.J. 945.")).toBeNull();
+    expect(explainStateAction(IOWA, "Explanation of vote. H.J. 945.")).toBeNull();
   });
 });
 
@@ -107,5 +110,36 @@ describe("the geocoder's state layers", () => {
     const later = { ...iowa, "2026 State Legislative Districts - Lower": [{ BASENAME: "7" }] } as Record<string, unknown>;
     delete later["2024 State Legislative Districts - Lower"];
     expect(parseGeographies(later)?.stateSeats?.lower).toBe("7");
+  });
+});
+
+describe("the states registry", () => {
+  it("finds a state from any of its handles", () => {
+    expect(stateByRegion("IA")).toBe(IOWA);
+    expect(stateOfSlug("ia-91-hf-1")).toBe(IOWA);
+    expect(stateOfSlug("us-119-hr-1")).toBeNull();
+    expect(stateOfJurisdiction("US-IA-DSM")).toBe(IOWA);
+    expect(stateByKey("tx")).toBeNull();
+  });
+
+  it("names chambers and keeps districts in range", () => {
+    expect(chamberName(IOWA, "UPPER")).toBe("Iowa Senate");
+    expect(validDistrict(IOWA, "UPPER", "50")).toBe("50");
+    expect(validDistrict(IOWA, "UPPER", "51")).toBeNull();
+    expect(validDistrict(IOWA, "LOWER", "0")).toBeNull();
+  });
+
+  it("finds a city from the Census's place ID", () => {
+    expect(cityByGeoid(IOWA, "1921000")?.key).toBe("des-moines");
+    expect(cityByGeoid(IOWA, "0000000")).toBeNull();
+  });
+});
+
+describe("what client components get", () => {
+  it("survives the trip to the browser unchanged, for every state", () => {
+    for (const state of STATES) {
+      const client = toClientState(state);
+      expect(JSON.parse(JSON.stringify(client))).toEqual(client);
+    }
   });
 });

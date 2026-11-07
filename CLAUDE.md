@@ -88,7 +88,7 @@ Pages are server components that call `lib/civic/*` directly, so content is in t
 
 ### Federal and state in one set of tables
 
-Iowa's bills, people, districts, and votes sit in the same tables as Congress's, so a query with no jurisdiction filter mixes them. `listBills` and `listCurrentMembers` default to federal, and `repsForLocation` is federal only. State pages live under `app/state/ia`, with queries in `lib/civic/state.ts`. `lib/civic/government.ts` holds the words that differ. `memberKeyOf` gives what `memberPath` takes, for either government. Bill and roll call pages are shared, in `components/bills`, and each route is a thin wrapper.
+Iowa's bills, people, districts, and votes sit in the same tables as Congress's, so a query with no jurisdiction filter mixes them. `listBills` and `listCurrentMembers` default to federal, and `repsForLocation` is federal only. Each state we cover, and its cities, is an entry in `lib/civic/states.ts`: its chambers, seats, time zone, session dates, sources, and cities. Pages under `app/state/[state]` and components in `components/state` take that entry, and never name a state or city themselves. Adding a state is its pipelines plus an entry there. `[state]/layout.tsx` and `city/[city]/layout.tsx` 404 anything not listed, before a `loading.tsx` can answer 200. Client components get `toClientState`, because the full entry holds a RegExp. Queries are in `lib/civic/state.ts`, and `lib/civic/government.ts` holds the words that differ. `memberKeyOf` gives what `memberPath` takes, for either government. Bill and roll call pages are shared, in `components/bills`, and each route is a thin wrapper.
 
 ### Accuracy rules that were learned the hard way
 

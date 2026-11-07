@@ -1,22 +1,27 @@
+// Queries for state and local government. Every one takes the state it's about, from lib/civic/states.ts.
 import { cache } from "react";
 import { Prisma } from "@prisma/client";
 import prisma from "@/prisma/client";
 import { MEMBER_SELECT, type MemberCard } from "./people";
-import { SUPPORTED_CITIES, SUPPORTED_STATES } from "./state-logic";
-
-export const IOWA_CODE = SUPPORTED_STATES.ia.jurisdiction;
-const CITY = SUPPORTED_CITIES.ia["des-moines"];
+import { cityByGeoid, eventJurisdictions, stateByRegion, STATES, type ChamberKind, type CityConfig, type StateConfig } from "./states";
+import { getUserLocation } from "./users";
 
 export type StateLocation = {
+  state: StateConfig;
   upperCode: string | null;
   lowerCode: string | null;
   placeGeoid: string | null;
-  city: { slug: string; name: string } | null;
+  city: CityConfig | null;
 };
 
-export const getStateLocation = cache(async (userId: string): Promise<StateLocation | null> => {
+/** The state someone lives in, if it's one we cover. Their federal location is what says where they are. */
+export const getUserState = cache(async (userId: string): Promise<StateConfig | null> => {
+  return stateByRegion((await getUserLocation(userId))?.regionCode);
+});
+
+export const getStateLocation = cache(async (userId: string, state: StateConfig): Promise<StateLocation | null> => {
   const row = await prisma.userLocation.findFirst({
-    where: { userId, jurisdiction: { code: IOWA_CODE } },
+    where: { userId, jurisdiction: { code: state.jurisdiction } },
     select: {
       placeGeoid: true,
       district: { select: { code: true } },
@@ -25,37 +30,45 @@ export const getStateLocation = cache(async (userId: string): Promise<StateLocat
   });
   if (!row) return null;
   return {
+    state,
     lowerCode: row.district?.code ?? null,
     upperCode: row.upperDistrict?.code ?? null,
     placeGeoid: row.placeGeoid,
-    city: row.placeGeoid === CITY.placeGeoid ? { slug: "des-moines", name: CITY.name } : null,
+    city: cityByGeoid(state, row.placeGeoid),
   };
 });
 
-async function iowaDistrict(kind: "UPPER" | "LOWER", code: string | null) {
+/** Their state, and where in it, in one step. */
+export async function getUserStateLocation(userId: string): Promise<StateLocation | null> {
+  const state = await getUserState(userId);
+  return state ? getStateLocation(userId, state) : null;
+}
+
+async function stateDistrict(state: StateConfig, kind: ChamberKind, code: string | null) {
   if (!code) return null;
   const row = await prisma.district.findFirst({
-    where: { code, chamber: { kind, jurisdiction: { code: IOWA_CODE } } },
+    where: { code, chamber: { kind, jurisdiction: { code: state.jurisdiction } } },
     select: { id: true },
   });
   return row?.id ?? null;
 }
 
-/** Saves someone's Iowa seats. Returns false if a district they named doesn't exist. */
+/** Saves someone's seats in a state. Returns false if a district they named doesn't exist. */
 export async function saveStateLocation(
   userId: string,
+  state: StateConfig,
   input: { upper: string | null; lower: string | null; placeGeoid?: string | null },
   source: "BROWSER" | "ADDRESS" | "MANUAL",
 ): Promise<boolean> {
-  const jurisdiction = await prisma.jurisdiction.findUnique({ where: { code: IOWA_CODE }, select: { id: true } });
+  const jurisdiction = await prisma.jurisdiction.findUnique({ where: { code: state.jurisdiction }, select: { id: true } });
   if (!jurisdiction) return false;
   const [upperDistrictId, districtId] = await Promise.all([
-    iowaDistrict("UPPER", input.upper),
-    iowaDistrict("LOWER", input.lower),
+    stateDistrict(state, "UPPER", input.upper),
+    stateDistrict(state, "LOWER", input.lower),
   ]);
   if ((input.upper && !upperDistrictId) || (input.lower && !districtId)) return false;
   const values = {
-    regionCode: SUPPORTED_STATES.ia.code,
+    regionCode: state.regionCode,
     districtId,
     upperDistrictId,
     source,
@@ -69,17 +82,19 @@ export async function saveStateLocation(
   return true;
 }
 
-/** Someone who moved out of Iowa shouldn't keep Iowa's legislators. */
-export async function clearStateLocation(userId: string): Promise<void> {
-  await prisma.userLocation.deleteMany({ where: { userId, jurisdiction: { code: IOWA_CODE } } });
+/** Someone who moves keeps only the state they're in now, so nobody keeps another state's legislators. */
+export async function clearOtherStateLocations(userId: string, regionCode: string): Promise<void> {
+  const others = STATES.filter((state) => state.regionCode !== regionCode).map((state) => state.jurisdiction);
+  if (others.length === 0) return;
+  await prisma.userLocation.deleteMany({ where: { userId, jurisdiction: { code: { in: others } } } });
 }
 
-export type StateSeat = { chamber: "UPPER" | "LOWER"; code: string | null; member: MemberCard | null };
+export type StateSeat = { chamber: ChamberKind; code: string | null; member: MemberCard | null };
 
 /** Their state senator and representative. A seat with nobody in it stays, marked empty. */
 export const getStateSeats = cache(async (location: StateLocation | null): Promise<StateSeat[]> => {
   if (!location) return [];
-  const seat = async (chamber: "UPPER" | "LOWER", code: string | null): Promise<StateSeat> => {
+  const seat = async (chamber: ChamberKind, code: string | null): Promise<StateSeat> => {
     if (!code) return { chamber, code, member: null };
     const member = await prisma.person.findFirst({
       where: {
@@ -87,7 +102,7 @@ export const getStateSeats = cache(async (location: StateLocation | null): Promi
           some: {
             isCurrent: true,
             district: { code },
-            chamber: { kind: chamber, jurisdiction: { code: IOWA_CODE } },
+            chamber: { kind: chamber, jurisdiction: { code: location.state.jurisdiction } },
           },
         },
       },
@@ -99,13 +114,13 @@ export const getStateSeats = cache(async (location: StateLocation | null): Promi
 });
 
 export async function getStateRepIds(userId: string): Promise<number[]> {
-  const seats = await getStateSeats(await getStateLocation(userId));
+  const seats = await getStateSeats(await getUserStateLocation(userId));
   return seats.flatMap((seat) => (seat.member ? [seat.member.id] : []));
 }
 
-export const getIowaLegislator = cache(async (personId: string) => {
+export const getStateLegislator = cache(async (state: StateConfig, personId: string) => {
   const identifier = await prisma.personIdentifier.findUnique({
-    where: { scheme_value: { scheme: "iowa_legis", value: personId } },
+    where: { scheme_value: { scheme: state.personScheme, value: personId } },
     select: {
       person: {
         select: {
@@ -113,7 +128,7 @@ export const getIowaLegislator = cache(async (personId: string) => {
           phone: true,
           websiteUrl: true,
           terms: {
-            where: { chamber: { jurisdiction: { code: IOWA_CODE } } },
+            where: { chamber: { jurisdiction: { code: state.jurisdiction } } },
             orderBy: [{ isCurrent: "desc" }, { startYear: "desc" }],
             take: 1,
             select: {
@@ -124,7 +139,7 @@ export const getIowaLegislator = cache(async (personId: string) => {
               startYear: true,
               endYear: true,
               isCurrent: true,
-              chamber: { select: { kind: true, shortName: true } },
+              chamber: { select: { kind: true, shortName: true, jurisdiction: { select: { code: true } } } },
               district: { select: { code: true } },
             },
           },
@@ -135,16 +150,12 @@ export const getIowaLegislator = cache(async (personId: string) => {
   return identifier?.person ?? null;
 });
 
-/** Every seat, for finding the empty ones. */
-export async function getVacantSeats() {
-  const districts = await prisma.district.findMany({
-    where: {
-      chamber: { jurisdiction: { code: IOWA_CODE } },
-      terms: { none: { isCurrent: true } },
-    },
+/** Seats nobody is sitting in. */
+export async function getVacantSeats(state: StateConfig) {
+  return prisma.district.findMany({
+    where: { chamber: { jurisdiction: { code: state.jurisdiction } }, terms: { none: { isCurrent: true } } },
     select: { code: true, chamber: { select: { kind: true, shortName: true } } },
   });
-  return districts;
 }
 
 export type EventFilter = { kind?: string; when?: "upcoming" | "past"; q?: string; take?: number; skip?: number };
@@ -174,12 +185,7 @@ function eventWhere(jurisdictions: string[], filter: EventFilter, now: Date): Pr
     ...(filter.kind ? { kind: filter.kind as Prisma.CivicEventWhereInput["kind"] } : {}),
     ...(filter.when === "past" ? { startsAt: { lt: now } } : filter.when === "upcoming" ? { startsAt: { gte: now } } : {}),
     ...(filter.q
-      ? {
-          OR: [
-            { title: { contains: filter.q } },
-            { items: { some: { title: { contains: filter.q } } } },
-          ],
-        }
+      ? { OR: [{ title: { contains: filter.q } }, { items: { some: { title: { contains: filter.q } } } }] }
       : {}),
   };
 }
@@ -199,14 +205,18 @@ export async function listEvents(jurisdictions: string[], filter: EventFilter = 
   return { events, total };
 }
 
-export async function getEvent(id: number) {
-  return prisma.civicEvent.findUnique({ where: { id }, select: EVENT_SELECT });
+/** One meeting, only if it belongs to this state or one of its cities. */
+export async function getEvent(state: StateConfig, id: number) {
+  return prisma.civicEvent.findFirst({
+    where: { id, jurisdiction: { code: { in: eventJurisdictions(state) } } },
+    select: EVENT_SELECT,
+  });
 }
 
 /** Meetings whose agenda names a bill, newest first. The feeds give the name, like "HF 100". */
-export async function getBillEvents(label: string, take = 5) {
+export async function getBillEvents(state: StateConfig, label: string, take = 5) {
   return prisma.civicEvent.findMany({
-    where: { items: { some: { title: label } } },
+    where: { jurisdiction: { code: { in: eventJurisdictions(state) } }, items: { some: { title: label } } },
     orderBy: { startsAt: "desc" },
     take,
     select: EVENT_SELECT,
@@ -218,24 +228,33 @@ export async function hasReportedAttending(userId: string, eventId: number): Pro
   return (await prisma.civicAction.count({ where: { userId, eventId, kind: "ATTENDED_EVENT" } })) > 0;
 }
 
-export async function getIowaCounts() {
-  const [bills, withVotes, laws, members] = await Promise.all([
-    prisma.bill.count({ where: { jurisdiction: { code: IOWA_CODE } } }),
-    prisma.rollCall.count({ where: { jurisdiction: { code: IOWA_CODE } } }),
-    prisma.bill.count({ where: { jurisdiction: { code: IOWA_CODE }, currentStatus: { in: ["SIGNED", "BECAME_LAW", "VETO_OVERRIDDEN"] } } }),
-    prisma.officeTerm.count({ where: { isCurrent: true, chamber: { jurisdiction: { code: IOWA_CODE } } } }),
+export async function getStateCounts(state: StateConfig) {
+  const code = state.jurisdiction;
+  const [bills, rollCalls, laws, members] = await Promise.all([
+    prisma.bill.count({ where: { jurisdiction: { code } } }),
+    prisma.rollCall.count({ where: { jurisdiction: { code } } }),
+    prisma.bill.count({ where: { jurisdiction: { code }, currentStatus: { in: ["SIGNED", "BECAME_LAW", "VETO_OVERRIDDEN"] } } }),
+    prisma.officeTerm.count({ where: { isCurrent: true, chamber: { jurisdiction: { code } } } }),
   ]);
-  return { bills, withVotes, laws, members };
+  return { bills, rollCalls, laws, members };
 }
 
 /** For badges. Attendance is what people told us, not something we can check. */
-export async function getIowaBadgeFacts(userId: string) {
-  const location = await getStateLocation(userId);
+export async function getStateBadgeFacts(userId: string) {
+  const location = await getUserStateLocation(userId);
   if (!location) return undefined;
-  const [votes, attended, councilAttended] = await Promise.all([
-    prisma.userBillVote.count({ where: { userId, bill: { jurisdiction: { code: IOWA_CODE } } } }),
-    prisma.civicAction.count({ where: { userId, kind: "ATTENDED_EVENT", event: { jurisdiction: { code: IOWA_CODE } } } }),
-    prisma.civicAction.count({ where: { userId, kind: "ATTENDED_EVENT", event: { kind: "COUNCIL_MEETING" } } }),
+  const { state } = location;
+  const cities = state.cities.map((city) => city.jurisdiction);
+  const [votes, attended, cityAttended] = await Promise.all([
+    prisma.userBillVote.count({ where: { userId, bill: { jurisdiction: { code: state.jurisdiction } } } }),
+    prisma.civicAction.count({ where: { userId, kind: "ATTENDED_EVENT", event: { jurisdiction: { code: state.jurisdiction } } } }),
+    prisma.civicAction.count({ where: { userId, kind: "ATTENDED_EVENT", event: { jurisdiction: { code: { in: cities } } } } }),
   ]);
-  return { votes, attended, councilAttended, seatsFound: Boolean(location.lowerCode || location.upperCode) };
+  return {
+    stateName: state.name,
+    votes,
+    attended,
+    cityAttended,
+    seatsFound: Boolean(location.lowerCode || location.upperCode),
+  };
 }

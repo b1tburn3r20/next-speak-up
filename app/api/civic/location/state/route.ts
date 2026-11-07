@@ -3,17 +3,18 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { checkRateLimit, getUserRole } from "@/lib/ratelimiter";
-import { getUserLocation, refreshUserAlignment } from "@/lib/civic/users";
-import { parseStateDistricts, SUPPORTED_CITIES } from "@/lib/civic/state-logic";
-import { saveStateLocation } from "@/lib/civic/state";
+import { refreshUserAlignment } from "@/lib/civic/users";
+import { getUserState, saveStateLocation } from "@/lib/civic/state";
+import { cityByKey, validDistrict } from "@/lib/civic/states";
 
 const schema = z.object({
   lower: z.string().max(4).nullable(),
   upper: z.string().max(4).nullable(),
-  inDesMoines: z.boolean(),
+  /** A city's key, like "des-moines", or null for anywhere else. */
+  city: z.string().max(60).nullable(),
 });
 
-/** For someone who chose Iowa by hand. Saves only district numbers, never an address. */
+/** For someone who chose their state by hand. Saves only district numbers and a city, never an address. */
 export async function PATCH(request: NextRequest) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
@@ -22,19 +23,15 @@ export async function PATCH(request: NextRequest) {
   if (!limit.success) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Choose a real district." }, { status: 400 });
-  const location = await getUserLocation(userId);
-  if (location?.regionCode !== "IA") {
-    return NextResponse.json({ error: "Set your location to Iowa first." }, { status: 400 });
+  const state = await getUserState(userId);
+  if (!state) return NextResponse.json({ error: "Set your location to a state we cover first." }, { status: 400 });
+  const { lower, upper, city } = parsed.data;
+  const seats = { lower: validDistrict(state, "LOWER", lower), upper: validDistrict(state, "UPPER", upper) };
+  const place = city ? cityByKey(state, city) : null;
+  if ((lower && !seats.lower) || (upper && !seats.upper) || (city && !place)) {
+    return NextResponse.json({ error: "That district or city isn't one we know." }, { status: 400 });
   }
-  const districts = parseStateDistricts(parsed.data);
-  if ((parsed.data.lower && !districts.lower) || (parsed.data.upper && !districts.upper)) {
-    return NextResponse.json({ error: "That district doesn't exist." }, { status: 400 });
-  }
-  const saved = await saveStateLocation(
-    userId,
-    { ...districts, placeGeoid: parsed.data.inDesMoines ? SUPPORTED_CITIES.ia["des-moines"].placeGeoid : null },
-    "MANUAL",
-  );
+  const saved = await saveStateLocation(userId, state, { ...seats, placeGeoid: place?.placeGeoid ?? null }, "MANUAL");
   if (!saved) return NextResponse.json({ error: "That district doesn't exist." }, { status: 400 });
   await refreshUserAlignment(userId);
   return NextResponse.json({ ok: true });

@@ -54,10 +54,21 @@ describe("loading states", () => {
   });
 
   it("doesn't put a loading.tsx above a detail page, which would turn its 404 into a 200", () => {
+    // Safe only when every dynamic folder between them has a layout that calls notFound() first.
     const pages = filesNamed(APP, "page.tsx").filter((page) => !NO_LOADING_NEEDED.has(fromApp(page)));
     const dynamic = pages.filter((page) => fromApp(page).includes("["));
     expect(dynamic.length).toBeGreaterThan(0);
-    for (const page of dynamic) expect(hasLoadingAbove(page), fromApp(page)).toBe(false);
+    for (const page of dynamic) {
+      if (!hasLoadingAbove(page)) continue;
+      let dir = dirname(page);
+      while (dir.startsWith(APP)) {
+        if (/\[[^\]]+\]$/.test(dir)) {
+          const layout = join(dir, "layout.tsx");
+          expect(existsSync(layout) && readFileSync(layout, "utf8").includes("notFound("), fromApp(page)).toBe(true);
+        }
+        dir = dirname(dir);
+      }
+    }
   });
 
   it("lists every API route in docs/loading-states.md", () => {

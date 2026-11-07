@@ -19,6 +19,8 @@ export const routes = {
   reps: "/reps",
   learn: "/learn",
   settings: "/settings",
+  /** Sends someone to their own state, or lists the states we cover. */
+  myState: "/state",
   federal: {
     home: FEDERAL_BASE,
     bills: `${FEDERAL_BASE}/bills`,
@@ -28,15 +30,17 @@ export const routes = {
   },
 } as const;
 
-/** Iowa is the only state so far. Adding one means its pipelines, and a line in `SUPPORTED_STATES`. */
-const IOWA_BASE = jurisdictionBase({ state: "ia" });
-export const stateRoutes = {
-  home: IOWA_BASE,
-  bills: `${IOWA_BASE}/bills`,
-  legislators: `${IOWA_BASE}/legislators`,
-  events: `${IOWA_BASE}/events`,
-  city: `${IOWA_BASE}/city/des-moines`,
-} as const;
+/** A state's pages. Which states exist is in lib/civic/states.ts. */
+export function stateRoutes(stateKey: string) {
+  const base = jurisdictionBase({ state: stateKey });
+  return {
+    home: base,
+    bills: `${base}/bills`,
+    legislators: `${base}/legislators`,
+    events: `${base}/events`,
+    city: (cityKey: string) => `${base}/city/${cityKey}`,
+  };
+}
 
 /** Bill slugs start with their government: "us-119-hr-1". State slugs would start with "tx-". */
 function baseOfSlug(slug: string): string {
@@ -61,14 +65,15 @@ export function rollCallPath(slug: string, rollCallId: number | string): string 
   return `${billPath(slug)}/votes/${rollCallId}`;
 }
 
-/** From `memberKeyOf`: a Bioguide ID, or "ia:123" for an Iowa legislator. */
+/** From `memberKeyOf`: a Bioguide ID, or "ia:123" for a state legislator, prefixed by their state. */
 export function memberPath(memberKey: string): string {
-  if (memberKey.startsWith("ia:")) return `${stateRoutes.legislators}/${memberKey.slice(3)}`;
+  const state = memberKey.match(/^([a-z]{2}):(.+)$/);
+  if (state) return `${stateRoutes(state[1]).legislators}/${encodeURIComponent(state[2])}`;
   return `${routes.federal.legislators}/${memberKey}`;
 }
 
-export function eventPath(id: number): string {
-  return `${stateRoutes.events}/${id}`;
+export function eventPath(stateKey: string, id: number): string {
+  return `${stateRoutes(stateKey).events}/${id}`;
 }
 
 export function topicPath(slug: string): string {

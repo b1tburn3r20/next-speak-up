@@ -1,3 +1,4 @@
+import { STATES } from "@/lib/civic/states";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
 
@@ -22,7 +23,7 @@ export function SiteFooter() {
           ))}
         </nav>
         <p className="text-xs">
-          Data from Congress.gov, the House Clerk, docs.house.gov, GovInfo, Voteview, and legis.iowa.gov. Coolbills isn&apos;t
+          Data from Congress.gov, the House Clerk, docs.house.gov, GovInfo, Voteview, {STATES.map((state) => state.sourceSite).join(", ")}, and city archives. Coolbills isn&apos;t
           part of the U.S. government.
         </p>
       </div>

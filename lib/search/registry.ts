@@ -1,7 +1,7 @@
 import type { Session } from "next-auth";
 import { canAccess } from "@/lib/auth/permissions";
 import { billsProvider } from "./providers/bills";
-import { iowaLegislatorsProvider, representativesProvider, senatorsProvider } from "./providers/members";
+import { representativesProvider, senatorsProvider, stateLegislatorProviders } from "./providers/members";
 import { glossaryProvider, pagesProvider, topicsProvider } from "./providers/static";
 import { usersProvider } from "./providers/users";
 import type { SearchProvider, SearchProviderInfo } from "./types";
@@ -11,7 +11,7 @@ export const SEARCH_PROVIDERS: SearchProvider[] = [
   pagesProvider,
   representativesProvider,
   senatorsProvider,
-  iowaLegislatorsProvider,
+  ...stateLegislatorProviders,
   billsProvider,
   topicsProvider,
   glossaryProvider,

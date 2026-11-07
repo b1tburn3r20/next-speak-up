@@ -18,9 +18,9 @@ const prismaMock = vi.hoisted(() => ({
 vi.mock("@/prisma/client", () => ({ default: prismaMock }));
 vi.mock("@/lib/civic/state", () => ({
   getStateLocation: vi.fn(async () => null),
+  getUserStateLocation: vi.fn(async () => null),
   getStateSeats: vi.fn(async () => []),
-  clearStateLocation: vi.fn(async () => undefined),
-  IOWA_CODE: "US-IA",
+  clearOtherStateLocations: vi.fn(async () => undefined),
 }));
 // The ledger has its own tests. This file is about votes and alignment.
 vi.mock("@/lib/civic/xp", () => ({ awardVoteXp: vi.fn(), removeVoteXp: vi.fn() }));

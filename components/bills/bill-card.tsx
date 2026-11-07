@@ -1,4 +1,5 @@
 import { billStatusText, diedWithSession } from "@/lib/civic/government";
+import { stateOfSlug } from "@/lib/civic/states";
 import Link from "next/link";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { MemberPhoto } from "@/components/people/member-photo";
@@ -57,7 +58,7 @@ export function SponsorLine({ bill }: { bill: BillListItem }) {
   if (!sponsor) {
     return (
       <p className="text-sm text-muted-foreground">
-        {bill.slug.startsWith("ia-") ? "No individual sponsor listed" : "Sponsor not listed yet"}
+        {stateOfSlug(bill.slug) ? "No individual sponsor listed" : "Sponsor not listed yet"}
       </p>
     );
   }

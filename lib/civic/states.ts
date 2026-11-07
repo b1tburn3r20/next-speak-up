@@ -1,0 +1,141 @@
+// The states and cities we cover, as data. Pages and components take one of these, so adding a state is
+// its pipelines plus an entry here, and nothing on screen names a state itself. Pure: no database access.
+
+export type ChamberKind = "UPPER" | "LOWER";
+
+export type CityConfig = {
+  /** In URLs: /state/ia/city/des-moines */
+  key: string;
+  name: string;
+  jurisdiction: string;
+  /** The Census's ID for the place, which is how a location lookup tells us who lives there. */
+  placeGeoid: string;
+  /** What the city's data covers so far, said plainly on its page. */
+  coverage: string;
+};
+
+export type StateConfig = {
+  /** In URLs and bill slugs: /state/ia, ia-91-hf-1 */
+  key: string;
+  regionCode: string;
+  name: string;
+  jurisdiction: string;
+  /** Mid-sentence: "the Iowa Legislature hasn't finished with this one." */
+  legislature: string;
+  chambers: Record<ChamberKind, { name: string; seats: number }>;
+  /** The ID scheme its legislators carry in person_identifier. */
+  personScheme: string;
+  timeZone: string;
+  /** The next session's first day, and where that date comes from. */
+  nextSession: Date;
+  sourceName: string;
+  sourceSite: string;
+  /** Where voter registration and polling places live. We link to it, never reward using it. */
+  electionsUrl: string;
+  electionsOffice: string;
+  /** How its bills are numbered, for search hints: "HF 100". */
+  billExample: string;
+  /** A history line saying a chamber passed the bill, with the vote's totals. */
+  passageAction: RegExp;
+  cities: CityConfig[];
+};
+
+export const STATES: StateConfig[] = [
+  {
+    key: "ia",
+    regionCode: "IA",
+    name: "Iowa",
+    jurisdiction: "US-IA",
+    legislature: "the Iowa Legislature",
+    chambers: { LOWER: { name: "House", seats: 100 }, UPPER: { name: "Senate", seats: 50 } },
+    personScheme: "iowa_legis",
+    timeZone: "America/Chicago",
+    // The Legislature's own list gives the 91st General Assembly's last day as January 10, 2027.
+    nextSession: new Date("2027-01-11T06:00:00.000Z"),
+    sourceName: "the Iowa Legislature",
+    sourceSite: "legis.iowa.gov",
+    electionsUrl: "https://sos.iowa.gov",
+    electionsOffice: "Iowa Secretary of State",
+    billExample: "HF 100",
+    passageAction: /\bpassed (house|senate), yeas \d+/i,
+    cities: [
+      {
+        key: "des-moines",
+        name: "Des Moines",
+        jurisdiction: "US-IA-DSM",
+        placeGeoid: "1921000",
+        coverage:
+          "Meetings and their agendas, from the city's public document archive. Council members, wards, and how they voted aren't here yet, because we don't have a source we can read and check.",
+      },
+    ],
+  },
+];
+
+export function stateByKey(key: string | null | undefined): StateConfig | null {
+  return STATES.find((state) => state.key === key?.toLowerCase()) ?? null;
+}
+
+export function stateByRegion(regionCode: string | null | undefined): StateConfig | null {
+  return STATES.find((state) => state.regionCode === regionCode?.toUpperCase()) ?? null;
+}
+
+/** "ia-91-hf-100" belongs to Iowa. A federal slug starts with "us", which isn't a state. */
+export function stateOfSlug(slug: string): StateConfig | null {
+  return stateByKey(slug.split("-", 1)[0]);
+}
+
+/** A state or one of its cities. */
+export function stateOfJurisdiction(code: string): StateConfig | null {
+  return STATES.find((state) => state.jurisdiction === code || state.cities.some((city) => city.jurisdiction === code)) ?? null;
+}
+
+export function stateOfScheme(scheme: string): StateConfig | null {
+  return STATES.find((state) => state.personScheme === scheme) ?? null;
+}
+
+export function cityByKey(state: StateConfig, key: string): CityConfig | null {
+  return state.cities.find((city) => city.key === key) ?? null;
+}
+
+export function cityByGeoid(state: StateConfig, placeGeoid: string | null | undefined): CityConfig | null {
+  return state.cities.find((city) => city.placeGeoid === placeGeoid) ?? null;
+}
+
+/** What a client component may receive. A RegExp or a function can't cross to the browser. */
+export type ClientState = Pick<StateConfig, "key" | "name" | "chambers"> & {
+  cities: Pick<CityConfig, "key" | "name">[];
+};
+
+export function toClientState(state: StateConfig): ClientState {
+  return {
+    key: state.key,
+    name: state.name,
+    chambers: state.chambers,
+    cities: state.cities.map(({ key, name }) => ({ key, name })),
+  };
+}
+
+/** "Iowa House" */
+export function chamberName(state: Pick<StateConfig, "name" | "chambers">, kind: ChamberKind): string {
+  return `${state.name} ${state.chambers[kind].name}`;
+}
+
+/** Every jurisdiction whose meetings belong on a state's pages: the state's, and its cities'. */
+export function eventJurisdictions(state: StateConfig): string[] {
+  return [state.jurisdiction, ...state.cities.map((city) => city.jurisdiction)];
+}
+
+export function sessionHasStarted(state: StateConfig, now = new Date()): boolean {
+  return now.getTime() >= state.nextSession.getTime();
+}
+
+export function nextSessionText(state: StateConfig): string {
+  return state.nextSession.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: state.timeZone });
+}
+
+/** Keeps a district number inside the chamber's real range. */
+export function validDistrict(state: StateConfig, kind: ChamberKind, value: string | null | undefined): string | null {
+  if (!value) return null;
+  const number = Number(value);
+  return Number.isInteger(number) && number >= 1 && number <= state.chambers[kind].seats ? String(number) : null;
+}

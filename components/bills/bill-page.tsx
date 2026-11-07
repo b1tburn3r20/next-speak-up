@@ -43,7 +43,8 @@ import { missingSenateVotes } from "@/lib/civic/verdict";
 import { billPath, billTextPath, memberPath, rollCallPath, stateRoutes, topicPath } from "@/lib/routes";
 import { EventCard } from "@/components/state/event-card";
 import { existingBills } from "@/lib/civic/bills";
-import { explainIowaAction, governmentOfSlug } from "@/lib/civic/government";
+import { explainStateAction, governmentOfSlug } from "@/lib/civic/government";
+import { stateOfSlug } from "@/lib/civic/states";
 import { getBillEvents } from "@/lib/civic/state";
 import { RelativeDate } from "@/components/app/relative-date";
 import { BillWhen } from "@/components/bills/bill-when";
@@ -137,7 +138,8 @@ async function BillBody({ params }: PageProps) {
   const pdf = bill.textVersions.find((version) => version.pdfUrl)?.pdfUrl ?? null;
   const area = policyAreaByName(bill.policyArea);
   const government = governmentOfSlug(bill.slug);
-  const isIowa = government.key === "ia";
+  const billState = stateOfSlug(bill.slug);
+  const isState = billState !== null;
   const endDate = bill.session.endDate;
   const outlook = billOutlook(bill.currentStatus, { slug: bill.slug, endDate });
 
@@ -150,7 +152,7 @@ async function BillBody({ params }: PageProps) {
           label={label}
           title={bill.title}
           policyArea={bill.policyArea}
-          explanation={isIowa ? null : (area?.explanation ?? null)}
+          explanation={isState ? null : (area?.explanation ?? null)}
           digest={digest}
           textHref={textAvailable ? billTextPath(bill.slug) : null}
           floorNotice={floorItem ? weekLabel(floorItem.weekOf, new Date()) : null}
@@ -162,10 +164,10 @@ async function BillBody({ params }: PageProps) {
 
   const breakdowns = await getPartyBreakdowns(bill.rollCalls.map((rollCall) => rollCall.id));
   const hasFinalVote = bill.rollCalls.length > 0;
-  const pendingSenateVotes = isIowa ? [] : missingSenateVotes(bill.actions, bill.rollCalls);
-  const passages = isIowa ? bill.actions.filter((action) => /\bpassed (house|senate), yeas \d+/i.test(action.text)).length : 0;
+  const pendingSenateVotes = isState ? [] : missingSenateVotes(bill.actions, bill.rollCalls);
+  const passages = billState ? bill.actions.filter((action) => billState.passageAction.test(action.text)).length : 0;
   const unreadVotes = Math.max(0, passages - bill.rollCalls.length);
-  const meetings = isIowa ? await getBillEvents(label) : [];
+  const meetings = billState ? await getBillEvents(billState, label) : [];
   const existing = await existingBills(bill.relations.map((relation) => relation.relatedSlug));
 
   return (
@@ -173,7 +175,7 @@ async function BillBody({ params }: PageProps) {
       <header className="space-y-3">
         <nav>
           <Link href={government.billsHref} className="text-sm font-bold text-primary hover:underline">
-            ← All {isIowa ? "Iowa " : ""}bills
+            ← All {billState ? `${billState.name} ` : ""}bills
           </Link>
         </nav>
         <Flex gap="xs">
@@ -182,7 +184,7 @@ async function BillBody({ params }: PageProps) {
           <PolicyChip name={bill.policyArea} link slug={bill.slug} />
           {bill.lawNumber ? (
             <span className="text-sm font-bold text-muted-foreground">
-              {isIowa ? government.lawLabel(bill.lawNumber) : <Term id="public-law">Public Law {bill.lawNumber}</Term>}
+              {isState ? government.lawLabel(bill.lawNumber) : <Term id="public-law">Public Law {bill.lawNumber}</Term>}
             </span>
           ) : null}
         </Flex>
@@ -217,9 +219,9 @@ async function BillBody({ params }: PageProps) {
           <div className="space-y-1" data-testid="no-summary">
             <p className="text-lg font-semibold leading-relaxed">
               {area ? `This is a ${area.name.toLowerCase()} bill. ` : ""}
-              {isIowa ? "We don't have a summary for this one." : "No official summary yet."}
+              {isState ? "We don't have a summary for this one." : "No official summary yet."}
             </p>
-            {isIowa ? (
+            {isState ? (
               <p className="text-sm text-muted-foreground">
                 This one has no explanation we could read. {pdf ? "The bill itself is linked below." : ""}
               </p>
@@ -232,12 +234,12 @@ async function BillBody({ params }: PageProps) {
             )}
           </div>
         )}
-        {area && !isIowa ? <p className="text-sm text-muted-foreground">{area.explanation}</p> : null}
+        {area && !isState ? <p className="text-sm text-muted-foreground">{area.explanation}</p> : null}
         <p className="text-sm text-muted-foreground">
           Latest: {bill.latestActionText ?? "No action yet"}
           {bill.latestActionDate ? ` (${formatDate(bill.latestActionDate)})` : ""}
         </p>
-        {isIowa && digest ? (
+        {isState && digest ? (
           <p className="text-xs text-muted-foreground" data-testid="explanation-note">
             From the explanation the drafters attach to the bill as introduced. Legislators don&apos;t vote on its wording, and later amendments can change what the bill does.
           </p>
@@ -311,7 +313,7 @@ async function BillBody({ params }: PageProps) {
               <PersonRow key={sponsorship.person.fullName} sponsorship={sponsorship} size={56} />
             ))
           ) : (
-            <p className="text-sm text-muted-foreground">{isIowa ? "No individual sponsor listed. Committees write many Iowa bills." : "Not listed yet."}</p>
+            <p className="text-sm text-muted-foreground">{billState ? `No individual sponsor listed. Committees write many ${billState.name} bills.` : "Not listed yet."}</p>
           )}
           {cosponsors.length > 0 ? (
             <Disclosure
@@ -328,7 +330,7 @@ async function BillBody({ params }: PageProps) {
               </ul>
             </Disclosure>
           ) : (
-            isIowa ? null : <p className="text-sm text-muted-foreground">No cosponsors yet.</p>
+            isState ? null : <p className="text-sm text-muted-foreground">No cosponsors yet.</p>
           )}
           {bill.subjects.length > 0 ? (
             <p className="break-words text-sm text-muted-foreground">
@@ -355,7 +357,7 @@ async function BillBody({ params }: PageProps) {
         description="Party totals. How your own reps voted stays hidden above until you ask."
       >
         {unreadVotes > 0 ? (
-          <p className="rounded-xl bg-streak-tint p-3 text-sm" data-testid="unread-iowa-votes">
+          <p className="rounded-xl bg-streak-tint p-3 text-sm" data-testid="unread-state-votes">
             {unreadVotes === 1 ? "One passage vote is" : `${unreadVotes} passage votes are`} only in the timeline below, without names. We show a vote once the journal&apos;s names and totals add up.
           </p>
         ) : null}
@@ -398,7 +400,7 @@ async function BillBody({ params }: PageProps) {
       </Section>
 
       {meetings.length > 0 ? (
-        <Section title="Meetings about this bill" action={{ href: stateRoutes.events, label: "All meetings" }} data-testid="bill-meetings">
+        <Section title="Meetings about this bill" action={{ href: billState ? stateRoutes(billState.key).events : "#", label: "All meetings" }} data-testid="bill-meetings">
           <Stack>
             {meetings.map((event) => (
               <EventCard key={event.id} event={event} />
@@ -411,9 +413,9 @@ async function BillBody({ params }: PageProps) {
         <OuterBlock>
           <ol className="max-h-[32rem] space-y-3 overflow-y-auto" data-testid="bill-timeline">
             {bill.actions.map((action) => {
-              const plain = isIowa
+              const plain = billState
                 ? (() => {
-                    const explanation = explainIowaAction(action.text);
+                    const explanation = explainStateAction(billState, action.text);
                     return explanation ? { explanation, term: null } : null;
                   })()
                 : explainAction(action.text);
@@ -434,7 +436,7 @@ async function BillBody({ params }: PageProps) {
       </Section>
 
       {olderSummaries.length > 0 || summary ? (
-        <Section title={isIowa ? "The full explanation" : "The full summary"}>
+        <Section title={isState ? "The full explanation" : "The full summary"}>
           <OuterBlock className="space-y-3">
             <p className="text-sm text-muted-foreground">
               {summary?.source === "BILL_EXPLANATION" ? "The bill's explanation" : <Term id="crs">Congressional Research Service</Term>}
@@ -493,10 +495,10 @@ async function BillBody({ params }: PageProps) {
         label="Keep going"
         step={{
           id: "after-bill",
-          title: isIowa ? "Vote on another Iowa bill" : area ? `See more ${area.name.toLowerCase()} bills` : "Vote on another bill",
-          description: area && !isIowa ? area.explanation : "Each one sharpens how well you know your reps.",
-          href: isIowa ? stateRoutes.bills : area ? topicPath(area.slug) : "/vote",
-          cta: isIowa ? "Browse Iowa bills" : area ? "Browse this topic" : "Start voting",
+          title: billState ? `Vote on another ${billState.name} bill` : area ? `See more ${area.name.toLowerCase()} bills` : "Vote on another bill",
+          description: area && !isState ? area.explanation : "Each one sharpens how well you know your reps.",
+          href: billState ? stateRoutes(billState.key).bills : area ? topicPath(area.slug) : "/vote",
+          cta: billState ? `Browse ${billState.name} bills` : area ? "Browse this topic" : "Start voting",
           tone: "primary",
         }}
       />

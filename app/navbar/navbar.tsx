@@ -2,6 +2,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getServerSession } from "next-auth";
 import { canAccess } from "@/lib/auth/permissions";
 import { getUserLocationSafe } from "@/lib/civic/users";
+import { stateByRegion } from "@/lib/civic/states";
 import { getHudProgressSafe } from "@/lib/civic/xp";
 import { navItems } from "../data/navbar-data";
 import ClientNavbar from "./varients/client-navbar";
@@ -11,7 +12,7 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
   const hud = session?.user?.id ? await getHudProgressSafe(session.user.id) : null;
   const location = session?.user?.id ? await getUserLocationSafe(session.user.id) : null;
   const visibleNavHrefs = navItems
-    .filter((item) => canAccess(session, item) && (!item.iowa || location?.regionCode === "IA"))
+    .filter((item) => canAccess(session, item) && (!item.inCoveredState || stateByRegion(location?.regionCode) !== null))
     .map((item) => item.href);
 
   return (

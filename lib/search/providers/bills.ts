@@ -1,6 +1,7 @@
 import { parseBillSearch } from "@/lib/civic/bills";
 import { billLabel, BILL_STATUS_LABELS, type BillStatusValue } from "@/lib/civic/labels";
 import { billPath } from "@/lib/routes";
+import { stateOfSlug } from "@/lib/civic/states";
 import prisma from "@/prisma/client";
 import { commandScore, rankResults, scoreFields } from "../score";
 import type { SearchProvider } from "../types";
@@ -71,7 +72,7 @@ export const billsProvider: SearchProvider = {
           id: bill.slug,
           badge: label,
           title: bill.title,
-          subtitle: `${bill.slug.startsWith("ia-") ? "Iowa · " : ""}${BILL_STATUS_LABELS[bill.currentStatus as BillStatusValue]}`,
+          subtitle: `${stateOfSlug(bill.slug) ? `${stateOfSlug(bill.slug)?.name} · ` : ""}${BILL_STATUS_LABELS[bill.currentStatus as BillStatusValue]}`,
           href: billPath(bill.slug),
           policyArea: bill.policyArea,
           score: Math.max(

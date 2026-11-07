@@ -1,17 +1,5 @@
 // States and local government. Pure, so tests can cover it. No database access here.
 
-/** States with data. Adding one means its pipelines, and a line here. */
-export const SUPPORTED_STATES: Record<string, { code: string; name: string; jurisdiction: string }> = {
-  ia: { code: "IA", name: "Iowa", jurisdiction: "US-IA" },
-};
-
-/** Cities with data, by state. `placeGeoid` is the Census's ID, which tells us who lives there. */
-export const SUPPORTED_CITIES: Record<string, Record<string, { name: string; jurisdiction: string; placeGeoid: string }>> = {
-  ia: {
-    "des-moines": { name: "Des Moines", jurisdiction: "US-IA-DSM", placeGeoid: "1921000" },
-  },
-};
-
 export type EventKind = "COMMITTEE" | "SUBCOMMITTEE" | "HEARING" | "COUNCIL_MEETING" | "ELECTION" | "DEADLINE";
 
 export const EVENT_KIND_LABELS: Record<EventKind, string> = {
@@ -96,12 +84,3 @@ export function buildIcs(
 export type Seat =
   | { status: "FILLED"; personId: number; name: string; party: string | null; phone: string | null; websiteUrl: string | null; imageUrl: string | null }
   | { status: "VACANT"; lastHolder: string | null; endYear: number | null };
-
-export function parseStateDistricts(input: { lower?: string | null; upper?: string | null }, seats = { lower: 100, upper: 50 }) {
-  const valid = (value: string | null | undefined, max: number) => {
-    if (!value) return null;
-    const number = Number(value);
-    return Number.isInteger(number) && number >= 1 && number <= max ? String(number) : null;
-  };
-  return { lower: valid(input.lower, seats.lower), upper: valid(input.upper, seats.upper) };
-}

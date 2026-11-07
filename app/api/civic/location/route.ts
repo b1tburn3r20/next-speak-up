@@ -10,6 +10,7 @@ import {
   type StateSeats,
 } from "@/lib/civic/location";
 import { saveStateLocation } from "@/lib/civic/state";
+import { stateByRegion } from "@/lib/civic/states";
 import { refreshUserAlignment, saveUserLocation, type LocationSource } from "@/lib/civic/users";
 
 // Coordinates and addresses are used for the lookup and then discarded. Only the state and
@@ -85,9 +86,11 @@ export async function POST(request: NextRequest) {
     if (!saved) {
       return NextResponse.json({ error: "That district doesn't exist." }, { status: 400 });
     }
-    // A lookup also gives their statehouse seats. Choosing by hand doesn't, so those are asked for later.
-    if (resolved.regionCode === "IA" && resolved.stateSeats) {
-      await saveStateLocation(session.user.id, resolved.stateSeats, source);
+    // A lookup also gives their statehouse seats, in states we cover. Choosing by hand doesn't, so
+    // those are asked for on the state's page.
+    const state = stateByRegion(resolved.regionCode);
+    if (state && resolved.stateSeats) {
+      await saveStateLocation(session.user.id, state, resolved.stateSeats, source);
       await refreshUserAlignment(session.user.id);
     }
   }

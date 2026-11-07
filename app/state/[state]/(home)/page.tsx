@@ -7,19 +7,33 @@ import { BillCards } from "@/components/bills/bill-cards";
 import { Grid, OuterBlock, PageHeader, PageSpacer, Section, Stack } from "@/components/blocks";
 import { NextBillCard } from "@/components/civic/next-bill-card";
 import { EventCard } from "@/components/state/event-card";
-import { IowaSessionNote } from "@/components/state/session-note";
-import { StateSeatPicker } from "@/components/state/state-seat-picker";
+import { StateSessionNote } from "@/components/state/session-note";
+import { FindStateSeats } from "@/components/state/find-state-seats";
 import { StateSeats } from "@/components/state/state-seats";
 import { listBills } from "@/lib/civic/bills";
-import { getIowaVoteQueue, getRepRecaps } from "@/lib/civic/engage";
-import { getIowaCounts, IOWA_CODE, listEvents } from "@/lib/civic/state";
+import { getRepRecaps, getStateVoteQueue } from "@/lib/civic/engage";
+import { getStateCounts, listEvents } from "@/lib/civic/state";
+import { eventJurisdictions, stateByKey, toClientState } from "@/lib/civic/states";
+import { notFound } from "next/navigation";
 import { getUserMetrics } from "@/lib/civic/users";
 import { stateRoutes } from "@/lib/routes";
 
-export const metadata: Metadata = {
-  title: "Iowa",
-  description: "Iowa's legislators, bills, and meetings, and whether your legislators vote the way you would.",
-};
+type StateParams = { params: Promise<{ state: string }> };
+
+async function stateFrom(params: StateParams["params"]) {
+  const state = stateByKey((await params).state);
+  // The layout already turned away states we don't cover. This keeps the type honest.
+  if (!state) notFound();
+  return state;
+}
+
+export async function generateMetadata({ params }: StateParams): Promise<Metadata> {
+  const state = await stateFrom(params);
+  return {
+    title: { absolute: state.name },
+    description: `${state.name}'s legislators, bills, and meetings, and whether your legislators vote the way you would.`,
+  };
+}
 
 function PlaceLink({ href, icon: Icon, title, detail, testId }: { href: string; icon: LucideIcon; title: string; detail: string; testId: string }) {
   return (
@@ -34,21 +48,24 @@ function PlaceLink({ href, icon: Icon, title, detail, testId }: { href: string; 
   );
 }
 
-export default async function IowaHubPage() {
+export default async function StateHubPage({ params }: StateParams) {
+  const state = await stateFrom(params);
+  const routes = stateRoutes(state.key);
+  const places = eventJurisdictions(state);
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id ?? null;
   const now = new Date();
   const metrics = userId ? await getUserMetrics(userId) : null;
-  const isIowan = metrics?.location?.regionCode === "IA";
-  const seats = metrics?.stateSeats ?? [];
+  const livesHere = metrics?.userState?.key === state.key;
+  const seats = livesHere ? (metrics?.stateSeats ?? []) : [];
   const reps = seats.flatMap((seat) => (seat.member ? [seat.member] : []));
   const seatsKnown = seats.some((seat) => seat.code);
   const [counts, queue, laws, upcoming, recent, recaps] = await Promise.all([
-    getIowaCounts(),
-    getIowaVoteQueue(userId, reps.map((rep) => rep.id), 1),
-    listBills({ jurisdiction: IOWA_CODE, status: "SIGNED", limit: 3 }),
-    listEvents([IOWA_CODE, "US-IA-DSM"], { when: "upcoming", take: 4 }, now),
-    listEvents([IOWA_CODE, "US-IA-DSM"], { when: "past", take: 3 }, now),
+    getStateCounts(state),
+    getStateVoteQueue(state, userId, reps.map((rep) => rep.id), 1),
+    listBills({ jurisdiction: state.jurisdiction, status: "SIGNED", limit: 3 }),
+    listEvents(places, { when: "upcoming", take: 4 }, now),
+    listEvents(places, { when: "past", take: 3 }, now),
     getRepRecaps(reps, now),
   ]);
   const nextBill = queue[0];
@@ -56,35 +73,28 @@ export default async function IowaHubPage() {
   return (
     <PageSpacer>
       <PageHeader
-        title={isIowan ? "Your Iowa" : "Iowa"}
+        title={livesHere ? `Your ${state.name}` : state.name}
         description="The people who vote for you at the statehouse, what they've decided, and where you can show up."
       />
-      <IowaSessionNote detail />
+      <StateSessionNote state={state} detail />
 
-      {isIowan ? (
-        <Section title="Your legislators" description="Each one's score is separate, and only your own votes decide it." data-testid="iowa-yours">
+      {livesHere ? (
+        <Section title="Your legislators" description="Each one's score is separate, and only your own votes decide it." data-testid="state-yours">
           <Stack>
-            {seatsKnown ? <StateSeats seats={seats} recaps={recaps} /> : null}
+            {seatsKnown ? <StateSeats state={state} seats={seats} recaps={recaps} /> : null}
             {!seatsKnown || metrics?.stateLocation === null ? (
-              <OuterBlock className="space-y-3">
-                <p className="text-sm">
-                  We only know you&apos;re in Iowa. Look up your address from{" "}
-                  <Link href="/onboarding" className="font-bold text-primary hover:underline">
-                    your location
-                  </Link>
-                  , or choose your districts here if you know them.
-                </p>
-                <StateSeatPicker initialLower={null} initialUpper={null} initialInDesMoines={false} />
+              <OuterBlock>
+                <FindStateSeats state={toClientState(state)} />
               </OuterBlock>
             ) : null}
           </Stack>
         </Section>
       ) : (
-        <OuterBlock className="space-y-2" data-testid="iowa-not-located">
-          <h2 className="text-lg font-extrabold">Live in Iowa?</h2>
+        <OuterBlock className="space-y-2" data-testid="state-not-located">
+          <h2 className="text-lg font-extrabold">Live in {state.name}?</h2>
           <p className="text-sm">
             {userId
-              ? "Set your location to Iowa, and we'll find your state legislators."
+              ? `Set your location to ${state.name}, and we'll find your state legislators.`
               : "Sign in and share your location, and we'll find your state legislators."}{" "}
             <Link href="/onboarding" className="font-bold text-primary hover:underline">
               Set your location
@@ -94,19 +104,21 @@ export default async function IowaHubPage() {
       )}
 
       {nextBill ? (
-        <Section title="Weigh in" description="Vote first, then see if your legislators agree with you." data-testid="iowa-next">
+        <Section title="Weigh in" description="Vote first, then see if your legislators agree with you." data-testid="state-next">
           <NextBillCard item={nextBill} />
         </Section>
       ) : null}
 
       <Grid cols="halves">
-        <PlaceLink href={stateRoutes.bills} icon={Book} title="Bills" detail={`${counts.bills.toLocaleString()} from the 91st General Assembly, ${counts.laws.toLocaleString()} signed into law`} testId="iowa-link-bills" />
-        <PlaceLink href={stateRoutes.legislators} icon={Briefcase} title="Legislators" detail={`${counts.members} sitting now, out of 150 seats`} testId="iowa-link-legislators" />
-        <PlaceLink href={stateRoutes.events} icon={CalendarDays} title="Meetings" detail="Where to show up, and what happened" testId="iowa-link-events" />
-        <PlaceLink href={stateRoutes.city} icon={Building2} title="Des Moines" detail="City Council meetings and agendas" testId="iowa-link-city" />
+        <PlaceLink href={routes.bills} icon={Book} title="Bills" detail={`${counts.bills.toLocaleString()} this session, ${counts.laws.toLocaleString()} signed into law`} testId="state-link-bills" />
+        <PlaceLink href={routes.legislators} icon={Briefcase} title="Legislators" detail={`${counts.members} sitting now, out of ${state.chambers.LOWER.seats + state.chambers.UPPER.seats} seats`} testId="state-link-legislators" />
+        <PlaceLink href={routes.events} icon={CalendarDays} title="Meetings" detail="Where to show up, and what happened" testId="state-link-events" />
+        {state.cities.map((city) => (
+          <PlaceLink key={city.key} href={routes.city(city.key)} icon={Building2} title={city.name} detail="City meetings and agendas" testId={`state-link-city-${city.key}`} />
+        ))}
       </Grid>
 
-      <Section title="Show up" action={{ href: stateRoutes.events, label: "All meetings" }} data-testid="iowa-show-up">
+      <Section title="Show up" action={{ href: routes.events, label: "All meetings" }} data-testid="state-show-up">
         {upcoming.events.length > 0 ? (
           <Stack>
             {upcoming.events.map((event) => (
@@ -115,7 +127,7 @@ export default async function IowaHubPage() {
           </Stack>
         ) : (
           <Stack>
-            <OuterBlock data-testid="iowa-no-upcoming">
+            <OuterBlock data-testid="state-no-upcoming">
               <p className="font-extrabold">No meetings are posted right now</p>
               <p className="text-sm text-muted-foreground">
                 Committee meetings get posted once the session starts, usually only days ahead. They&apos;ll show up here. These are the latest ones.
@@ -129,7 +141,7 @@ export default async function IowaHubPage() {
       </Section>
 
       {laws.bills.length > 0 ? (
-        <Section title="Recently signed into law" action={{ href: `${stateRoutes.bills}?status=SIGNED`, label: "All of them" }} data-testid="iowa-laws">
+        <Section title="Recently signed into law" action={{ href: `${routes.bills}?status=SIGNED`, label: "All of them" }} data-testid="state-laws">
           <Stack>
             <BillCards bills={laws.bills} />
           </Stack>
@@ -138,8 +150,8 @@ export default async function IowaHubPage() {
 
       <p className="text-sm text-muted-foreground">
         Voter registration and polling places are run by the{" "}
-        <a href="https://sos.iowa.gov" target="_blank" rel="noreferrer" className="font-bold text-primary hover:underline">
-          Iowa Secretary of State
+        <a href={state.electionsUrl} target="_blank" rel="noreferrer" className="font-bold text-primary hover:underline">
+          {state.electionsOffice}
         </a>
         . Coolbills never rewards voting in an election, or how anyone votes.
       </p>

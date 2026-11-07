@@ -5,35 +5,46 @@ import { EmptyState } from "@/components/app/page-states";
 import { OuterBlock, PageHeader, PageSpacer, Section, Stack } from "@/components/blocks";
 import { EventCard, eventWhen } from "@/components/state/event-card";
 import { getStateLocation, listEvents } from "@/lib/civic/state";
+import { cityByKey, stateByKey } from "@/lib/civic/states";
+import { notFound } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Des Moines",
-  description: "Des Moines City Council meetings and agendas.",
-};
+type CityParams = { params: Promise<{ state: string; city: string }> };
 
-const CITY = "US-IA-DSM";
+async function cityFrom(params: CityParams["params"]) {
+  const { state: stateKey, city: cityKey } = await params;
+  const state = stateByKey(stateKey);
+  const city = state ? cityByKey(state, cityKey) : null;
+  // The layout already turned these away. This keeps the types honest.
+  if (!state || !city) notFound();
+  return { state, city };
+}
 
-export default async function DesMoinesPage() {
+export async function generateMetadata({ params }: CityParams): Promise<Metadata> {
+  const { city } = await cityFrom(params);
+  return { title: city.name, description: `${city.name} meetings and agendas.` };
+}
+
+export default async function CityPage({ params }: CityParams) {
+  const { state, city } = await cityFrom(params);
   const session = await getServerSession(authOptions);
-  const location = session?.user?.id ? await getStateLocation(session.user.id) : null;
+  const location = session?.user?.id ? await getStateLocation(session.user.id, state) : null;
   const now = new Date();
   const [upcoming, past] = await Promise.all([
-    listEvents([CITY], { when: "upcoming", take: 10 }, now),
-    listEvents([CITY], { when: "past", take: 20 }, now),
+    listEvents([city.jurisdiction], { when: "upcoming", take: 10 }, now),
+    listEvents([city.jurisdiction], { when: "past", take: 20 }, now),
   ]);
   const newest = past.events[0];
 
   return (
     <PageSpacer>
       <PageHeader
-        title={location?.city ? "Your city: Des Moines" : "Des Moines"}
-        description="City Council decides things closest to home, and its meetings are open to the public."
+        title={location?.city?.key === city.key ? `Your city: ${city.name}` : city.name}
+        description="The city council decides things closest to home, and its meetings are open to the public."
       />
       <OuterBlock className="space-y-2" data-testid="city-gaps">
         <h2 className="text-lg font-extrabold">What we have so far</h2>
         <p className="text-sm">
-          Meetings and their agendas, from the city&apos;s public document archive.{" "}
-          {newest ? `The newest agenda there is from ${eventWhen(newest)}.` : ""} Council members, your ward, and how they voted aren&apos;t here yet, because we don&apos;t have a source we can read and check. We&apos;d rather show nothing than guess.
+          {city.coverage} {newest ? `The newest agenda there is from ${eventWhen(newest, state.timeZone)}.` : ""} We&apos;d rather show nothing than guess.
         </p>
       </OuterBlock>
       <Section title="Coming up" data-testid="city-upcoming">

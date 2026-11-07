@@ -14,6 +14,7 @@ import {
 import { policyAreaByName, policyStyle, type PolicyFamily } from "@/lib/civic/policy-areas";
 import { cn } from "@/lib/utils";
 import { stateRoutes, topicPath } from "@/lib/routes";
+import { stateOfSlug } from "@/lib/civic/states";
 
 const FAMILY_ICON: Record<PolicyFamily, LucideIcon> = {
   economy: Coins,
@@ -50,11 +51,13 @@ export function PolicyChip({
   className?: string;
 }) {
   const style = policyStyle(name);
+  // A state bill's topic leads to that state's bills, and the federal explanation doesn't apply.
+  const billState = slug ? stateOfSlug(slug) : null;
   const area = policyAreaByName(name);
   const chip = (
     <span
       data-testid="policy-chip"
-      title={slug?.startsWith("ia-") ? undefined : area?.explanation}
+      title={billState ? undefined : area?.explanation}
       className={cn(
         "inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold text-foreground",
         className,
@@ -65,9 +68,9 @@ export function PolicyChip({
       <span className="min-w-0 truncate">{name ?? "Not categorized yet"}</span>
     </span>
   );
-  if (link && area && slug?.startsWith("ia-")) {
+  if (link && area && billState) {
     return (
-      <Link href={`${stateRoutes.bills}?policyArea=${encodeURIComponent(area.name)}`} className="tap inline-flex max-w-full">
+      <Link href={`${stateRoutes(billState.key).bills}?policyArea=${encodeURIComponent(area.name)}`} className="tap inline-flex max-w-full">
         {chip}
       </Link>
     );

@@ -4,6 +4,7 @@ import { Landmark, ArrowRight, Book, Briefcase, CalendarClock, Compass, type Luc
 import { Grid, OuterBlock, PageHeader, PageSpacer } from "@/components/blocks";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { routes, stateRoutes } from "@/lib/routes";
+import { STATES } from "@/lib/civic/states";
 
 export const metadata: Metadata = {
   title: "Federal government",
@@ -35,12 +36,12 @@ const PLACES: { href: string; icon: LucideIcon; title: string; description: stri
     title: "Topics",
     description: "Bills grouped by what they're about, like health or taxes.",
   },
-  {
-    href: stateRoutes.home,
+  ...STATES.map((state) => ({
+    href: stateRoutes(state.key).home,
     icon: Landmark,
-    title: "Iowa",
-    description: "The first state we cover: its legislators, bills, and meetings.",
-  },
+    title: state.name,
+    description: `Its legislators, bills, and meetings.`,
+  })),
 ];
 
 export default function FederalPage() {

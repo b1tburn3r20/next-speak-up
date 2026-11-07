@@ -636,7 +636,7 @@ export function EventListSkeleton() {
   );
 }
 
-export function IowaHubSkeleton() {
+export function StateHubSkeleton() {
   return (
     <Busy>
       <HeaderSkeleton />
