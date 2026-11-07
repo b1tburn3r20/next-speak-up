@@ -8,6 +8,7 @@
 //   because a module-level store would be shared between users there.
 import { useEffect } from "react";
 import { create } from "zustand";
+import type { CommunitySplit, MatchRecord } from "@/lib/civic/engagement-logic";
 import { applyVote, celebrate, XP_AMOUNTS, type HudProgress } from "@/lib/civic/progress";
 
 export type Choice = "YEA" | "NAY";
@@ -22,12 +23,16 @@ export type RepReveal = {
   position: "YEA" | "NAY" | "PRESENT" | "NOT_VOTING" | null;
   outcome: "MATCH" | "DIFFERENT" | "DID_NOT_VOTE" | "NO_RECORD";
   occurredAt: string | null;
+  phone: string | null;
+  websiteUrl: string | null;
+  contacted: boolean;
+  matchBase: MatchRecord;
 };
 
 export type RevealState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; reps: RepReveal[] };
+  | { status: "ready"; reps: RepReveal[]; split: CommunitySplit | null };
 
 export type Reward = {
   id: number;
@@ -61,6 +66,8 @@ type CivicState = {
   loadPulseCount: (force?: boolean) => Promise<void>;
   /** Saves a vote right away, and rolls it back if the server refuses. */
   castVote: (slug: string, choice: Choice | null, previous: Choice | null) => Promise<boolean>;
+  /** Someone says they contacted a rep about a bill. */
+  reportContact: (slug: string, personId: number) => Promise<void>;
   setFollow: (slug: string, following: boolean) => Promise<boolean>;
   setFavorite: (bioguideId: string, favorite: boolean) => Promise<boolean>;
   setTopic: (policyArea: string, tracked: boolean) => Promise<boolean>;
@@ -157,6 +164,15 @@ export const useCivicStore = create<CivicState>((set, get) => ({
     }
   },
 
+  reportContact: async (slug, personId) => {
+    const data = await postJson("/api/civic/actions/contact", { slug, personId });
+    if (data?.progress) set({ progress: data.progress as HudProgress });
+    const earned = Number(data?.earned ?? 0);
+    if (earned > 0) {
+      set({ reward: { id: ++rewardId, xp: earned, message: `+${earned} XP`, celebration: "Thanks for speaking up!" } });
+    }
+  },
+
   setFollow: async (slug, following) => {
     set((state) => ({ follows: { ...state.follows, [slug]: following } }));
     try {
@@ -199,7 +215,7 @@ export const useCivicStore = create<CivicState>((set, get) => ({
       if (!response.ok) throw new Error("reveal failed");
       const data = await response.json();
       set((state) => ({
-        reveals: { ...state.reveals, [slug]: { status: "ready", reps: data.reps } },
+        reveals: { ...state.reveals, [slug]: { status: "ready", reps: data.reps, split: data.split ?? null } },
       }));
     } catch {
       set((state) => ({

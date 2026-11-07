@@ -20,6 +20,10 @@ const REP = {
   position: "YEA",
   outcome: "NO_RECORD",
   occurredAt: null,
+  phone: null,
+  websiteUrl: null,
+  contacted: false,
+  matchBase: { matched: 0, compared: 0 },
 };
 
 function respondWith(reps: unknown[] = [REP]) {

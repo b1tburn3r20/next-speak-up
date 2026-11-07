@@ -8,6 +8,7 @@ import { billLabel, BILL_STATUS_LABELS, partyLabel, type BillStatusValue } from 
 import { cn } from "@/lib/utils";
 import { billPath } from "@/lib/routes";
 import { BillWhen } from "@/components/bills/bill-when";
+import { VoteStatusChip } from "@/components/bills/vote-status-chip";
 
 export function formatDate(date: Date | null | undefined) {
   if (!date) return "";
@@ -67,7 +68,14 @@ export function SponsorLine({ bill }: { bill: BillListItem }) {
   );
 }
 
-export function BillCard({ bill }: { bill: BillListItem }) {
+export function BillCard({
+  bill,
+  myPosition,
+}: {
+  bill: BillListItem;
+  /** Your vote. Left out when signed out, because there's no XP to offer. */
+  myPosition?: string | null;
+}) {
   const digest = buildDigest(bill.summaries[0]?.text);
   return (
     <OuterBlock className="relative transition-colors hover:border-primary/60" data-testid="bill-card">
@@ -75,6 +83,7 @@ export function BillCard({ bill }: { bill: BillListItem }) {
         <span className="font-extrabold">{billLabel(bill.billType, bill.number)}</span>
         <BillStatusBadge status={bill.currentStatus} />
         {bill.policyArea ? <PolicyChip name={bill.policyArea} /> : null}
+        {myPosition !== undefined ? <VoteStatusChip slug={bill.slug} initialPosition={myPosition} /> : null}
       </div>
       <h3 className="mb-1 line-clamp-3 break-words font-bold leading-snug">
         {/* The whole card is clickable, with the title as the real link. */}

@@ -5,12 +5,14 @@ import { Flame, Sparkles, Target } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Progress } from "@/components/ui/progress";
 import type { HudProgress } from "@/lib/civic/progress";
+import { rankFor } from "@/lib/civic/ranks";
 import { useCivicStore, useProgress } from "@/stores/use-civic-store";
 
 /** Streak, level, and daily goal, as big numbers. The same values as the bar on every page. */
 export function ProgressStrip({ initial }: { initial: HudProgress }) {
   const progress = useProgress(initial);
   const { streak: liveStreak, level: liveLevel, xp: liveXp, votedToday: today, dailyGoal } = progress;
+  const { rank, next, xpToNext } = rankFor(liveXp);
   const goalPercent = Math.min(100, (today / dailyGoal) * 100);
   return (
     <div className="grid grid-cols-3 gap-2" data-testid="progress-strip">
@@ -27,6 +29,10 @@ export function ProgressStrip({ initial }: { initial: HudProgress }) {
           Level {liveLevel}
         </p>
         <p className="text-xs font-bold tabular-nums">{liveXp} XP</p>
+        <p className="text-xs font-bold" data-testid="strip-rank">
+          {rank.name}
+          {next ? `, ${xpToNext} to ${next.name}` : ""}
+        </p>
       </div>
       <div className="rounded-xl bg-primary-tint p-2.5 text-center">
         <Target className="mx-auto size-5 text-primary" aria-hidden />

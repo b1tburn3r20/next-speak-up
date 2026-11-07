@@ -285,13 +285,14 @@ export function SearchButton({ compact = false }: { compact?: boolean }) {
       type="button"
       variant="secondary"
       size="sm"
-      className="w-72 justify-start font-bold"
+      className="w-11 min-w-0 justify-center px-0 font-bold lg:w-44 lg:justify-start lg:px-3 xl:w-72"
       onClick={() => setOpen(true)}
+      aria-label="Search anything"
       data-testid="site-search"
     >
       <Search className="size-4 shrink-0" aria-hidden />
-      <span className="flex-1 text-left">Search anything…</span>
-      <Kbd className="h-5 border-b-2">Ctrl K</Kbd>
+      <span className="hidden flex-1 text-left lg:inline">Search anything…</span>
+      <Kbd className="hidden h-5 border-b-2 xl:inline-flex">Ctrl K</Kbd>
     </Button>
   );
 }

@@ -9,7 +9,12 @@ import { OPEN_STATUSES } from "./bill-outlook";
 import { easternToday, mondayOf } from "./floor-logic";
 import { billLabel, roleLabel } from "./labels";
 import { bioguideOf, repsForLocation } from "./people";
-import { getUserLocation } from "./users";
+import { communitySplit, computeQuests, interleave, policyLean, type CommunitySplit, type MatchRecord } from "./engagement-logic";
+import { easternMidnight, DAILY_GOAL, XP_AMOUNTS } from "./progress";
+import { comparedVotesFor, getUserLocation } from "./users";
+import { isComparable } from "./alignment";
+import { awardContactXp } from "./xp";
+import { STATE_NAMES } from "@/lib/constants/state-names";
 
 export type QueueReason = "REP_VOTED" | "FLOOR" | "RECENT";
 
@@ -101,8 +106,14 @@ export async function getVoteQueue(
   const items: QueueItem[] = [];
   const room = () => limit - items.length;
 
-  const addFloor = async () => {
-    if (room() <= 0) return;
+  const push = (item: QueueItem) => {
+    if (!seen.has(item.bill.id) && room() > 0) {
+      seen.add(item.bill.id);
+      items.push(item);
+    }
+  };
+
+  const floorItems = async (): Promise<QueueItem[]> => {
     const floor = await prisma.floorScheduleItem.findMany({
       where: {
         weekOf: { gte: mondayOf(easternToday(now)) },
@@ -114,24 +125,12 @@ export async function getVoteQueue(
       take: limit,
       select: { bill: { select: BILL_CARD_SELECT } },
     });
-    for (const { bill } of floor) {
-      if (bill && !seen.has(bill.id) && room() > 0) {
-        seen.add(bill.id);
-        items.push({ bill, reason: "FLOOR", reps: [], occurredAt: null });
-      }
-    }
+    return floor.flatMap(({ bill }) => (bill ? [{ bill, reason: "FLOOR" as const, reps: [], occurredAt: null }] : []));
   };
 
-  const addPulse = async (billWhere: Prisma.BillWhereInput = {}) => {
-    if (room() <= 0 || !userId) return;
-    // Asks for extra, since some may already be in the queue.
-    for (const item of await getPulseItems(userId, repIds, limit + seen.size, billWhere)) {
-      if (!seen.has(item.bill.id) && room() > 0) {
-        seen.add(item.bill.id);
-        items.push(item);
-      }
-    }
-  };
+  // Asks for extra, since some may already be in the queue.
+  const pulseItems = (billWhere: Prisma.BillWhereInput = {}) =>
+    userId ? getPulseItems(userId, repIds, limit + seen.size, billWhere) : Promise.resolve([]);
 
   const addRecent = async (where: Prisma.BillWhereInput) => {
     if (room() <= 0) return;
@@ -148,13 +147,15 @@ export async function getVoteQueue(
   };
 
   const hasFinalVote: Prisma.BillWhereInput = { rollCalls: { some: { isFinalVote: true } } };
-  await addFloor();
-  await addPulse(open);
+  // Taken in turns, because finding out how your reps voted is the point. There can be enough
+  // scheduled bills to fill a whole session, which would never show a rep's vote.
+  const [scheduled, repVoted] = await Promise.all([floorItems(), pulseItems(open)]);
+  for (const item of interleave(scheduled, repVoted)) push(item);
   if (topics.length > 0) await addRecent({ ...open, policyArea: { in: topics } });
   // Ones with a recorded vote make the best questions, because there's something to compare.
   await addRecent({ ...open, ...hasFinalVote });
   await addRecent(open);
-  await addPulse();
+  if (room() > 0) for (const item of await pulseItems()) push(item);
   await addRecent(hasFinalVote);
   return items;
 }
@@ -169,6 +170,11 @@ export type BillReveal = {
   position: RevealPosition;
   outcome: RevealOutcome;
   occurredAt: Date | null;
+  phone: string | null;
+  websiteUrl: string | null;
+  contacted: boolean;
+  /** Your record with this rep, leaving this bill out. */
+  matchBase: MatchRecord;
 };
 
 /** How a user's reps voted on a bill, and whether they match. Each rep's latest final vote. */
@@ -195,7 +201,21 @@ export async function getBillReveal(userId: string, slug: string): Promise<BillR
     if (!latest.has(row.personId)) latest.set(row.personId, row);
   }
   const userPosition = bill.userVotes[0]?.position ?? null;
-  return reps.map((rep) => {
+  const [contacts, contactActions, compared] = await Promise.all([
+    prisma.person.findMany({
+      where: { id: { in: reps.map((rep) => rep.id) } },
+      select: { id: true, phone: true, websiteUrl: true },
+    }),
+    prisma.civicAction.findMany({
+      where: { userId, billId: bill.id, kind: "CONTACTED_REP" },
+      select: { personId: true },
+    }),
+    Promise.all(reps.map((rep) => comparedVotesFor(userId, rep.id))),
+  ]);
+  const contactOf = new Map(contacts.map((person) => [person.id, person]));
+  const contactedIds = new Set(contactActions.map((action) => action.personId));
+  return reps.map((rep, index) => {
+    const others = compared[index].filter((vote) => vote.billId !== bill.id && isComparable(vote));
     const row = latest.get(rep.id);
     const term = rep.terms[0];
     const position = (row?.position as RevealPosition) ?? null;
@@ -209,7 +229,84 @@ export async function getBillReveal(userId: string, slug: string): Promise<BillR
       position,
       outcome: revealOutcome(userPosition, position),
       occurredAt: row?.rollCall.occurredAt ?? null,
+      phone: contactOf.get(rep.id)?.phone ?? null,
+      websiteUrl: contactOf.get(rep.id)?.websiteUrl ?? null,
+      contacted: contactedIds.has(rep.id),
+      matchBase: {
+        matched: others.filter((vote) => vote.userPosition === vote.repPosition).length,
+        compared: others.length,
+      },
     };
+  });
+}
+
+/** How people on Coolbills voted, shown only after you have, and only with enough votes to mean something. */
+export async function getCommunitySplit(userId: string, slug: string): Promise<CommunitySplit | null> {
+  const bill = await prisma.bill.findUnique({
+    where: { slug },
+    select: { id: true, userVotes: { where: { userId }, select: { position: true } } },
+  });
+  if (!bill || bill.userVotes.length === 0) return null;
+  const count = async (where: Prisma.UserBillVoteWhereInput) => {
+    const rows = await prisma.userBillVote.groupBy({
+      by: ["position"],
+      where: { billId: bill.id, position: { in: ["YEA", "NAY"] }, ...where },
+      _count: { _all: true },
+    });
+    const of = (position: string) => rows.find((row) => row.position === position)?._count._all ?? 0;
+    return { support: of("YEA"), oppose: of("NAY") };
+  };
+  const location = await getUserLocation(userId);
+  if (location) {
+    const inState = await count({ user: { locations: { some: { regionCode: location.regionCode } } } });
+    const stateName = (STATE_NAMES as Record<string, string>)[location.regionCode] ?? location.regionCode;
+    const split = communitySplit(`People in ${stateName} on Coolbills`, inState.support, inState.oppose);
+    if (split) return split;
+  }
+  const everyone = await count({});
+  return communitySplit("People on Coolbills", everyone.support, everyone.oppose);
+}
+
+/** Records that someone says they contacted one of their reps. Returns the XP earned, or null if it isn't their rep. */
+export async function recordContact(userId: string, slug: string, personId: number): Promise<number | null> {
+  const bill = await prisma.bill.findUnique({ where: { slug }, select: { id: true } });
+  if (!bill) return null;
+  const location = await getUserLocation(userId);
+  if (!location) return null;
+  const reps = await repsForLocation(location.regionCode, location.districtCode);
+  if (!reps.some((rep) => rep.id === personId)) return null;
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.civicAction.findFirst({
+      where: { userId, billId: bill.id, personId, kind: "CONTACTED_REP" },
+      select: { id: true },
+    });
+    if (!existing) {
+      await tx.civicAction.create({ data: { userId, billId: bill.id, personId, kind: "CONTACTED_REP" } });
+    }
+    return awardContactXp(tx, userId, bill.id);
+  });
+}
+
+export async function getPolicyLean(userId: string) {
+  const votes = await prisma.userBillVote.findMany({
+    where: { userId },
+    select: { position: true, bill: { select: { policyArea: true } } },
+  });
+  return policyLean(votes.map((vote) => ({ position: vote.position, policyArea: vote.bill.policyArea })));
+}
+
+export async function getQuests(userId: string, topics: string[], now = new Date()) {
+  const today = await prisma.userBillVote.findMany({
+    where: { userId, createdAt: { gte: easternMidnight(now) } },
+    select: { bill: { select: { currentStatus: true, policyArea: true } } },
+  });
+  return computeQuests({
+    votedToday: today.length,
+    dailyGoal: DAILY_GOAL,
+    openVotesToday: today.filter(({ bill }) => (OPEN_STATUSES as readonly string[]).includes(bill.currentStatus)).length,
+    topicVotesToday: today.filter(({ bill }) => bill.policyArea && topics.includes(bill.policyArea)).length,
+    trackedTopics: topics.length,
+    dailyGoalXp: XP_AMOUNTS.DAILY_GOAL,
   });
 }
 

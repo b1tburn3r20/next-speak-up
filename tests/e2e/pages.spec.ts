@@ -71,6 +71,7 @@ test("signed-in users see their reps, including an at-large seat", async ({ page
   await expect(reps.getByTestId("rep-report-card")).toHaveCount(3);
   await expect(reps).toContainText("Hageman");
   await expect(reps).toContainText("Barrasso");
+  await page.goto("/progress");
   await expect(page.getByRole("main").getByTestId("user-metrics")).toBeVisible();
 });
 
@@ -85,7 +86,7 @@ test("voting on a bill saves, shows on the dashboard, and can be undone", async 
     await expect(support).toHaveAttribute("aria-pressed", "false");
     await page.waitForLoadState("networkidle");
   }
-  await page.goto("/dashboard");
+  await page.goto("/progress");
   const before = Number(await page.getByRole("main").getByTestId("votes-cast").textContent());
 
   await page.goto(SAMPLE_BILL);
@@ -95,7 +96,7 @@ test("voting on a bill saves, shows on the dashboard, and can be undone", async 
 
   await page.reload();
   await expect(page.getByTestId("vote-support")).toHaveAttribute("aria-pressed", "true");
-  await page.goto("/dashboard");
+  await page.goto("/progress");
   await expect(page.getByRole("main").getByTestId("votes-cast")).toHaveText(String(before + 1));
 
   await page.goto(SAMPLE_BILL);

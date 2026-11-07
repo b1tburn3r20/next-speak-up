@@ -132,3 +132,17 @@ Work isn't done until each line is proven by a test or by looking at it. `[ ]` m
 - [x] Filter forms still work as plain forms on server-rendered pages, and show their values in the server's HTML
 - [x] Dropdown options are at least 44px tall and stay on screen at all four widths
 - [x] Opening a dropdown doesn't shift the page sideways
+
+## The game loop
+
+- [x] A signed-in user who hasn't voted on a bill sees what it does and is asked for a vote, and its status isn't in the server's HTML until they vote or skip
+- [x] Signed-out visitors and search engines see the whole bill page
+- [x] Cards that ask for a vote don't show a bill's status until after the vote
+- [x] After voting, the status is worded around what it means for the person
+- [x] A voting session includes both scheduled bills and bills a rep has voted on
+- [x] XP, level, streak, and daily goal show on every signed-in page, and move right away
+- [x] Returning to a page after voting doesn't count those votes twice
+- [x] Repeating an action can't earn XP twice
+- [x] If progress can't load, the page still works
+- [x] `/progress` shows rank, the XP goal for the next rank, the whole ladder, badges, quests, and where XP came from
+- [x] The leaderboard is off until someone joins, and never shows how anyone voted

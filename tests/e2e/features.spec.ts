@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { blockPaidServices, chooseOption, expectNoHorizontalOverflow, loginAs } from "./helpers";
+import { blockPaidServices, chooseOption, expectNoHorizontalOverflow, loginAs, readOnPastGate } from "./helpers";
 
 // A real bill with votes, text, and a summary, once the pipeline has run.
 const LAW = "/federal/bills/us-119-s-4465";
@@ -66,6 +66,7 @@ test.describe("bill details", () => {
     await page.getByTestId("roll-call-members-link").first().click();
     await expect(page).toHaveURL(/\/votes\/\d+/);
     const members = page.getByTestId("roll-call-members").locator("li");
+    await expect(members.first()).toBeVisible();
     const everyone = await members.count();
     expect(everyone).toBeGreaterThan(400);
     await chooseOption(page, "Party", "Republican");
@@ -139,6 +140,7 @@ test.describe("AI and read-aloud, with the paid services stubbed", () => {
     );
     await page.goto(LAW);
     await page.waitForLoadState("networkidle");
+    await readOnPastGate(page);
     await page.getByRole("textbox", { name: "Ask about this bill" }).fill("What does it do?");
     await page.getByRole("button", { name: "Send question" }).click();
     await expect(page.getByTestId("chat-user")).toHaveText("What does it do?");
@@ -153,6 +155,7 @@ test.describe("AI and read-aloud, with the paid services stubbed", () => {
     );
     await page.goto(LAW);
     await page.waitForLoadState("networkidle");
+    await readOnPastGate(page);
     await page.getByRole("textbox", { name: "Ask about this bill" }).fill("Anything?");
     await page.getByRole("button", { name: "Send question" }).click();
     await expect(page.getByRole("alert").filter({ hasText: "aren't available" })).toBeVisible();
@@ -169,6 +172,7 @@ test.describe("AI and read-aloud, with the paid services stubbed", () => {
     await page.goto(LAW);
     await page.waitForLoadState("networkidle");
     expect(calls).toBe(0);
+    await readOnPastGate(page);
     await page.getByTestId("bill-listen").click();
     await expect(page.getByText("Listening isn't available right now.")).toBeVisible();
     expect(calls).toBe(1);

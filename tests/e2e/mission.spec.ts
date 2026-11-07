@@ -144,8 +144,9 @@ test.describe("the dashboard", () => {
     await expect(main(page).getByTestId("rep-report-card")).toHaveCount(3);
     await expect(main(page).getByTestId("verdict").first()).toHaveText("Not enough votes yet");
     await expect(main(page).getByTestId("rep-recap").first()).toBeVisible();
-    await expect(main(page).getByTestId("badges").locator('[data-earned="true"]')).toHaveCount(1);
     await expectNoHorizontalOverflow(page);
+    await page.goto("/progress");
+    await expect(main(page).getByTestId("badges").locator('[data-earned="true"]')).toHaveCount(1);
   });
 
   test("with no location, the first step is finding your reps", async ({ page }) => {

@@ -2,7 +2,7 @@ import { buttonVariants } from "@/components/ui/button";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Compass } from "lucide-react";
-import { BillCard } from "@/components/bills/bill-card";
+import { BillCards } from "@/components/bills/bill-cards";
 import { PageHeader } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
@@ -61,9 +61,9 @@ export default async function BillsPage({
         <ArrowRight className="size-5 shrink-0 text-primary" aria-hidden />
       </Link>
 
-      <form className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_auto_auto_auto]" role="search">
+      <form className="grid grid-cols-2 gap-2 lg:grid-cols-[1fr_auto_auto_auto]" role="search">
         <Input
-          className="col-span-2 sm:col-span-1"
+          className="col-span-2 lg:col-span-1"
           name="q"
           defaultValue={params.q}
           placeholder="Search by title or number, like H.R. 1"
@@ -87,7 +87,7 @@ export default async function BillsPage({
             ...policyAreas.map((area) => ({ value: area, label: area })),
           ]}
         />
-        <Button className="col-span-2 sm:col-span-1" type="submit">Search</Button>
+        <Button className="col-span-2 lg:col-span-1" type="submit">Search</Button>
       </form>
 
       {bills.length === 0 ? (
@@ -102,9 +102,7 @@ export default async function BillsPage({
         )
       ) : (
         <div className="space-y-3">
-          {bills.map((bill) => (
-            <BillCard key={bill.id} bill={bill} />
-          ))}
+          <BillCards bills={bills} />
         </div>
       )}
 

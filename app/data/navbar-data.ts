@@ -2,6 +2,8 @@ import {
   Book,
   Briefcase,
   CalendarClock,
+  Sparkles,
+  Trophy,
   Compass,
   GraduationCap,
   Home,
@@ -27,6 +29,8 @@ export const navItems: NavItem[] = [
   { href: routes.dashboard, icon: Home, label: "Dashboard" },
   { href: routes.vote, icon: Vote, label: "Vote" },
   { href: routes.reps, icon: Scale, label: "My Reps" },
+  { href: routes.progress, icon: Sparkles, label: "My Progress", signedIn: true },
+  { href: routes.leaderboard, icon: Trophy, label: "Leaderboard", signedIn: true },
   { href: routes.federal.upcoming, icon: CalendarClock, label: "Upcoming Votes" },
   {
     href: routes.federal.bills,

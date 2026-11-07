@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/app/page-states";
-import { BillCard } from "@/components/bills/bill-card";
+import { BillCards } from "@/components/bills/bill-cards";
 import { PageHeader, PageShell, Stack } from "@/components/blocks";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { buttonVariants } from "@/components/ui/button";
@@ -51,9 +51,7 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
       />
       {bills.length > 0 ? (
         <Stack data-testid="topic-bills">
-          {bills.map((bill) => (
-            <BillCard key={bill.id} bill={bill} />
-          ))}
+          <BillCards bills={bills} />
         </Stack>
       ) : (
         <EmptyState title="No bills in this topic yet" action={{ href: routes.federal.topics, label: "Pick another topic" }}>

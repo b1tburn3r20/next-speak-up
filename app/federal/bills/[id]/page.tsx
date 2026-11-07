@@ -25,6 +25,7 @@ import { RevealPanel } from "@/components/civic/reveal-panel";
 import { Term } from "@/components/civic/term";
 import { MemberPhoto } from "@/components/people/member-photo";
 import { getBill, getPartyBreakdowns, hasBillText } from "@/lib/civic/bills";
+import { billOutlook } from "@/lib/civic/bill-outlook";
 import { buildDigest } from "@/lib/civic/digest";
 import { getBillFloorItem } from "@/lib/civic/floor";
 import { weekLabel } from "@/lib/civic/floor-logic";
@@ -258,6 +259,7 @@ export default async function BillPage({ params }: PageProps) {
           slug={bill.slug}
           signedIn={Boolean(userId)}
           initialPosition={state?.position ?? null}
+          canContact={billOutlook(bill.currentStatus).canInfluence}
         />
         <Flex justify="end">
           <ShareButton title={`${label}: ${bill.title}`} />

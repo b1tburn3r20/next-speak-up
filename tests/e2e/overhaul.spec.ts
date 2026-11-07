@@ -189,20 +189,26 @@ test.describe("relative dates", () => {
 test.describe("loading bar", () => {
   test("moves and then finishes on a page change", async ({ page }) => {
     await page.goto("/federal/bills");
+    // A click before the page has hydrated happens before the bar is listening.
+    await page.waitForLoadState("networkidle");
     const bar = page.getByTestId("top-progress-bar");
     await expect(bar).toHaveAttribute("data-active", "false");
     await page.route("**/federal/topics**", async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       await route.continue();
     });
-    await page.evaluate(() => {
+    // Read from inside the page. A locator can stall while a navigation is in flight, then read the
+    // next page, where the bar has already finished.
+    const activeWhileLoading = await page.evaluate(async () => {
       const link = document.createElement("a");
       link.href = "/federal/topics";
       link.textContent = "go";
       document.body.append(link);
       link.click();
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      return document.querySelector('[data-testid="top-progress-bar"]')?.getAttribute("data-active");
     });
-    await expect(bar).toHaveAttribute("data-active", "true");
+    expect(activeWhileLoading).toBe("true");
     await expect(page).toHaveURL(/\/federal\/topics/);
     await expect(bar).toHaveAttribute("data-active", "false");
   });

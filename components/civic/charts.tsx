@@ -191,3 +191,25 @@ export function StatTile({
     </div>
   );
 }
+
+/** Votes per week, so a quiet stretch and a busy one are easy to see. */
+export function ActivityChart({ weeks }: { weeks: { weekStart: Date; votes: number }[] }) {
+  const highest = Math.max(1, ...weeks.map((week) => week.votes));
+  const total = weeks.reduce((sum, week) => sum + week.votes, 0);
+  return (
+    <div
+      role="img"
+      aria-label={`${total} votes over the last ${weeks.length} weeks`}
+      className="flex h-16 items-end gap-1"
+    >
+      {weeks.map((week) => (
+        <div
+          key={week.weekStart.toISOString()}
+          title={`${week.votes} votes`}
+          className="flex-1 rounded-t bg-primary"
+          style={{ height: `${Math.max(6, (week.votes / highest) * 100)}%`, opacity: week.votes ? 1 : 0.2 }}
+        />
+      ))}
+    </div>
+  );
+}

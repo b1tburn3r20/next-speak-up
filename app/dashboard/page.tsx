@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { Award, Lock } from "lucide-react";
+import { ArrowRight, Trophy } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { BillCard, BillStatusBadge } from "@/components/bills/bill-card";
 import { UpcomingBillCard } from "@/components/bills/upcoming-bill-card";
-import { Grid, OuterBlock, PageHeader, PageShell, Section, Stack } from "@/components/blocks";
+import { Grid, OuterBlock, PageHeader, PageShell, Section, Stack , WithRail } from "@/components/blocks";
 import { BlindVoteCard } from "@/components/civic/blind-vote-card";
 import { MoreSteps, NextStepCard } from "@/components/civic/next-step-card";
 import { ProgressStrip } from "@/components/civic/progress-strip";
@@ -18,13 +18,14 @@ import {
   getPulseItems,
   getRepRecaps,
   getSponsoredAreas,
-  getVoteQueue,
-} from "@/lib/civic/engage";
+  getVoteQueue, getPolicyLean, getQuests } from "@/lib/civic/engage";
 import { getUpcomingFloorItems } from "@/lib/civic/floor";
 import { groupFloorWeeks } from "@/lib/civic/floor-logic";
 import { billLabel } from "@/lib/civic/labels";
 import { computeNextSteps } from "@/lib/civic/next-steps";
 import { listFavoriteMembers } from "@/lib/civic/people";
+import { QuestsCard } from "@/components/civic/quests-card";
+import { PolicyLeanChart } from "@/components/civic/policy-lean-chart";
 import { computeProgress } from "@/lib/civic/progress";
 import { getHudProgress } from "@/lib/civic/xp";
 import { getUserBillStates, getUserDashboardLists, getUserMetrics, getUserTopics } from "@/lib/civic/users";
@@ -39,27 +40,6 @@ export const metadata: Metadata = {
 };
 
 const FLOOR_PREVIEW = 3;
-
-function ActivityChart({ weeks }: { weeks: { weekStart: Date; votes: number }[] }) {
-  const highest = Math.max(1, ...weeks.map((week) => week.votes));
-  const total = weeks.reduce((sum, week) => sum + week.votes, 0);
-  return (
-    <div
-      role="img"
-      aria-label={`${total} votes over the last ${weeks.length} weeks`}
-      className="flex h-16 items-end gap-1"
-    >
-      {weeks.map((week) => (
-        <div
-          key={week.weekStart.toISOString()}
-          title={`${week.votes} votes`}
-          className="flex-1 rounded-t bg-primary"
-          style={{ height: `${Math.max(6, (week.votes / highest) * 100)}%`, opacity: week.votes ? 1 : 0.2 }}
-        />
-      ))}
-    </div>
-  );
-}
 
 function FloorPreview({
   items,
@@ -165,7 +145,11 @@ export default async function DashboardPage() {
     getVoteQueue(userId, repIds, 1, now, topics),
   ]);
   const nextBill = queue[0];
-  const hud = await getHudProgress(userId, now);
+  const [hud, quests, lean] = await Promise.all([
+    getHudProgress(userId, now),
+    getQuests(userId, topics, now),
+    getPolicyLean(userId),
+  ]);
   const progress = computeProgress({
     xp: hud.xp,
     voteDates: facts.voteDates,
@@ -201,8 +185,36 @@ export default async function DashboardPage() {
         <ProgressStrip initial={hud} />
       </header>
 
-      {metrics.reps.length === 0 ? <NextStepCard step={steps[0]} /> : null}
-      {nextBill ? <NextBillCard item={nextBill} /> : null}
+      <WithRail
+        lead={
+          <Stack gap="lg">
+            {metrics.reps.length === 0 ? <NextStepCard step={steps[0]} /> : null}
+            {nextBill ? <NextBillCard item={nextBill} /> : null}
+          </Stack>
+        }
+        rail={
+          <>
+            <QuestsCard quests={quests} streakWaiting={hud.votedToday === 0 ? hud.streak : 0} />
+            <Link
+              href={routes.leaderboard}
+              className="flex items-center gap-3 rounded-2xl border-2 border-b-4 bg-card p-4 font-extrabold hover:bg-muted"
+              data-testid="leaderboard-link"
+            >
+              <Trophy className="size-6 shrink-0 text-streak" aria-hidden />
+              <span className="min-w-0 flex-1">This week&apos;s leaderboard</span>
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
+            </Link>
+            <Section title="How you vote, by topic" data-testid="dashboard-lean">
+              <OuterBlock>
+                <PolicyLeanChart userId={userId} areas={lean} />
+              </OuterBlock>
+            </Section>
+            <Link href={routes.progress} className="tap inline-block text-sm font-bold text-primary hover:underline" data-testid="progress-link">
+              See your badges and all your progress
+            </Link>
+          </>
+        }
+      >
 
       {metrics.reps.length > 0 ? (
         <Section
@@ -211,7 +223,7 @@ export default async function DashboardPage() {
           action={{ href: "/reps", label: "Report cards" }}
           data-testid="dashboard-reps"
         >
-          <Grid cols="people">
+          <Grid cols="railPeople">
             {metrics.reps.map(({ rep, compared, matched, byPolicyArea }) => (
               <RepReportCard
                 key={rep.id}
@@ -255,7 +267,7 @@ export default async function DashboardPage() {
           description="The topics they write bills about, and how often those bills become law."
           data-testid="dashboard-rep-work"
         >
-          <Grid cols="people">
+          <Grid cols="railPeople">
             {metrics.reps.map(({ rep }) => (
               <RepWorkCard
                 key={rep.id}
@@ -315,31 +327,6 @@ export default async function DashboardPage() {
         </Section>
       </Grid>
 
-      <Section title="Your badges">
-        <OuterBlock>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4" data-testid="badges">
-            {progress.badges.map((badge) => (
-              <li
-                key={badge.id}
-                title={badge.description}
-                className={badge.earned ? "" : "opacity-50"}
-                data-earned={badge.earned}
-              >
-                <div
-                  className={`mb-1 flex size-10 items-center justify-center rounded-full ${
-                    badge.earned ? "bg-streak-tint text-streak" : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {badge.earned ? <Award className="size-5" aria-hidden /> : <Lock className="size-4" aria-hidden />}
-                </div>
-                <p className="text-sm font-extrabold leading-tight">{badge.label}</p>
-                <p className="text-xs text-muted-foreground">{badge.description}</p>
-              </li>
-            ))}
-          </ul>
-        </OuterBlock>
-      </Section>
-
       {favorites.length > 0 ? (
         <Section title="Members you saved">
           <Grid cols="people" data-testid="saved-members">
@@ -366,20 +353,10 @@ export default async function DashboardPage() {
         </Section>
       ) : null}
 
-      <Section title="Your last 12 weeks">
-        <OuterBlock data-testid="user-metrics">
-          <p className="mb-2 text-sm">
-            <strong data-testid="votes-cast">{metrics.votesCast}</strong> votes cast ·{" "}
-            <strong>{metrics.supported}</strong> supported · <strong>{metrics.opposed}</strong> opposed ·{" "}
-            <strong>{metrics.following}</strong> followed
-          </p>
-          <ActivityChart weeks={metrics.activity} />
-        </OuterBlock>
-      </Section>
-
       <Section title="More to do">
         <MoreSteps steps={steps.slice(1, 4)} />
       </Section>
+      </WithRail>
     </PageShell>
   );
 }

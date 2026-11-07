@@ -1,8 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { Flame, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import type { HudProgress } from "@/lib/civic/progress";
+import { rankFor } from "@/lib/civic/ranks";
+import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { useProgress } from "@/stores/use-civic-store";
 
@@ -42,8 +45,16 @@ function GoalRing({ value, goal }: { value: number; goal: number }) {
 /** Your streak, level, and XP. It's on every page, and moves the moment you earn something. */
 export function Hud({ initial }: { initial: HudProgress }) {
   const progress = useProgress(initial);
+  const { rank, next, xpToNext } = rankFor(progress.xp);
   return (
-    <div className="flex items-center gap-3" data-testid="hud">
+    <Link
+      href={routes.progress}
+      aria-label={`Your progress: ${rank.name}, level ${progress.level}, ${progress.xp} XP, ${progress.streak} day streak`}
+      title={next ? `${rank.name}. ${xpToNext} XP to ${next.name}` : rank.name}
+      className="flex items-center gap-3 rounded-xl px-1 py-1 hover:bg-muted"
+      data-testid="hud-link"
+    >
+      <span className="flex items-center gap-3" data-testid="hud">
       <span
         key={`streak-${progress.streak}`}
         className="animate-pop-in inline-flex items-center gap-1"
@@ -64,6 +75,9 @@ export function Hud({ initial }: { initial: HudProgress }) {
         <span key={`level-${progress.level}`} className="animate-pop-in text-sm font-extrabold">
           Lv {progress.level}
         </span>
+        <span className="hidden text-sm font-bold text-muted-foreground xl:inline" data-testid="hud-rank">
+          {rank.name}
+        </span>
         <span className="hidden w-28 lg:block">
           <Progress
             value={progress.levelPercent}
@@ -76,7 +90,8 @@ export function Hud({ initial }: { initial: HudProgress }) {
           {progress.xp} XP
         </span>
       </span>
-    </div>
+      </span>
+    </Link>
   );
 }
 

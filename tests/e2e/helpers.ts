@@ -17,6 +17,15 @@ export async function chooseOption(page: Page, label: string, option: string, sc
   await page.getByRole("option", { name: option, exact: true }).click();
 }
 
+/** A signed-in user gets the vote-first card on a bill they haven't voted on. This reads on. */
+export async function readOnPastGate(page: Page) {
+  const skip = page.getByTestId("gate-skip");
+  if (await skip.count()) {
+    await skip.click();
+    await expect(page.getByTestId("vote-gate")).toHaveCount(0);
+  }
+}
+
 export function seedPassword(): string {
   const line = readFileSync(".env", "utf8")
     .split(/\r?\n/)

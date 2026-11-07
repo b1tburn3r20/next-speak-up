@@ -12,7 +12,7 @@ const NavbarTop = ({ hud }: { hud: HudProgress | null }) => {
   const navCollapsed = useNavbarStore((f) => f.navCollapsed);
 
   return (
-    <div className="bg-background justify-between z-10 p-1 px-4 flex gap-2 items-center shadow-sm h-13.5">
+    <div className="bg-background justify-between z-10 p-1 px-4 flex min-w-0 gap-2 items-center shadow-sm h-13.5">
       <div className="p-2">
         {
           !navCollapsed ? "" : (

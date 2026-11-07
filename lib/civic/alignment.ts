@@ -6,6 +6,7 @@ export type ComparedVote = {
   userPosition: Position;
   repPosition: Position;
   policyArea?: string | null;
+  billId?: number;
 };
 
 export type Alignment = {

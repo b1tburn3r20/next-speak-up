@@ -228,6 +228,8 @@ const COLUMNS = {
   cards: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
   /** People */
   people: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+  /** People beside a side rail, where there's less room */
+  railPeople: "grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3",
   /** Two equal columns once there's room */
   halves: "grid-cols-1 md:grid-cols-2",
 };

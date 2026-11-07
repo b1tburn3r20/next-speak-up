@@ -44,3 +44,7 @@ Native selects, inputs, buttons, details, and tables moved to `components/ui`, w
 ## Vote first and the XP ledger (2026-11-07)
 
 Bill pages ask for a vote before showing status, with a skip link. The queue now leads with bills still in play. XP moved to a ledger, with a bar on every page. Returning to the dashboard after voting used to count those votes twice, because it added them to server numbers that already included them. Browser tests now run their own server on port 3100.
+
+## Quests, ranks, and the progress page (2026-11-07)
+
+Added `/progress`, named ranks with XP goals, daily quests, a policy area chart, an anonymous split, a statewide leaderboard, contacting a rep from the reveal, and your match with a rep visibly moving. Sessions now take turns between scheduled bills and bills your reps voted on, because there can be enough scheduled bills to fill a session and never show a rep's vote. The top bar no longer takes a page down if progress fails to load, after a stale database client broke every signed-in page.

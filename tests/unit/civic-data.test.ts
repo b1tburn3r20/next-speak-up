@@ -153,7 +153,7 @@ describe("comparedVotesFor", () => {
     ]);
     const result = await comparedVotesFor("u1", 9);
     expect(result).toEqual([
-      { userPosition: "YEA", repPosition: "YEA", policyArea: "Taxation" },
+      expect.objectContaining({ userPosition: "YEA", repPosition: "YEA", policyArea: "Taxation" }),
     ]);
   });
 

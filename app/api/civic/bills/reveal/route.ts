@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getBillReveal } from "@/lib/civic/engage";
+import { getBillReveal, getCommunitySplit } from "@/lib/civic/engage";
 import { checkRateLimit, getUserRole } from "@/lib/ratelimiter";
 
 /**
@@ -25,5 +25,5 @@ export async function GET(request: NextRequest) {
   if (reps === null) {
     return NextResponse.json({ error: "Bill not found." }, { status: 404 });
   }
-  return NextResponse.json({ reps });
+  return NextResponse.json({ reps, split: await getCommunitySplit(session.user.id, slug) });
 }

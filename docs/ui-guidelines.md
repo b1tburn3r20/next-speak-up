@@ -88,6 +88,18 @@ Any card that asks for a vote keeps status inside `AfterVote`. After a vote, `Bi
 
 The bar on every page, `Hud`, is the one place progress lives. Read it with `useProgress`, which takes the server's value for the first paint. The `XpEvent` ledger is the truth, and every action has one fixed reward in `XP_AMOUNTS`. Support and Oppose always earn the same: the app never rewards a side. Never reward voting in a real election.
 
+## The game
+
+`/progress` is the home for everything earned: rank, level, badges, quests, the policy chart, and where XP came from. The bar at the top of every page links to it. The dashboard stays about what to do today.
+
+- **Ranks** are named goals at a total amount of XP, in `lib/civic/ranks.ts`. Levels tick up every 100 XP. Rank names avoid "citizen" and "voter", because not everyone here is either, and they never say anything about someone's views.
+- **Quests** are worked out from what really happened, in `computeQuests`.
+- **The policy chart** counts bills, not views. Say "5 supported, 2 opposed", never that someone supports a topic, because a bill can expand or restrict something.
+- **The split** ("62% support") only shows after you vote, and only with at least 20 votes. It's labelled as people on this app, not a poll.
+- **The leaderboard** is opt-in, by state, and shows only a username and XP. It never shows how anyone voted. Moderators with `forum.moderate` can take a name off.
+- **Self-reported actions**, like contacting a rep, are labelled as what someone said they did. Only offer contacting a rep when `billOutlook` says it could still change something.
+- **Never reward voting in a real election**, or how anyone voted.
+
 ## Components
 
 Build every control from `components/ui`, and customize it there, so a change reaches everywhere at once. ESLint rejects a native `select`, `textarea`, `input`, `button`, `label`, `table`, `progress`, `details`, or `kbd` outside that folder.

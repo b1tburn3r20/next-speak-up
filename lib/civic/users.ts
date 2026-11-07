@@ -191,6 +191,7 @@ export async function comparedVotesFor(userId: string, personId: number): Promis
             userPosition: vote.position as Position,
             repPosition,
             policyArea: vote.bill.policyArea,
+            billId: vote.billId,
           },
         ]
       : [];

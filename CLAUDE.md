@@ -126,6 +126,7 @@ Both paid routes need a signed-in user, and use text from the database, never te
 - **Navigation:** `app/navbar/varients/client-navbar.tsx` uses one layout with CSS breakpoints. Don't branch on screen size in JavaScript to choose page content, because that blocks server rendering. Links are in `app/data/navbar-data.ts`, and `activeNavHref` picks the one active link.
 - **Vote first:** a signed-in user who hasn't voted on a bill gets `VoteGateCard`, and the server doesn't send the bill's status until they vote or skip. Cards that ask for a vote keep status inside `AfterVote`.
 - **XP:** `lib/civic/xp.ts` writes the `XpEvent` ledger, and its unique key stops an action earning twice. `useProgress` is the one copy on the client. Server pages must not add votes to their own numbers.
+- **The game:** `/progress` is its home. See "The game" in `docs/ui-guidelines.md` for the rules, including never rewarding a real vote.
 - **Dates:** show them with `RelativeDate`. `billMoment` and `floorMoment` choose what to say about a bill.
 - **Search:** `lib/search/registry.ts` lists the providers, and `/api/search/[provider]` runs one at a time. See `docs/ui-guidelines.md`.
 - **Onboarding:** `/onboarding`. `OnboardingGate` sends new accounts there.

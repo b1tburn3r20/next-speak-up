@@ -14,6 +14,8 @@ export const routes = {
   dashboard: "/dashboard",
   onboarding: "/onboarding",
   vote: "/vote",
+  leaderboard: "/leaderboard",
+  progress: "/progress",
   reps: "/reps",
   learn: "/learn",
   settings: "/settings",

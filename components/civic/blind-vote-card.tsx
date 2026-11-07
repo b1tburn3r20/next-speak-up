@@ -8,6 +8,7 @@ import { BillOutlookCard } from "@/components/civic/bill-outlook-card";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { RevealPanel } from "@/components/civic/reveal-panel";
 import { MemberPhoto } from "@/components/people/member-photo";
+import { billOutlook } from "@/lib/civic/bill-outlook";
 import { buildDigest } from "@/lib/civic/digest";
 import type { QueueItem } from "@/lib/civic/engage";
 import { billLabel } from "@/lib/civic/labels";
@@ -85,7 +86,7 @@ export function BlindVoteCard({
         <AfterVote slug={bill.slug} initialPosition={initialPosition}>
           <BillOutlookCard status={bill.currentStatus} />
         </AfterVote>
-        <RevealPanel slug={bill.slug} signedIn={signedIn} initialPosition={initialPosition} />
+        <RevealPanel slug={bill.slug} signedIn={signedIn} initialPosition={initialPosition} canContact={billOutlook(bill.currentStatus).canInfluence} />
       </Stack>
     </OuterBlock>
   );

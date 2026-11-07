@@ -1,5 +1,7 @@
 // Streaks, levels, and badges, all worked out from real votes. No database access here.
 
+import { newRank } from "./ranks";
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const DAILY_GOAL = 3;
@@ -14,6 +16,14 @@ export const XP_AMOUNTS = {
   CONTACTED_REP: 25,
   ATTENDED_EVENT: 50,
 } as const;
+
+export const XP_KIND_LABELS: Record<keyof typeof XP_AMOUNTS, string> = {
+  VOTE: "Voted on a bill",
+  AHEAD_OF_VOTE: "Voted before the House could",
+  DAILY_GOAL: "Met your daily goal",
+  CONTACTED_REP: "Said you contacted a rep",
+  ATTENDED_EVENT: "Said you attended a meeting",
+};
 
 /** Everything the bar on every page needs. */
 export type HudProgress = {
@@ -35,6 +45,16 @@ export function levelFor(xp: number) {
     levelPercent: safe % XP_PER_LEVEL,
     xpToNextLevel: XP_PER_LEVEL - (safe % XP_PER_LEVEL),
   };
+}
+
+/** When today began in Eastern time, including across clock changes. */
+export function easternMidnight(now: Date): Date {
+  const offset =
+    new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", timeZoneName: "longOffset" })
+      .formatToParts(now)
+      .find((part) => part.type === "timeZoneName")
+      ?.value.replace("GMT", "") || "-05:00";
+  return new Date(`${dateKey(now)}T00:00:00${offset}`);
 }
 
 /** A calendar day in Eastern time, like "2026-11-06". */
@@ -125,6 +145,8 @@ export function applyVote(progress: HudProgress, change: number): HudProgress {
 
 /** What just happened that's worth celebrating, comparing before and after. */
 export function celebrate(before: HudProgress, after: HudProgress): string | null {
+  const rank = newRank(before.xp, after.xp);
+  if (rank) return `New rank: ${rank.name}!`;
   if (after.level > before.level) return `Level ${after.level}!`;
   if (before.votedToday < before.dailyGoal && after.votedToday >= after.dailyGoal) return "Daily goal met!";
   for (const [votes, label] of [[1, "First vote"], [10, "Regular"], [50, "Civic regular"]] as const) {

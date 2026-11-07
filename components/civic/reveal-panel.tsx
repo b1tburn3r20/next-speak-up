@@ -8,6 +8,8 @@ import { MemberPhoto } from "@/components/people/member-photo";
 import { Button } from "@/components/ui/button";
 import { partyLabel, positionLabel } from "@/lib/civic/labels";
 import { revealOutcome } from "@/lib/civic/verdict";
+import { matchMove, type CommunitySplit } from "@/lib/civic/engagement-logic";
+import { ContactRep } from "@/components/civic/contact-rep";
 import { cn } from "@/lib/utils";
 import { useCivicStore, type RepReveal } from "@/stores/use-civic-store";
 import { memberPath } from "@/lib/routes";
@@ -25,7 +27,55 @@ function positionText(position: RepReveal["position"]): string {
   return `Voted ${positionLabel(position).toLowerCase()}.`;
 }
 
-function RevealRow({ rep, userChoice }: { rep: RepReveal; userChoice: string | null }) {
+function MatchChange({ rep, userChoice }: { rep: RepReveal; userChoice: string | null }) {
+  const move = matchMove(rep.matchBase, userChoice, rep.position);
+  if (!move.counted || move.after === null) return null;
+  const firstName = rep.name.split(" ").slice(-1)[0];
+  return (
+    <p className="animate-pop-in text-sm font-extrabold" data-testid="match-move">
+      You and {firstName}:{" "}
+      {move.before === null ? (
+        `${move.after}% so far`
+      ) : (
+        <>
+          <span className="text-muted-foreground">{move.before}%</span> → {move.after}%
+        </>
+      )}
+    </p>
+  );
+}
+
+function SplitBar({ split }: { split: CommunitySplit }) {
+  return (
+    <div className="animate-rise-in space-y-1 border-t-2 pt-3" data-testid="community-split">
+      <p className="text-sm font-extrabold">{split.label}</p>
+      <div className="flex h-3 overflow-hidden rounded-full bg-oppose" aria-hidden>
+        <div className="bg-support transition-[width] duration-700 motion-reduce:transition-none" style={{ width: `${split.supportPercent}%` }} />
+      </div>
+      <p className="flex justify-between text-xs font-bold">
+        <span>{split.supportPercent}% support</span>
+        <span>{100 - split.supportPercent}% oppose</span>
+      </p>
+      <p className="text-xs text-muted-foreground">
+        {split.total} votes from people using this app. It isn&apos;t a poll of everyone.
+      </p>
+    </div>
+  );
+}
+
+function RevealRow({
+  rep,
+  userChoice,
+  slug,
+  canContact,
+  order,
+}: {
+  rep: RepReveal;
+  userChoice: string | null;
+  slug: string;
+  canContact: boolean;
+  order: number;
+}) {
   const userVoted = userChoice === "YEA" || userChoice === "NAY";
   // Worked out here from the current vote, so changing your mind updates it right away.
   const outcomeKey = revealOutcome(userChoice, rep.position);
@@ -33,10 +83,12 @@ function RevealRow({ rep, userChoice }: { rep: RepReveal; userChoice: string | n
   const Icon = outcome?.icon;
   return (
     <li
-      className="animate-rise-in flex items-center gap-3"
+      className="animate-rise-in space-y-2"
+      style={{ animationDelay: `${order * 300}ms` }}
       data-testid="reveal-row"
       data-outcome={userVoted ? outcomeKey : "UNVOTED"}
     >
+      <div className="flex items-center gap-3">
       <MemberPhoto name={rep.name} url={rep.imageUrl} party={rep.party} size={48} />
       <div className="min-w-0 flex-1">
         <p className="break-words font-bold leading-snug">
@@ -51,6 +103,7 @@ function RevealRow({ rep, userChoice }: { rep: RepReveal; userChoice: string | n
         <p className="text-sm text-muted-foreground">
           {rep.role}, {partyLabel(rep.party)}. {positionText(rep.position)}
         </p>
+        {userVoted ? <MatchChange rep={rep} userChoice={userChoice} /> : null}
       </div>
       {outcome && Icon ? (
         <span
@@ -63,6 +116,8 @@ function RevealRow({ rep, userChoice }: { rep: RepReveal; userChoice: string | n
           {outcome.label}
         </span>
       ) : null}
+      </div>
+      {canContact && userVoted ? <ContactRep slug={slug} rep={rep} /> : null}
     </li>
   );
 }
@@ -75,10 +130,13 @@ export function RevealPanel({
   slug,
   signedIn,
   initialPosition,
+  canContact = false,
 }: {
   slug: string;
   signedIn: boolean;
   initialPosition: string | null;
+  /** Whether telling a rep about this bill could still change anything. */
+  canContact?: boolean;
 }) {
   const stored = useCivicStore((state) => state.votes[slug]);
   const reveal = useCivicStore((state) => state.reveals[slug]);
@@ -151,10 +209,16 @@ export function RevealPanel({
     <div className="space-y-3 rounded-xl bg-muted p-3" data-testid="reveal-panel">
       <p className="font-extrabold">{userVoted ? "Here's how you compare" : "How your reps voted"}</p>
       <ul className="space-y-3">
-        {reveal.reps.map((rep) => (
-          <RevealRow key={rep.personId} rep={rep} userChoice={position} />
+        {reveal.reps.map((rep, index) => (
+          <RevealRow key={rep.personId} rep={rep} userChoice={position} slug={slug} canContact={canContact} order={index} />
         ))}
       </ul>
+      {canContact && userVoted ? (
+        <p className="text-sm font-bold" data-testid="contact-prompt">
+          Tell them where you stand. A call takes about a minute.
+        </p>
+      ) : null}
+      {userVoted && reveal.split ? <SplitBar split={reveal.split} /> : null}
     </div>
   );
 }
