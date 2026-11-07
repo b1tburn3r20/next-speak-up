@@ -7,6 +7,7 @@ import { ArrowLeft, Check } from "lucide-react";
 import { toast } from "sonner";
 import { PolicyIcon } from "@/components/civic/policy-chip";
 import { MemberPhoto } from "@/components/people/member-photo";
+import { RepsRowSkeleton } from "@/components/app/skeletons";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { partyLabel } from "@/lib/civic/labels";
@@ -211,6 +212,7 @@ export function OnboardingFlow({
   const [age, setAge] = useState(initialAge);
   const [region, setRegion] = useState(initialRegion);
   const [reps, setReps] = useState<Rep[] | null>(null);
+  const [findingReps, setFindingReps] = useState(false);
   // Null until they choose for themselves. Until then, it follows their first two answers.
   const [picked, setPicked] = useState<Set<string> | null>(initialTopics.length > 0 ? new Set(initialTopics) : null);
   const [saving, setSaving] = useState(false);
@@ -227,6 +229,7 @@ export function OnboardingFlow({
 
   const onResolved = async ({ regionCode, districtCode }: ResolvedLocation) => {
     setRegion(regionCode);
+    setFindingReps(true);
     try {
       const query = new URLSearchParams({ state: regionCode });
       if (districtCode) query.set("district", districtCode);
@@ -235,6 +238,8 @@ export function OnboardingFlow({
       setReps((await response.json()).reps);
     } catch {
       setReps([]);
+    } finally {
+      setFindingReps(false);
     }
   };
 
@@ -266,7 +271,9 @@ export function OnboardingFlow({
           <AgeStep value={age} onChoose={chooseAge} />
         </StepCard>
         <StepCard index={1} step={step}>
-          {reps ? (
+          {findingReps ? (
+            <RepsRowSkeleton />
+          ) : reps ? (
             <RepsFound reps={reps} onContinue={() => setStep(2)} />
           ) : (
             <div className="space-y-4">

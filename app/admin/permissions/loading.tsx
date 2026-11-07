@@ -1,7 +1,5 @@
-import PageLoader from "@/app/GeneralComponents/Onboarding/components/componentsA/page-loader";
+import { PermissionsSkeleton } from "@/components/app/skeletons";
 
-const Page = () => {
-  return <PageLoader />;
-};
-
-export default Page;
+export default function Loading() {
+  return <PermissionsSkeleton />;
+}

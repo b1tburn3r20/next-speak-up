@@ -9,6 +9,9 @@ import { requirePagePermission } from "@/lib/admin/access";
 import { getUserDetail, listRolesWithPermissions } from "@/lib/admin/queries";
 import { rankFor } from "@/lib/civic/ranks";
 import { profilePath } from "@/lib/routes";
+import { Suspense } from "react";
+import { AdminUserSkeleton } from "@/components/app/skeletons";
+import { userExists } from "@/lib/civic/exists";
 
 export const metadata: Metadata = { title: "User" };
 
@@ -21,7 +24,7 @@ function Fact({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default async function AdminUserPage({ params }: { params: Promise<{ id: string }> }) {
+async function AdminUserBody({ params }: { params: Promise<{ id: string }> }) {
   const session = await requirePagePermission("users.manage");
   const { id } = await params;
   const [detail, { roles }] = await Promise.all([getUserDetail(id), listRolesWithPermissions()]);
@@ -127,5 +130,15 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
         ) : null}
       </WithRail>
     </div>
+  );
+}
+
+export default async function AdminUserPage(props: { params: Promise<{ id: string }> }) {
+  await requirePagePermission("users.manage");
+  if (!(await userExists((await props.params).id))) notFound();
+  return (
+    <Suspense fallback={<AdminUserSkeleton />}>
+      <AdminUserBody {...props} />
+    </Suspense>
   );
 }

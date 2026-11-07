@@ -2,12 +2,12 @@ import OuterBlock from "@/components/cb/outer-block"
 import PrivacyHero from "./privacy-hero"
 // import PrivacyWillSell from "./privacy-will-sell"
 // import SellableData from "./sellable-data"
-import StackBlock from "@/components/cb/stack-block"
+import { PageSpacer } from "@/components/blocks"
 
 
 const Page = () => {
   return (
-    <StackBlock className="mx-auto container">
+    <PageSpacer>
       <OuterBlock>
         <PrivacyHero />
       </OuterBlock>
@@ -17,7 +17,7 @@ const Page = () => {
       {/* <OuterBlock className="flex gap-8 flex-wrap"> */}
       {/*   <PrivacyWillSell /> */}
       {/* </OuterBlock> */}
-    </StackBlock >
+    </PageSpacer>
   )
 }
 

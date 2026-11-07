@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Flame, PartyPopper, SkipForward, X } from "lucide-react";
+import { LeanSkeleton } from "@/components/app/skeletons";
 import { PolicyLeanChart } from "@/components/civic/policy-lean-chart";
 import type { PolicyLean } from "@/lib/civic/engagement-logic";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -76,10 +77,10 @@ function SessionFinish({ slugs, signedIn, startXp }: { slugs: string[]; signedIn
           +{earned} XP
         </p>
       ) : null}
-      {progress && areas ? (
+      {progress && signedIn ? (
         <div className="rounded-xl bg-card p-3 text-left">
           <p className="mb-2 font-extrabold">How you vote, by topic</p>
-          <PolicyLeanChart userId={progress.userId} areas={areas} />
+          {areas ? <PolicyLeanChart userId={progress.userId} areas={areas} /> : <LeanSkeleton />}
         </div>
       ) : null}
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">

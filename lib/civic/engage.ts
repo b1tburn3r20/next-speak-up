@@ -4,6 +4,7 @@
 import { Prisma } from "@prisma/client";
 import prisma from "@/prisma/client";
 import { revealOutcome, type RevealOutcome, type RevealPosition } from "./verdict";
+import { HOUSE_LIST } from "./floor";
 import { BILL_CARD_SELECT, type BillListItem } from "./bills";
 import { OPEN_STATUSES } from "./bill-outlook";
 import { easternToday, mondayOf } from "./floor-logic";
@@ -116,6 +117,7 @@ export async function getVoteQueue(
   const floorItems = async (): Promise<QueueItem[]> => {
     const floor = await prisma.floorScheduleItem.findMany({
       where: {
+        ...HOUSE_LIST,
         weekOf: { gte: mondayOf(easternToday(now)) },
         removedAt: null,
         billId: { not: null },

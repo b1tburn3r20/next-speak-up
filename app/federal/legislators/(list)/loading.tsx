@@ -1,5 +1,5 @@
-import { ListSkeleton } from "@/components/app/page-states";
+import { MemberListSkeleton } from "@/components/app/skeletons";
 
 export default function Loading() {
-  return <ListSkeleton />;
+  return <MemberListSkeleton />;
 }

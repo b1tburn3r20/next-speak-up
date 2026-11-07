@@ -4,8 +4,8 @@ import { getServerSession } from "next-auth";
 import { ArrowRight, Trophy } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { BillCard, BillStatusBadge } from "@/components/bills/bill-card";
-import { UpcomingBillCard } from "@/components/bills/upcoming-bill-card";
-import { Grid, OuterBlock, PageHeader, PageShell, Section, Stack , WithRail } from "@/components/blocks";
+import { DASHBOARD_WEEK_PREVIEW, FloorBoardGrid, RightNow } from "@/components/bills/floor-board";
+import { Grid, OuterBlock, PageHeader, PageSpacer, Section, Stack , WithRail } from "@/components/blocks";
 import { BlindVoteCard } from "@/components/civic/blind-vote-card";
 import { MoreSteps, NextStepCard } from "@/components/civic/next-step-card";
 import { ProgressStrip } from "@/components/civic/progress-strip";
@@ -19,8 +19,7 @@ import {
   getRepRecaps,
   getSponsoredAreas,
   getVoteQueue, getPolicyLean, getQuests } from "@/lib/civic/engage";
-import { getUpcomingFloorItems } from "@/lib/civic/floor";
-import { groupFloorWeeks } from "@/lib/civic/floor-logic";
+import { floorBoardBillIds, getFloorBoard, type FloorBoard } from "@/lib/civic/floor";
 import { billLabel } from "@/lib/civic/labels";
 import { computeNextSteps } from "@/lib/civic/next-steps";
 import { listFavoriteMembers } from "@/lib/civic/people";
@@ -36,62 +35,41 @@ import { billPath, routes } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "See what your representatives are up to, and whether they represent you.",
+  description: "What's on the House and Senate floor now, and what's coming next.",
 };
 
-const FLOOR_PREVIEW = 3;
-
-function FloorPreview({
-  items,
+/** What's happening now, and what's coming: always both chambers, this week and next. */
+function FloorSection({
+  board,
   states,
   signedIn,
   now,
 }: {
-  items: Awaited<ReturnType<typeof getUpcomingFloorItems>>;
+  board: FloorBoard;
   states: Map<number, { position: string | null; following: boolean }>;
   signedIn: boolean;
   now: Date;
 }) {
-  const week = groupFloorWeeks(items, now)[0];
-  if (!week) {
-    return (
-      <Section title="On the House floor" data-testid="dashboard-floor">
-        <OuterBlock className="text-sm text-muted-foreground">
-          Nothing is scheduled right now, so the House may be out of session. New schedules show up
-          here as soon as they&apos;re published.
-        </OuterBlock>
-      </Section>
-    );
-  }
   return (
     <Section
-      title={`Coming up: ${week.label}`}
-      description="Weigh in before your representative votes."
-      action={{ href: routes.federal.upcoming, label: `All ${items.length}` }}
+      title="On the floor"
+      description="Weigh in before your representatives vote. Being listed doesn't guarantee a vote."
+      action={{ href: routes.federal.upcoming, label: "Everything coming up" }}
       data-testid="dashboard-floor"
     >
-      <Stack>
-        {week.items.slice(0, FLOOR_PREVIEW).map((item) => (
-          <UpcomingBillCard
-            key={item.id}
-            item={item}
-            signedIn={signedIn}
-            state={item.bill ? states.get(item.bill.id) : undefined}
-          />
-        ))}
-      </Stack>
+      <FloorBoardGrid board={board} now={now} limit={DASHBOARD_WEEK_PREVIEW} signedIn={signedIn} states={states} />
     </Section>
   );
 }
 
 async function SignedOutDashboard() {
   const now = new Date();
-  const [{ bills }, floorItems] = await Promise.all([listBills({ limit: 3 }), getUpcomingFloorItems(now)]);
+  const [{ bills }, board] = await Promise.all([listBills({ limit: 3 }), getFloorBoard(now)]);
   const steps = computeNextSteps({
     signedIn: false,
     hasLocation: false,
     pulseCount: 0,
-    floorCount: floorItems.length,
+    floorCount: floorBoardBillIds(board).length,
     fewestComparedWithRep: 0,
     votedToday: 0,
     dailyGoal: 3,
@@ -100,13 +78,14 @@ async function SignedOutDashboard() {
     followingCount: 0,
   });
   return (
-    <PageShell>
+    <PageSpacer>
       <PageHeader
         title="Does your representative represent you?"
         description="Vote on the same bills Congress does, then find out if you match. No jargon, and no party telling you what to think."
       />
+      <RightNow board={board} />
+      <FloorSection board={board} states={new Map()} signedIn={false} now={now} />
       <NextStepCard step={steps[0]} label="Start here" />
-      <FloorPreview items={floorItems} states={new Map()} signedIn={false} now={now} />
       <Section title="Latest in Congress" action={{ href: routes.federal.bills, label: "All bills" }}>
         <Stack>
           {bills.map((bill) => (
@@ -115,7 +94,7 @@ async function SignedOutDashboard() {
         </Stack>
       </Section>
       <MoreSteps steps={steps.slice(1)} />
-    </PageShell>
+    </PageSpacer>
   );
 }
 
@@ -125,16 +104,16 @@ export default async function DashboardPage() {
   if (!userId) return <SignedOutDashboard />;
 
   const now = new Date();
-  const [metrics, floorItems, lists, favorites, topics] = await Promise.all([
+  const [metrics, board, lists, favorites, topics] = await Promise.all([
     getUserMetrics(userId),
-    getUpcomingFloorItems(now),
+    getFloorBoard(now),
     getUserDashboardLists(userId),
     listFavoriteMembers(userId),
     getUserTopics(userId),
   ]);
   const reps = metrics.reps.map(({ rep }) => rep);
   const repIds = reps.map((rep) => rep.id);
-  const floorBillIds = floorItems.flatMap((item) => (item.bill ? [item.bill.id] : []));
+  const floorBillIds = floorBoardBillIds(board);
   const [facts, pulse, recaps, stats, floorStates, sponsoredAreas, queue] = await Promise.all([
     getEngagementFacts(userId, repIds),
     getPulseItems(userId, repIds, 3),
@@ -159,9 +138,7 @@ export default async function DashboardPage() {
     floorVotes: facts.floorVotes,
     policyAreasVoted: facts.policyAreasVoted,
   });
-  const unvotedFloor = floorItems.filter(
-    (item) => item.bill && !floorStates.get(item.bill.id)?.position,
-  ).length;
+  const unvotedFloor = floorBillIds.filter((id) => !floorStates.get(id)?.position).length;
   const steps = computeNextSteps({
     signedIn: true,
     hasLocation: Boolean(metrics.location),
@@ -177,7 +154,7 @@ export default async function DashboardPage() {
   const name = session?.user?.username ?? session?.user?.name;
 
   return (
-    <PageShell>
+    <PageSpacer>
       <header className="space-y-3">
         <h1 className="break-words text-2xl font-extrabold leading-tight sm:text-3xl">
           {name ? `Welcome back, ${name}` : "Welcome back"}
@@ -185,15 +162,14 @@ export default async function DashboardPage() {
         <ProgressStrip initial={hud} />
       </header>
 
+      <RightNow board={board} />
+
       <WithRail
-        lead={
-          <Stack gap="lg">
-            {metrics.reps.length === 0 ? <NextStepCard step={steps[0]} /> : null}
-            {nextBill ? <NextBillCard item={nextBill} /> : null}
-          </Stack>
-        }
+        lead={<FloorSection board={board} states={floorStates} signedIn now={now} />}
         rail={
           <>
+            {metrics.reps.length === 0 ? <NextStepCard step={steps[0]} /> : null}
+            {nextBill ? <NextBillCard item={nextBill} /> : null}
             <QuestsCard quests={quests} streakWaiting={hud.votedToday === 0 ? hud.streak : 0} />
             <Link
               href={routes.leaderboard}
@@ -302,8 +278,6 @@ export default async function DashboardPage() {
         </OuterBlock>
       </Section>
 
-      <FloorPreview items={floorItems} states={floorStates} signedIn now={now} />
-
       <Grid cols="halves">
         <Section title="Bills you follow">
           <OuterBlock>
@@ -357,7 +331,7 @@ export default async function DashboardPage() {
         <MoreSteps steps={steps.slice(1, 4)} />
       </Section>
       </WithRail>
-    </PageShell>
+    </PageSpacer>
   );
 }
 

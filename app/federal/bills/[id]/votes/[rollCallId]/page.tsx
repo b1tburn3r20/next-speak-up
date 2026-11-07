@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { PageSpacer } from "@/components/blocks";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AsOfNote, EmptyState, PageContainer, Panel } from "@/components/app/page-states";
+import { AsOfNote, EmptyState, Panel } from "@/components/app/page-states";
 import { formatDate } from "@/components/bills/bill-card";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
@@ -10,6 +11,9 @@ import { getRollCallDetail } from "@/lib/civic/bills";
 import { billLabel, partyLabel, positionLabel } from "@/lib/civic/labels";
 import { bioguideOf } from "@/lib/civic/people";
 import { billPath, memberPath } from "@/lib/routes";
+import { Suspense } from "react";
+import { RollCallSkeleton } from "@/components/app/skeletons";
+import { rollCallExists } from "@/lib/civic/exists";
 
 const STATE_OPTIONS = [
   { value: "", label: "Any state" },
@@ -25,7 +29,7 @@ type PageProps = {
 
 export const metadata: Metadata = { title: "How members voted" };
 
-export default async function RollCallPage({ params, searchParams }: PageProps) {
+async function RollCallBody({ params, searchParams }: PageProps) {
   const { id, rollCallId } = await params;
   const filters = await searchParams;
   const numericId = Number(rollCallId);
@@ -37,7 +41,7 @@ export default async function RollCallPage({ params, searchParams }: PageProps) 
   const label = billLabel(bill.billType, bill.number);
 
   return (
-    <PageContainer>
+    <PageSpacer>
       <header className="space-y-1">
         <nav className="text-sm">
           <Link href={billPath(bill.slug)} className="underline">
@@ -119,6 +123,17 @@ export default async function RollCallPage({ params, searchParams }: PageProps) 
         )}
       </Panel>
       <AsOfNote date={rollCall.asOf} />
-    </PageContainer>
+    </PageSpacer>
+  );
+}
+
+export default async function RollCallPage(props: PageProps) {
+  const { id, rollCallId } = await props.params;
+  const numericId = Number(rollCallId);
+  if (!Number.isInteger(numericId) || numericId <= 0 || !(await rollCallExists(id, numericId))) notFound();
+  return (
+    <Suspense fallback={<RollCallSkeleton />}>
+      <RollCallBody {...props} />
+    </Suspense>
   );
 }

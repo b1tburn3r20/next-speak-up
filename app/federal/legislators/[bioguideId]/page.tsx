@@ -7,7 +7,7 @@ import { Eye, Globe, Phone } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { AsOfNote, EmptyState } from "@/components/app/page-states";
 import { BillStatusBadge } from "@/components/bills/bill-card";
-import { Flex, Grid, OuterBlock, PageShell, Section, Stack } from "@/components/blocks";
+import { Flex, Grid, OuterBlock, PageSpacer, Section, Stack } from "@/components/blocks";
 import { AlignmentRing, PolicyBars, StatTile, VoteSplitBars } from "@/components/civic/charts";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { VerdictBadge } from "@/components/civic/rep-report-card";
@@ -35,6 +35,9 @@ import {
 } from "@/lib/civic/verdict";
 import { billPath, topicPath } from "@/lib/routes";
 import { RelativeDate } from "@/components/app/relative-date";
+import { Suspense } from "react";
+import { MemberDetailSkeleton } from "@/components/app/skeletons";
+import { memberExists } from "@/lib/civic/exists";
 
 type PageProps = {
   params: Promise<{ bioguideId: string }>;
@@ -60,7 +63,7 @@ function PositionPill({ position }: { position: string }) {
   );
 }
 
-export default async function MemberPage({ params, searchParams }: PageProps) {
+async function MemberBody({ params, searchParams }: PageProps) {
   const { bioguideId } = await params;
   const pageNumber = Number((await searchParams)?.page) || 1;
   const member = await getMemberByBioguide(bioguideId);
@@ -106,7 +109,7 @@ export default async function MemberPage({ params, searchParams }: PageProps) {
   const firstName = member.fullName.split(" ")[0];
 
   return (
-    <PageShell>
+    <PageSpacer>
       <header className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
         <MemberPhoto name={member.fullName} url={member.imageUrl} party={current?.party} size={112} />
         <div className="min-w-0 space-y-1.5">
@@ -375,6 +378,16 @@ export default async function MemberPage({ params, searchParams }: PageProps) {
                 }
         }
       />
-    </PageShell>
+    </PageSpacer>
+  );
+}
+
+export default async function MemberPage(props: PageProps) {
+  const { bioguideId } = await props.params;
+  if (!(await memberExists(bioguideId))) notFound();
+  return (
+    <Suspense fallback={<MemberDetailSkeleton />}>
+      <MemberBody {...props} />
+    </Suspense>
   );
 }

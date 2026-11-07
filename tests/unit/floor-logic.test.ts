@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildChamberBoard,
   easternToday,
   floorOutcome,
   groupFloorWeeks,
@@ -96,5 +97,56 @@ describe("groupFloorWeeks", () => {
 
   it("handles an empty schedule", () => {
     expect(groupFloorWeeks([], NOW)).toEqual([]);
+  });
+});
+
+describe("buildChamberBoard", () => {
+  const row = (weekOf: string, category: string, legislationRef: string) => ({
+    weekOf: date(weekOf),
+    category,
+    legislationRef,
+  });
+
+  it("sorts rows into this week, next week, and later", () => {
+    const board = buildChamberBoard(
+      [row("2026-11-02", "RULE", "H.R. 1"), row("2026-11-09", "SUSPENSION", "H.R. 2"), row("2026-11-30", "RULE", "H.R. 3")],
+      NOW,
+    );
+    expect(board.thisWeek.map((item) => item.legislationRef)).toEqual(["H.R. 1"]);
+    expect(board.nextWeek.map((item) => item.legislationRef)).toEqual(["H.R. 2"]);
+    expect(board.later.map((item) => item.legislationRef)).toEqual(["H.R. 3"]);
+  });
+
+  it("leaves last week out of the weeks", () => {
+    const board = buildChamberBoard([row("2026-10-26", "RULE", "H.R. 1")], NOW);
+    expect([...board.thisWeek, ...board.nextWeek, ...board.later]).toEqual([]);
+  });
+
+  it("shows undated items once, from the newest calendar", () => {
+    const board = buildChamberBoard(
+      [row("2026-11-02", "PENDING", "S. 1"), row("2026-11-02", "PENDING", "S. 2"), row("2026-11-09", "PENDING", "S. 1")],
+      NOW,
+    );
+    expect(board.waiting.map((item) => item.legislationRef)).toEqual(["S. 1"]);
+  });
+
+  it("drops an undated item once it has a date", () => {
+    const board = buildChamberBoard(
+      [row("2026-11-09", "PENDING", "S. 1"), row("2026-11-09", "SCHEDULED", "S. 1")],
+      NOW,
+    );
+    expect(board.waiting).toEqual([]);
+    expect(board.nextWeek.map((item) => item.category)).toEqual(["SCHEDULED"]);
+  });
+
+  it("uses the newest meeting notice, and never one from a past week", () => {
+    const later = row("2026-11-09", "NEXT_MEETING", "noon Monday");
+    expect(buildChamberBoard([row("2026-11-02", "NEXT_MEETING", "noon Friday"), later], NOW).nextMeeting).toBe(later);
+    expect(buildChamberBoard([row("2026-10-26", "NEXT_MEETING", "noon Friday")], NOW).nextMeeting).toBeNull();
+  });
+
+  it("doesn't count a meeting notice as a bill", () => {
+    const board = buildChamberBoard([row("2026-11-09", "NEXT_MEETING", "noon Monday")], NOW);
+    expect(board.nextWeek).toEqual([]);
   });
 });

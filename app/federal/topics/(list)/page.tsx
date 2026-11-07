@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Grid, PageHeader, PageShell, Section } from "@/components/blocks";
+import { Grid, PageHeader, PageSpacer, Section } from "@/components/blocks";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { PolicyIcon } from "@/components/civic/policy-chip";
 import { POLICY_AREAS, POLICY_FAMILIES, type PolicyFamily } from "@/lib/civic/policy-areas";
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function TopicsPage() {
   return (
-    <PageShell>
+    <PageSpacer>
       <PageHeader
         title="Topics"
         description="Every bill gets a policy area from the Library of Congress. Pick one you care about."
@@ -59,6 +59,6 @@ export default function TopicsPage() {
           tone: "xp",
         }}
       />
-    </PageShell>
+    </PageSpacer>
   );
 }

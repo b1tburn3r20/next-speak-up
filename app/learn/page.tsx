@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Grid, OuterBlock, PageHeader, PageShell, Section } from "@/components/blocks";
+import { Grid, OuterBlock, PageHeader, PageSpacer, Section } from "@/components/blocks";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { GLOSSARY } from "@/lib/civic/glossary";
 
@@ -27,7 +27,7 @@ const GROUPS: { title: string; keys: string[] }[] = [
 
 export default function LearnPage() {
   return (
-    <PageShell>
+    <PageSpacer>
       <PageHeader
         title="Learn the lingo"
         description="Congress has its own language. Here's what it means. You can also tap any dotted word in the app."
@@ -71,6 +71,6 @@ export default function LearnPage() {
           tone: "primary",
         }}
       />
-    </PageShell>
+    </PageSpacer>
   );
 }

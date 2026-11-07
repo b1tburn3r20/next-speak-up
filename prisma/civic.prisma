@@ -402,8 +402,8 @@ model BillTextContent {
   @@map("bill_text_content")
 }
 
-// What a chamber's leadership says may come up for a vote. Works for any chamber, although only
-// the House publishes this as data.
+// What a chamber says may come up for a vote. Only the House publishes a weekly list. Senate rows
+// come from its Calendar and Daily Digest.
 model FloorScheduleItem {
   id              Int       @id @default(autoincrement())
   chamberId       Int
@@ -411,7 +411,7 @@ model FloorScheduleItem {
   // The Monday of that week
   weekOf          DateTime  @db.Date
   sourceItemId    String    @db.VarChar(40)
-  // SUSPENSION, RULE, or OTHER
+  // House: SUSPENSION, RULE, or OTHER. Senate: SCHEDULED or PENDING. Either: NEXT_MEETING, which isn't a bill
   category        String    @db.VarChar(20)
   legislationRef  String    @db.VarChar(120)
   title           String    @db.Text

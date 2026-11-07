@@ -16,7 +16,7 @@ import { ShareButton } from "@/components/bills/share-button";
 import { FloorCategoryPill } from "@/components/bills/upcoming-bill-card";
 import { VoteGateCard } from "@/components/bills/vote-gate-card";
 import { VoteResultAnchor } from "@/components/bills/vote-result-anchor";
-import { Flex, OuterBlock, PageShell, Section, Stack, WithRail } from "@/components/blocks";
+import { Flex, OuterBlock, PageSpacer, Section, Stack, WithRail } from "@/components/blocks";
 import { AfterVote } from "@/components/civic/after-vote";
 import { BillOutlookCard } from "@/components/civic/bill-outlook-card";
 import { NextStepCard } from "@/components/civic/next-step-card";
@@ -44,6 +44,9 @@ import { missingSenateVotes } from "@/lib/civic/verdict";
 import { billPath, billTextPath, memberPath, rollCallPath, routes, topicPath } from "@/lib/routes";
 import { RelativeDate } from "@/components/app/relative-date";
 import { BillWhen } from "@/components/bills/bill-when";
+import { Suspense } from "react";
+import { BillDetailSkeleton } from "@/components/app/skeletons";
+import { billExists } from "@/lib/civic/exists";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -108,7 +111,7 @@ function PersonRow({ sponsorship, size = 40 }: { sponsorship: Sponsorship; size?
   );
 }
 
-export default async function BillPage({ params }: PageProps) {
+async function BillBody({ params }: PageProps) {
   const bill = await getBill((await params).id);
   if (!bill) notFound();
 
@@ -132,7 +135,7 @@ export default async function BillPage({ params }: PageProps) {
   // Vote first, then find out. Signed-out visitors and search engines can't vote, so they see it all.
   if (userId && !state?.position && !state?.skippedGate) {
     return (
-      <PageShell width="narrow">
+      <PageSpacer width="narrow">
         <VoteGateCard
           slug={bill.slug}
           label={label}
@@ -144,7 +147,7 @@ export default async function BillPage({ params }: PageProps) {
           floorNotice={floorItem ? weekLabel(floorItem.weekOf, new Date()) : null}
           sponsor={sponsors[0] ? <PersonRow sponsorship={sponsors[0]} size={44} /> : null}
         />
-      </PageShell>
+      </PageSpacer>
     );
   }
 
@@ -153,7 +156,7 @@ export default async function BillPage({ params }: PageProps) {
   const pendingSenateVotes = missingSenateVotes(bill.actions, bill.rollCalls);
 
   return (
-    <PageShell>
+    <PageSpacer>
       <header className="space-y-3">
         <nav>
           <Link href={routes.federal.bills} className="text-sm font-bold text-primary hover:underline">
@@ -456,6 +459,16 @@ export default async function BillPage({ params }: PageProps) {
         </p>
       ) : null}
       </WithRail>
-    </PageShell>
+    </PageSpacer>
+  );
+}
+
+export default async function BillPage(props: PageProps) {
+  const { id } = await props.params;
+  if (!(await billExists(id))) notFound();
+  return (
+    <Suspense fallback={<BillDetailSkeleton />}>
+      <BillBody {...props} />
+    </Suspense>
   );
 }

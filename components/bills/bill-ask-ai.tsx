@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Loader2, Send } from "lucide-react";
+import { AnswerSkeleton } from "@/components/app/skeletons";
 import { useLoginStore } from "@/app/navbar/use-login-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +81,11 @@ export function BillAskAi({ slug, signedIn }: { slug: string; signedIn: boolean 
               {message.content}
             </li>
           ))}
+          {waiting ? (
+            <li className="mr-6">
+              <AnswerSkeleton />
+            </li>
+          ) : null}
           <li ref={listEnd} aria-hidden />
         </ol>
       )}

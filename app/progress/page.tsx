@@ -5,7 +5,7 @@ import { ArrowRight, Award, Lock, Trophy } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { EmptyState } from "@/components/app/page-states";
 import { RelativeDate } from "@/components/app/relative-date";
-import { Grid, OuterBlock, PageHeader, PageShell, Section, WithRail } from "@/components/blocks";
+import { Grid, OuterBlock, PageHeader, PageSpacer, Section, WithRail } from "@/components/blocks";
 import { ActivityChart } from "@/components/civic/charts";
 import { LevelCard } from "@/components/civic/level-card";
 import { PolicyLeanChart } from "@/components/civic/policy-lean-chart";
@@ -34,12 +34,12 @@ export default async function ProgressPage() {
   const userId = session?.user?.id;
   if (!userId) {
     return (
-      <PageShell width="narrow">
+      <PageSpacer width="narrow">
         <PageHeader title="Your progress" description="Your level, streak, and badges live here." />
         <EmptyState title="Sign in to start earning XP" action={{ href: routes.vote, label: "Try voting on a bill" }}>
           Every vote earns XP, and shows how well your reps represent you.
         </EmptyState>
-      </PageShell>
+      </PageSpacer>
     );
   }
 
@@ -69,7 +69,7 @@ export default async function ProgressPage() {
   const earned = badges.filter((badge) => badge.earned).length;
 
   return (
-    <PageShell>
+    <PageSpacer>
       <PageHeader title="Your progress" description="Everything you've earned by taking part." />
       <WithRail
         lead={
@@ -179,6 +179,6 @@ export default async function ProgressPage() {
           </OuterBlock>
         </Section>
       </WithRail>
-    </PageShell>
+    </PageSpacer>
   );
 }

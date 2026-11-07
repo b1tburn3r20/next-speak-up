@@ -100,7 +100,8 @@ test.describe("XP", () => {
     // A client-side visit keeps the store, which is where a double count would come from.
     await page.locator('a[href="/dashboard"]:visible').first().click();
     await expect(page).toHaveURL(/\/dashboard/);
-    const strip = page.getByTestId("progress-strip");
+    // While a page streams, its content also sits in a hidden holding element outside main.
+    const strip = page.getByRole("main").getByTestId("progress-strip");
     await expect(strip).toContainText("10 XP");
     await expect(page.getByTestId("daily-goal")).toHaveText("1/3");
     await page.reload();
@@ -134,6 +135,7 @@ test.describe("layout", () => {
     test.skip(testInfo.project.name !== "desktop", "Only a wide screen has two columns");
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto(LAW);
+    await expect(page.getByRole("main").getByTestId("digest")).toBeVisible();
     const digest = await page.getByTestId("digest").boundingBox();
     const vote = await page.getByTestId("your-vote").boundingBox();
     expect(digest!.width).toBeGreaterThan(700);
@@ -144,6 +146,7 @@ test.describe("layout", () => {
   test("a phone keeps one column, with the summary first", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "phone", "Checked at one phone width");
     await page.goto(LAW);
+    await expect(page.getByRole("main").getByTestId("digest")).toBeVisible();
     const digest = await page.getByTestId("digest").boundingBox();
     const vote = await page.getByTestId("your-vote").boundingBox();
     expect(vote!.y).toBeGreaterThan(digest!.y);

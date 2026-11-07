@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { Trophy } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { EmptyState } from "@/components/app/page-states";
-import { OuterBlock, PageHeader, PageShell, Stack } from "@/components/blocks";
+import { OuterBlock, PageHeader, PageSpacer, Stack } from "@/components/blocks";
 import { can } from "@/lib/auth/permissions";
 import { getLeaderboard } from "@/lib/civic/leaderboard";
 import { getUserLocation } from "@/lib/civic/users";
@@ -23,21 +23,21 @@ export default async function LeaderboardPage() {
   const userId = session?.user?.id;
   if (!userId) {
     return (
-      <PageShell width="narrow">
+      <PageSpacer width="narrow">
         <PageHeader title="Leaderboard" description="See who's most active in your state each week." />
         <EmptyState title="Sign in to see your state's board">Earn XP by voting on bills.</EmptyState>
-      </PageShell>
+      </PageSpacer>
     );
   }
   const location = await getUserLocation(userId);
   if (!location) {
     return (
-      <PageShell width="narrow">
+      <PageSpacer width="narrow">
         <PageHeader title="Leaderboard" description="See who's most active in your state each week." />
         <EmptyState title="We don't know your state yet" action={{ href: routes.reps, label: "Find your reps" }}>
           Boards are by state.
         </EmptyState>
-      </PageShell>
+      </PageSpacer>
     );
   }
 
@@ -46,7 +46,7 @@ export default async function LeaderboardPage() {
   const moderator = can(session, "forum.moderate");
 
   return (
-    <PageShell width="narrow">
+    <PageSpacer width="narrow">
       <PageHeader
         title={`${stateName} this week`}
         description="Ranked by XP earned since Monday, then it starts over. It shows activity, never how anyone voted."
@@ -102,6 +102,6 @@ export default async function LeaderboardPage() {
       ) : (
         <EmptyState title="Nobody's on the board yet this week">Be the first in {stateName}.</EmptyState>
       )}
-    </PageShell>
+    </PageSpacer>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle } from "lucide-react";
+import { RunDetailSkeleton } from "@/components/app/skeletons";
 import { OuterBlock } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -74,7 +75,7 @@ export function RunLog({ runId }: { runId: number }) {
       </OuterBlock>
     );
   }
-  if (!run.data) return <p className="text-muted-foreground">Loading this run…</p>;
+  if (!run.data) return <RunDetailSkeleton />;
   const data = run.data;
 
   return (

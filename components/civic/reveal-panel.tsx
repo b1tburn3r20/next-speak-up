@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { Check, Eye, HelpCircle, Loader2, Minus, X } from "lucide-react";
+import { Check, Eye, HelpCircle, Minus, X } from "lucide-react";
+import { RevealSkeleton } from "@/components/app/skeletons";
 import { useLoginStore } from "@/app/navbar/use-login-store";
 import { MemberPhoto } from "@/components/people/member-photo";
 import { Button } from "@/components/ui/button";
@@ -179,10 +180,7 @@ export function RevealPanel({
   }
   if (reveal.status === "loading") {
     return (
-      <p className="flex items-center gap-2 rounded-xl bg-muted p-3 text-sm font-bold" role="status">
-        <Loader2 className="size-4 animate-spin" aria-hidden />
-        Checking how your reps voted
-      </p>
+      <RevealSkeleton />
     );
   }
   if (reveal.status === "error") {

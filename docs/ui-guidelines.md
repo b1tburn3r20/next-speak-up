@@ -20,7 +20,7 @@ Build pages only from `components/blocks`. Don't hand-write spacing, card styles
 
 | Block | Use it for | Built in |
 | --- | --- | --- |
-| `PageShell` | The outside of every page | Max width, side gutters, vertical rhythm |
+| `PageSpacer` | The outside of every page | Max width, side gutters, vertical rhythm |
 | `PageHeader` | Title, plain description, optional action | Type scale, wraps on phones |
 | `Section` | A titled group of content | Heading, optional "see all" link, spacing |
 | `OuterBlock` | A raised card, the main unit of content | White, 2px border, chunky bottom edge, responsive padding |
@@ -60,6 +60,18 @@ People relate to relative times. Show every date with `RelativeDate` from `compo
 ## Loading bar
 
 `TopProgressBar` is on every page, like YouTube's. It jumps forward when a request starts, creeps while waiting, and races to the end when the last one finishes. `fetch` is wrapped, so new requests show up without doing anything. Prefetches and session checks don't count, because nobody's waiting on them.
+
+## Editing in place
+
+Editing replaces what's being edited, in the same spot. Don't send someone to another page or a settings form. Values become controls where they sit, Save and Cancel appear where the Edit button was, and a failed save stays in edit mode and says why. The profile and the forum composer are the examples. `/settings` is only for how the app works, not for details about the person.
+
+## Loading states
+
+Every page and API route has one, listed in `docs/loading-states.md`. A request that fills part of the screen gets a skeleton from `components/app/skeletons.tsx`, shaped like what it loads. A request that saves keeps the content in place and shows progress on the control.
+
+## Floor board
+
+The dashboard leads with what's happening now: each chamber's next meeting, then this week and next week for the House and Senate side by side. An empty week stays on the board and says why it's empty. Show a bill's plain title, and keep the Senate's legal text behind a disclosure. A bill's status stays hidden until the person has voted.
 
 ## Onboarding
 

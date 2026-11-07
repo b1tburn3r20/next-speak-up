@@ -99,6 +99,26 @@ export type PublicProfile = {
   showVotingTopics: boolean;
 };
 
+/** The owner's private values, for editing in place. It's never sent to anyone else. */
+export type ProfileOwnerForm = {
+  name: string;
+  username: string;
+  about: string;
+  ageRange: string;
+  householdIncome: string;
+  state: string;
+  district: string;
+  isPublic: boolean;
+  showName: boolean;
+  showAgeRange: boolean;
+  showState: boolean;
+  showDistrict: boolean;
+  showIncome: boolean;
+  showVotingTopics: boolean;
+  ageOptions: { value: string; label: string }[];
+  incomeOptions: { value: string; label: string }[];
+};
+
 export type ProfileView =
   | { kind: "PRIVATE"; displayName: string }
   | { kind: "PUBLIC"; profile: PublicProfile; isOwner: boolean; isPrivateToOthers: boolean };

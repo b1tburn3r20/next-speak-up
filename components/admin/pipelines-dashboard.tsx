@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Activity, AlertTriangle, CalendarClock, Database, Play, Server, Square, X } from "lucide-react";
 import { toast } from "sonner";
+import { PipelinesSkeleton, TableSkeleton } from "@/components/app/skeletons";
 import { OuterBlock, Section } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -230,7 +231,7 @@ export function PipelinesDashboard({ canManage }: { canManage: boolean }) {
   };
 
   if (!status.data && status.error) return <ServerProblem reason={status.reason} message={status.error} />;
-  if (!status.data) return <p className="text-muted-foreground" data-testid="pipelines-loading">Connecting to the pipeline server…</p>;
+  if (!status.data) return <PipelinesSkeleton />;
 
   const server = status.data;
   const open = metrics.data?.quality.open ?? {};
@@ -354,6 +355,7 @@ export function PipelinesDashboard({ canManage }: { canManage: boolean }) {
       <Section title="Pipelines" description="Stubs stay off until their data source is confirmed, so they only run by hand.">
         <OuterBlock>
           {pipelines.error && !pipelines.data ? <p role="alert" className="text-sm">{pipelines.error}</p> : null}
+          {!pipelines.data && !pipelines.error ? <TableSkeleton rows={8} columns={6} testId="pipelines-table-skeleton" /> : null}
           <div className="overflow-x-auto">
             <Table className="min-w-[720px]" data-testid="pipelines-table">
               <TableHeader>
@@ -423,10 +425,11 @@ export function PipelinesDashboard({ canManage }: { canManage: boolean }) {
               options={[{ value: "", label: "Any pipeline" }, ...list.map((pipeline) => ({ value: pipeline.name, label: pipeline.name }))]}
             />
           </div>
-          <RunsTable runs={runs.data ?? []} />
+          {runs.data ? <RunsTable runs={runs.data} /> : runs.error ? <p role="alert" className="text-sm">{runs.error}</p> : <TableSkeleton rows={5} columns={6} testId="runs-skeleton" />}
         </OuterBlock>
       </Section>
 
+      {!metrics.data && !metrics.error ? <TableSkeleton rows={6} testId="metrics-skeleton" /> : null}
       {metrics.data ? (
         <>
           <Section title="Last 14 days">

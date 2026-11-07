@@ -1,5 +1,5 @@
-import { ListSkeleton } from "@/components/app/page-states";
+import { DashboardSkeleton } from "@/components/app/skeletons";
 
 export default function Loading() {
-  return <ListSkeleton rows={4} />;
+  return <DashboardSkeleton />;
 }

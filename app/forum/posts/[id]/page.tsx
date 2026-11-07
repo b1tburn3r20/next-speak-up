@@ -6,6 +6,11 @@ import ViewPostContent from "./components/view-post-content";
 import ViewPostInfo from "./components/view-post-info";
 import { incrementPostViews } from "@/lib/services/forum-service";
 import { AuthSession } from "@/lib/types/user-types";
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import { ForumPostSkeleton } from "@/components/app/skeletons";
+import { forumPostExists } from "@/lib/civic/exists";
+import { PageSpacer } from "@/components/blocks";
 
 type PageProps = {
   params: { id: string };
@@ -63,7 +68,7 @@ export async function generateMetadata({
   }
 }
 
-const Page = async ({ params }: PageProps) => {
+const PostBody = async ({ params }: PageProps) => {
   const session: AuthSession = await getServerSession(authOptions);
   const userId = session?.user?.id;
   const userRole = session?.user.role?.name;
@@ -75,7 +80,7 @@ const Page = async ({ params }: PageProps) => {
   const postData = await getPostById(userId, userRole, id);
 
   return (
-    <div className="w-full mt-6  mx-auto px-4 sm:px-6 lg:px-8">
+    <PageSpacer>
       {/* Mobile-first responsive layout */}
       <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Main content - takes full width on mobile, 2/3 on desktop */}
@@ -93,8 +98,17 @@ const Page = async ({ params }: PageProps) => {
           />
         </div>
       </div>
-    </div>
+    </PageSpacer>
   );
 };
 
+const Page = async (props: PageProps) => {
+  const id = Number((await props.params).id);
+  if (!Number.isInteger(id) || id <= 0 || !(await forumPostExists(id))) notFound();
+  return (
+    <Suspense fallback={<ForumPostSkeleton />}>
+      <PostBody {...props} />
+    </Suspense>
+  );
+};
 export default Page;

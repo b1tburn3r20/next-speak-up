@@ -14,7 +14,6 @@ All [acceptance criteria](acceptance-criteria.md) are met on the data loaded so 
 
 - Votes by your reps that you disagreed with most, as a shareable recap.
 - Notifications outside the app. They'd need email, which is a paid service.
-- A Senate schedule, if an open source appears.
 
 ## Nov 6, 2026
 
@@ -56,3 +55,7 @@ Added light, dark, and system themes, with chart colors validated separately for
 ## Admin panel and pipeline server (2026-11-07)
 
 Added `/admin` with users, a roles and permissions grid, pipelines, data checks, feedback, moderation, and an audit log. The pipelines panel talks to a new FastAPI server in `../civic-pipeline`, in a Docker container that starts with Docker and only listens on this machine, on port 18787. Its nightly run is off until someone turns it on. Closed two escalation paths: someone with `roles.manage` could grant themselves anything, and someone with `users.manage` could demote a Super Admin.
+
+## Floor board, in-place editing, and loading states (2026-11-06)
+
+The dashboard now leads with both chambers' next meetings, and this week and next on the House and Senate floors, using a new `senate_floor` pipeline that reads GovInfo. Added `PageSpacer` around every page. Profile details are edited on the profile, and forum posts are written on the forum, with `/settings` cut down to the theme and two links. Every page and API route now has a listed loading state, with a unit test to keep it that way. Eleven API routes turned out to have no callers, and are listed in `docs/loading-states.md`.

@@ -47,6 +47,7 @@ A check in `checks/rules.py` should catch each gap that the pipeline can detect.
 | Each member's full sponsored bill history | Congress.gov API, `/member/{id}/sponsored-legislation` | Complete records without loading every bill |
 | House votes | House Clerk XML | Cross-checked against the Congress.gov API |
 | Senate votes | Voteview | senate.gov refuses automated requests, so we don't use it |
+| Senate floor | GovInfo's Senate Calendar and Daily Digest | Only what its orders name. The Senate publishes no weekly list, so a short list isn't a quiet week |
 | Upcoming House floor | docs.house.gov weekly XML | "May be considered" |
 | Member photos | Congress.gov depictions | |
 

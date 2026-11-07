@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { PageSpacer } from "@/components/blocks";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { FeedbackForm } from "@/components/app/feedback-form";
-import { PageContainer, Panel } from "@/components/app/page-states";
+import { Panel } from "@/components/app/page-states";
 
 export const metadata: Metadata = {
   title: "Feedback",
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 export default async function FeedbackPage() {
   const session = await getServerSession(authOptions);
   return (
-    <PageContainer>
+    <PageSpacer>
       <div>
         <h1 className="text-2xl font-semibold">Feedback</h1>
         <p className="text-sm text-muted-foreground">
@@ -22,6 +23,6 @@ export default async function FeedbackPage() {
       <Panel aria-label="Feedback form">
         <FeedbackForm signedIn={Boolean(session?.user?.id)} />
       </Panel>
-    </PageContainer>
+    </PageSpacer>
   );
 }

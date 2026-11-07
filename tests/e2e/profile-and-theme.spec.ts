@@ -44,18 +44,18 @@ test.describe("privacy", () => {
     const stranger = await browser.newContext({ baseURL: BASE_URL });
     const visitor = await stranger.newPage();
     await visitor.goto(`/users/${id}`);
-    await expect(visitor.getByTestId("profile-state")).toContainText("Iowa");
-    await expect(visitor.getByTestId("profile-district")).toHaveCount(0);
-    await expect(visitor.getByTestId("profile-age")).toHaveCount(0);
-    await expect(visitor.getByTestId("profile-income")).toHaveCount(0);
-    await expect(visitor.getByTestId("profile-title")).toHaveText(username);
+    await expect(visitor.getByRole("main").getByTestId("profile-state")).toContainText("Iowa");
+    await expect(visitor.getByRole("main").getByTestId("profile-district")).toHaveCount(0);
+    await expect(visitor.getByRole("main").getByTestId("profile-age")).toHaveCount(0);
+    await expect(visitor.getByRole("main").getByTestId("profile-income")).toHaveCount(0);
+    await expect(visitor.getByRole("main").getByTestId("profile-title")).toHaveText(username);
 
     await profile(page, { showDistrict: true, showName: true, showAgeRange: true, showIncome: true });
     await visitor.reload();
-    await expect(visitor.getByTestId("profile-district")).toContainText("3");
-    await expect(visitor.getByTestId("profile-title")).toHaveText("Secret Realname");
-    await expect(visitor.getByTestId("profile-age")).toBeVisible();
-    await expect(visitor.getByTestId("profile-income")).toBeVisible();
+    await expect(visitor.getByRole("main").getByTestId("profile-district")).toContainText("3");
+    await expect(visitor.getByRole("main").getByTestId("profile-title")).toHaveText("Secret Realname");
+    await expect(visitor.getByRole("main").getByTestId("profile-age")).toBeVisible();
+    await expect(visitor.getByRole("main").getByTestId("profile-income")).toBeVisible();
     await stranger.close();
   });
 
@@ -183,28 +183,80 @@ test.describe("the profile page", () => {
     await expect(page.getByTestId("profile-status")).toHaveText("Admin");
   });
 
-  test("settings save, and the district really saves now", async ({ page }) => {
+  test("editing happens right on the profile, in the same spot", async ({ page }) => {
     const { id, username } = await newUser(page);
-    await page.goto("/settings");
-    await page.getByTestId("profile-about-input").fill("Hello from settings");
-    await page.getByTestId("profile-about-save").click();
-    await expect(page.getByTestId("profile-about-save")).toBeDisabled();
-    await page.getByTestId("privacy-showState").click();
-    await page.waitForLoadState("networkidle");
-    await page.getByTestId("privacy-showDistrict").click();
-    await page.waitForLoadState("networkidle");
     await page.goto(`/users/${id}`);
-    await expect(page.getByTestId("profile-about")).toHaveText("Hello from settings");
+    await page.waitForLoadState("networkidle");
+    const url = page.url();
+    await page.getByTestId("profile-edit").click();
+    expect(page.url()).toBe(url);
+    await expect(page.getByTestId("profile-header")).toHaveAttribute("data-editing", "true");
+    await page.getByTestId("profile-about-input").fill("Hello from my profile");
+    await page.getByTestId("privacy-showState").click();
+    await page.getByTestId("privacy-showDistrict").click();
+    await page.getByTestId("profile-save").click();
+    await expect(page.getByTestId("profile-header")).toHaveAttribute("data-editing", "false");
+    await expect(page.getByTestId("profile-about")).toHaveText("Hello from my profile");
     await expect(page.getByTestId("profile-district")).toContainText("3");
+    await expect(page.getByTestId("profile-title")).toContainText(username);
     await expectNoHorizontalOverflow(page);
+    await page.reload();
+    await expect(page.getByTestId("profile-about")).toHaveText("Hello from my profile");
+  });
+
+  test("cancel puts everything back", async ({ page }) => {
+    const { id } = await newUser(page);
+    await profile(page, { about: "the original" });
+    await page.goto(`/users/${id}`);
+    await page.waitForLoadState("networkidle");
+    await page.getByTestId("profile-edit").click();
+    await page.getByTestId("profile-about-input").fill("changed my mind");
+    await page.getByTestId("profile-cancel").click();
+    await expect(page.getByTestId("profile-about")).toHaveText("the original");
+    await page.reload();
+    await expect(page.getByTestId("profile-about")).toHaveText("the original");
+  });
+
+  test("a taken username shows why it didn't save, and stays in edit mode", async ({ page }) => {
+    const { id } = await newUser(page);
+    await page.goto(`/users/${id}`);
+    await page.waitForLoadState("networkidle");
+    await page.getByTestId("profile-edit").click();
+    await page.getByTestId("edit-username-input").fill("test_admin");
+    await page.getByTestId("profile-save").click();
+    await expect(page.getByTestId("profile-edit-error")).toContainText("taken");
+    await expect(page.getByTestId("profile-header")).toHaveAttribute("data-editing", "true");
   });
 
   test("the district switch waits for the state switch", async ({ page }) => {
-    await newUser(page);
-    await page.goto("/settings");
+    const { id } = await newUser(page);
+    await page.goto(`/users/${id}?edit=1`);
     await expect(page.getByTestId("privacy-showDistrict")).toBeDisabled();
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("privacy-showState").click();
     await expect(page.getByTestId("privacy-showDistrict")).toBeEnabled();
+  });
+
+  test("nobody else is sent the edit form or its private values", async ({ page, browser }) => {
+    const { id } = await newUser(page);
+    await profile(page, { isPublic: true });
+    const context = await browser.newContext();
+    const html = await (await context.request.get(`${BASE_URL}/users/${id}?edit=1`)).text();
+    expect(html).toContain("profile-header");
+    for (const secret of ["Secret Realname", "UNDER_25000", "FROM_25_TO_34", "profile-save"]) {
+      expect(html, secret).not.toContain(secret);
+    }
+    await context.close();
+  });
+
+  test("settings no longer holds profile fields, and sends you to the profile", async ({ page }) => {
+    const { id } = await newUser(page);
+    await page.goto("/settings");
+    await expect(page.getByTestId("settings-theme")).toBeVisible();
+    await expect(page.getByTestId("profile-about-input")).toHaveCount(0);
+    await page.getByTestId("settings-profile").click();
+    await expect(page).toHaveURL(new RegExp(`/users/${id}\\?edit=1`));
+    await expect(page.getByTestId("profile-save")).toBeVisible();
   });
 
   test("only a moderator can clear someone's about me", async ({ page }) => {

@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Compass } from "lucide-react";
 import { BillCards } from "@/components/bills/bill-cards";
-import { PageHeader } from "@/components/blocks";
+import { PageHeader, PageSpacer } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { Input } from "@/components/ui/input";
-import { EmptyState, PageContainer } from "@/components/app/page-states";
+import { EmptyState } from "@/components/app/page-states";
 import { listBills, listPolicyAreas } from "@/lib/civic/bills";
 import { BILL_STATUS_LABELS, type BillStatusValue } from "@/lib/civic/labels";
 import { routes } from "@/lib/routes";
@@ -41,7 +41,7 @@ export default async function BillsPage({
   });
 
   return (
-    <PageContainer>
+    <PageSpacer>
       <PageHeader
         title="Bills"
         description="What Congress is working on, most recently active first."
@@ -115,6 +115,6 @@ export default async function BillsPage({
           </Button>
         </div>
       ) : null}
-    </PageContainer>
+    </PageSpacer>
   );
 }

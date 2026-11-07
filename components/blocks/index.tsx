@@ -13,8 +13,11 @@ const GAP: Record<Gap, string> = {
   xl: "gap-6",
 };
 
-/** The outside of every page: width, gutters, and the space between sections. */
-export function PageShell({
+/**
+ * Wraps every page: the container, its gutters, and the space between sections. Use this rather than
+ * setting any of those yourself, so pages line up. `narrow` is only for a single focused task.
+ */
+export function PageSpacer({
   width = "default",
   className,
   children,
@@ -23,10 +26,11 @@ export function PageShell({
   return (
     <div
       className={cn(
-        "mx-auto w-full space-y-8 px-4 pb-8 pt-5 sm:px-6 sm:pt-8",
-        width === "narrow" ? "max-w-2xl" : "max-w-7xl",
+        "container mx-auto w-full space-y-8 px-4 pb-8 pt-5 sm:px-6 sm:pt-8",
+        width === "narrow" && "max-w-2xl",
         className,
       )}
+      data-testid="page-spacer"
       {...rest}
     >
       {children}

@@ -5,6 +5,7 @@ import { LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SelectSkeleton } from "@/components/app/skeletons";
 import { OptionSelect } from "@/components/ui/option-select";
 import { STATE_NAMES } from "@/lib/constants/state-names";
 
@@ -147,7 +148,8 @@ export function LocationPicker({
           options={STATES}
           onValueChange={chooseState}
         />
-        {state && districts.length > 1 ? (
+        {state && loadingDistricts ? <SelectSkeleton label="Loading districts" /> : null}
+        {state && !loadingDistricts && districts.length > 1 ? (
           <OptionSelect
             aria-label="District"
             value={district}

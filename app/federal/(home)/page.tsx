@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Book, Briefcase, CalendarClock, Compass, type LucideIcon } from "lucide-react";
-import { Grid, OuterBlock, PageHeader, PageShell } from "@/components/blocks";
+import { Grid, OuterBlock, PageHeader, PageSpacer } from "@/components/blocks";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { routes } from "@/lib/routes";
 
@@ -39,7 +39,7 @@ const PLACES: { href: string; icon: LucideIcon; title: string; description: stri
 
 export default function FederalPage() {
   return (
-    <PageShell>
+    <PageSpacer>
       <PageHeader
         title="The federal government"
         description="Congress writes the laws for the whole country. Here's what it's doing right now."
@@ -73,6 +73,6 @@ export default function FederalPage() {
           tone: "primary",
         }}
       />
-    </PageShell>
+    </PageSpacer>
   );
 }

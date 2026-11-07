@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
+import { PageSpacer } from "@/components/blocks";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatDate } from "@/components/bills/bill-card";
-import { EmptyState, PageContainer, Panel } from "@/components/app/page-states";
+import { EmptyState, Panel } from "@/components/app/page-states";
 import { getBillText } from "@/lib/civic/bills";
 import { billLabel } from "@/lib/civic/labels";
 import { billPath } from "@/lib/routes";
+import { Suspense } from "react";
+import { BillTextSkeleton } from "@/components/app/skeletons";
+import { billTextExists } from "@/lib/civic/exists";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -15,14 +19,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return { title: `Text of ${billLabel(found.bill.billType, found.bill.number)}` };
 }
 
-export default async function BillTextPage({ params }: PageProps) {
+async function BillTextBody({ params }: PageProps) {
   const found = await getBillText((await params).id);
   if (!found) notFound();
   const { bill, latest, text, fetchedAt } = found;
   const label = billLabel(bill.billType, bill.number);
 
   return (
-    <PageContainer>
+    <PageSpacer>
       <header className="space-y-1">
         <nav className="text-sm">
           <Link href={billPath(bill.slug)} className="underline">
@@ -86,6 +90,16 @@ export default async function BillTextPage({ params }: PageProps) {
           </ul>
         </Panel>
       ) : null}
-    </PageContainer>
+    </PageSpacer>
+  );
+}
+
+export default async function BillTextPage(props: PageProps) {
+  const { id } = await props.params;
+  if (!(await billTextExists(id))) notFound();
+  return (
+    <Suspense fallback={<BillTextSkeleton />}>
+      <BillTextBody {...props} />
+    </Suspense>
   );
 }

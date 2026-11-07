@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { EmptyState, PageContainer } from "@/components/app/page-states";
-import { Grid, PageHeader } from "@/components/blocks";
+import { EmptyState } from "@/components/app/page-states";
+import { Grid, PageHeader, PageSpacer } from "@/components/blocks";
 import { MemberCard, stateName } from "@/components/people/member-card";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
@@ -59,7 +59,7 @@ export default async function LegislatorsPage({
   );
 
   return (
-    <PageContainer>
+    <PageSpacer>
       <PageHeader
         title="Legislators"
         description={`${total} ${filtering ? "matching" : "current"} members of Congress`}
@@ -147,6 +147,6 @@ export default async function LegislatorsPage({
           )}
         </nav>
       ) : null}
-    </PageContainer>
+    </PageSpacer>
   );
 }

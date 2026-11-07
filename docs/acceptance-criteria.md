@@ -6,7 +6,7 @@ Work isn't done until each line is proven by a test or by looking at it. `[ ]` m
 
 - [x] Reference sheets exist and `CLAUDE.md` points to them
 - [x] One theme only: no picker, no `dark:` classes, no leftover theme CSS
-- [x] Blocks exist (`PageShell`, `PageHeader`, `Section`, `OuterBlock`, `InnerBlock`, `Stack`, `Flex`, `Grid`), and every main page uses them
+- [x] Blocks exist (`PageSpacer`, `PageHeader`, `Section`, `OuterBlock`, `InnerBlock`, `Stack`, `Flex`, `Grid`), and every main page uses them
 - [x] Older `components/cb` blocks use the same styling, without slow entrance animations
 - [x] Zustand holds votes, follows, progress, and saved members
 - [x] Voting on one bill doesn't re-render another bill's buttons (test)
@@ -146,3 +146,24 @@ Work isn't done until each line is proven by a test or by looking at it. `[ ]` m
 - [x] If progress can't load, the page still works
 - [x] `/progress` shows rank, the XP goal for the next rank, the whole ladder, badges, quests, and where XP came from
 - [x] The leaderboard is off until someone joins, and never shows how anyone voted
+
+## Floor board
+
+- [x] The dashboard shows this week and next for both chambers, signed in or out (test)
+- [x] An empty week says so instead of disappearing (test)
+- [x] House lists never include Senate rows or meeting notices (test)
+- [x] A Senate item with no date appears once, and its legal text is behind a disclosure (test)
+- [x] A bill's status stays hidden on the board until the person votes (test)
+
+## Editing in place
+
+- [x] Profile details are edited on the profile, at the same URL (test)
+- [x] Cancel restores everything, and a failed save stays in edit mode and says why (test)
+- [x] Only the owner is sent the edit form and its private values (test)
+- [x] The forum composer opens on the forum, and the old URL still works (test)
+
+## Loading states
+
+- [x] Every page has a `loading.tsx` or `<Suspense>`, or is listed as having nothing to wait for (unit test)
+- [x] No `loading.tsx` sits above a detail page (unit test)
+- [x] Every API route is listed in `docs/loading-states.md` (unit test)

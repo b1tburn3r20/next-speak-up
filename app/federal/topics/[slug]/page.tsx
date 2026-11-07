@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/app/page-states";
 import { BillCards } from "@/components/bills/bill-cards";
-import { PageHeader, PageShell, Stack } from "@/components/blocks";
+import { PageHeader, PageSpacer, Stack } from "@/components/blocks";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { buttonVariants } from "@/components/ui/button";
 import { listBills } from "@/lib/civic/bills";
@@ -13,6 +13,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { TrackTopicButton } from "@/components/civic/track-topic-button";
 import { getUserTopics } from "@/lib/civic/users";
+import { Suspense } from "react";
+import { TopicBillsSkeleton } from "@/components/app/skeletons";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -24,7 +26,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return { title: area?.name ?? "Topic not found", description: area?.explanation };
 }
 
-export default async function TopicPage({ params, searchParams }: PageProps) {
+async function TopicBody({ params, searchParams }: PageProps) {
   const area = policyAreaBySlug((await params).slug);
   if (!area) notFound();
   const { cursor } = await searchParams;
@@ -36,7 +38,7 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
   ]);
 
   return (
-    <PageShell>
+    <PageSpacer>
       <PageHeader
         back={{ href: routes.federal.topics, label: "All topics" }}
         title={area.name}
@@ -73,6 +75,15 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
           tone: "primary",
         }}
       />
-    </PageShell>
+    </PageSpacer>
+  );
+}
+
+export default async function TopicPage(props: PageProps) {
+  if (!policyAreaBySlug((await props.params).slug)) notFound();
+  return (
+    <Suspense fallback={<TopicBillsSkeleton />}>
+      <TopicBody {...props} />
+    </Suspense>
   );
 }

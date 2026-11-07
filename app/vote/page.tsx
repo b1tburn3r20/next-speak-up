@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { OuterBlock, PageShell, Stack } from "@/components/blocks";
+import { OuterBlock, PageSpacer, Stack } from "@/components/blocks";
 import { BlindVoteCard } from "@/components/civic/blind-vote-card";
 import { VoteSession } from "@/components/civic/vote-session";
 import { buttonVariants } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export default async function VotePage() {
   const queue = await getVoteQueue(userId, reps.map((rep) => rep.id), SESSION_LENGTH, new Date(), topics);
 
   return (
-    <PageShell width="narrow">
+    <PageSpacer width="narrow">
       <Stack gap="lg">
         <h1 className="sr-only">Vote on bills</h1>
         {queue.length > 0 ? (
@@ -49,6 +49,6 @@ export default async function VotePage() {
           </OuterBlock>
         )}
       </Stack>
-    </PageShell>
+    </PageSpacer>
   );
 }

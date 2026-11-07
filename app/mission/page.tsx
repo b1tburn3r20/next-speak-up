@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Grid, OuterBlock, PageHeader, PageShell, Section } from "@/components/blocks";
+import { Grid, OuterBlock, PageHeader, PageSpacer, Section } from "@/components/blocks";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import LandingNavbar from "../landing/navbar/navbar";
 
@@ -26,7 +26,7 @@ const BELIEFS = [
 export default function MissionPage() {
   return (
     <LandingNavbar>
-      <PageShell width="narrow" className="pt-24">
+      <PageSpacer width="narrow" className="pt-24">
         <PageHeader
           title="Our mission"
           description="Government shouldn't be a mystery. Coolbills helps you see what Congress is doing, in plain words, and tell whether the people you elected actually represent you."
@@ -51,7 +51,7 @@ export default function MissionPage() {
             tone: "primary",
           }}
         />
-      </PageShell>
+      </PageSpacer>
     </LandingNavbar>
   );
 }

@@ -1,61 +1,56 @@
-import { OuterBlock, PageHeader, PageShell } from "@/components/blocks";
-import type { Metadata } from 'next';
-// app/settings/page.tsx
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { userService } from "@/lib/services/user";
-import { SettingsForm } from "./components/settings-form";
-import { ProfileSettingsCard } from "./components/profile-settings-card";
-import { getProfileSettings } from "@/lib/civic/profile";
-import { NextStepCard } from "@/components/civic/next-step-card";
-import { routes } from "@/lib/routes";
-
+import { getServerSession } from "next-auth";
+import { ArrowRight, Compass, UserRound } from "lucide-react";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { OuterBlock, PageHeader, PageSpacer } from "@/components/blocks";
+import { ThemeChoice } from "@/components/theme-toggle";
+import { profilePath, routes } from "@/lib/routes";
 
 export const metadata: Metadata = {
-  "title": "Coolbills | Settings page",
-  description: "Update your settings here."
+  title: "Settings",
+  description: "Choose how Coolbills looks and works for you.",
 };
 
+function SettingLink({ href, icon: Icon, title, description, testId }: { href: string; icon: typeof Compass; title: string; description: string; testId: string }) {
+  return (
+    <Link href={href} className="flex items-center gap-3 rounded-2xl border-2 border-b-4 bg-card p-4 hover:bg-muted" data-testid={testId}>
+      <Icon className="size-6 shrink-0 text-primary" aria-hidden />
+      <span className="min-w-0 flex-1">
+        <span className="block font-extrabold">{title}</span>
+        <span className="block text-sm text-muted-foreground">{description}</span>
+      </span>
+      <ArrowRight className="size-4 shrink-0" aria-hidden />
+    </Link>
+  );
+}
 
+/** Your details are edited on your profile, where they show. This is for how the app works. */
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/");
-  const [user, profile] = await Promise.all([
-    userService.getUserById(session.user.id),
-    getProfileSettings(session.user.id),
-  ]);
-
-  if (!user) {
-    redirect("/");
-  }
-
   return (
-    <PageShell width="narrow">
-      <PageHeader title="Account settings" />
-      <OuterBlock>
-        <SettingsForm
-          id={user.id}
-          name={user.name}
-          username={user.username}
-          state={user.state}
-          district={user.district ? String(user.district) : undefined}
-          ageRange={user.ageRange}
-          householdIncome={user.householdIncome}
-        />
+    <PageSpacer width="narrow">
+      <PageHeader title="Settings" />
+      <OuterBlock className="space-y-3" data-testid="settings-theme">
+        <h2 className="text-lg font-extrabold">Appearance</h2>
+        <ThemeChoice />
       </OuterBlock>
-      <ProfileSettingsCard initial={profile} userId={user.id} hasUsername={Boolean(user.username)} />
-      <NextStepCard
-        label="Choose what you follow"
-        step={{
-          id: "settings-topics",
-          title: "Topics you track",
-          description: "Bills on these topics come first when you vote.",
-          href: routes.federal.topics,
-          cta: "Change my topics",
-          tone: "primary",
-        }}
+      <SettingLink
+        href={`${profilePath(session.user.id)}?edit=1`}
+        icon={UserRound}
+        title="Your details"
+        description="Name, username, state, and what you share. Edit them right on your profile."
+        testId="settings-profile"
       />
-    </PageShell>
+      <SettingLink
+        href={routes.federal.topics}
+        icon={Compass}
+        title="Topics you track"
+        description="Bills on these topics come first when you vote."
+        testId="settings-topics"
+      />
+    </PageSpacer>
   );
 }

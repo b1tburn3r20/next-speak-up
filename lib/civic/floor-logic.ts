@@ -1,4 +1,4 @@
-// Pure logic for the House floor schedule. No database access here, so it's easy to test.
+// Pure logic for the House and Senate floor schedules. No database access here, so it's easy to test.
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -15,6 +15,14 @@ export const FLOOR_CATEGORY_LABELS: Record<string, { label: string; hint: string
     hint: "The House sets the terms of debate first. Usually needs a simple majority to pass.",
   },
   OTHER: { label: "May be considered", hint: "Listed for possible consideration this week." },
+  SCHEDULED: {
+    label: "Senate order names a date",
+    hint: "The Senate agreed to take this up on a set date. Those plans can still change.",
+  },
+  PENDING: {
+    label: "No date yet",
+    hint: "The Senate has an agreement about this, but it hasn't set a date.",
+  },
 };
 
 /** Today's date in Washington, because that's what the House's weeks follow. */
@@ -123,4 +131,53 @@ export function groupFloorWeeks<T extends { weekOf: Date }>(
         POSITION_ORDER[a.position] - POSITION_ORDER[b.position] ||
         a.weekOf.getTime() - b.weekOf.getTime(),
     );
+}
+
+/** A chamber's next meeting. It's a notice about the meeting, so it's not an item to vote on. */
+export const NEXT_MEETING = "NEXT_MEETING";
+/** On the Senate's calendar with no date. */
+export const PENDING = "PENDING";
+
+export type ChamberBoard<T> = {
+  thisMonday: Date;
+  nextMeeting: T | null;
+  thisWeek: T[];
+  nextWeek: T[];
+  later: T[];
+  waiting: T[];
+};
+
+/**
+ * One chamber's rows, sorted into what the dashboard shows. Each new Senate Calendar repeats its
+ * undated items, so only the newest calendar's list counts. That also drops anything it's since
+ * removed, and anything that's now been given a date.
+ */
+export function buildChamberBoard<T extends { weekOf: Date; category: string; legislationRef: string }>(
+  rows: T[],
+  now: Date,
+): ChamberBoard<T> {
+  const thisMonday = mondayOf(easternToday(now));
+  const nextMonday = thisMonday.getTime() + 7 * DAY_MS;
+  const dated = rows.filter((row) => row.category !== NEXT_MEETING && row.category !== PENDING);
+  const upcoming = dated.filter((row) => row.weekOf.getTime() >= thisMonday.getTime());
+
+  const meetings = rows
+    .filter((row) => row.category === NEXT_MEETING && row.weekOf.getTime() >= thisMonday.getTime())
+    .sort((a, b) => b.weekOf.getTime() - a.weekOf.getTime());
+
+  const pending = rows.filter((row) => row.category === PENDING);
+  const newest = Math.max(0, ...pending.map((row) => row.weekOf.getTime()));
+  const scheduledRefs = new Set(upcoming.map((row) => row.legislationRef));
+  const waiting = pending.filter(
+    (row) => row.weekOf.getTime() === newest && !scheduledRefs.has(row.legislationRef),
+  );
+
+  return {
+    thisMonday,
+    nextMeeting: meetings[0] ?? null,
+    thisWeek: upcoming.filter((row) => row.weekOf.getTime() === thisMonday.getTime()),
+    nextWeek: upcoming.filter((row) => row.weekOf.getTime() === nextMonday),
+    later: upcoming.filter((row) => row.weekOf.getTime() > nextMonday),
+    waiting,
+  };
 }

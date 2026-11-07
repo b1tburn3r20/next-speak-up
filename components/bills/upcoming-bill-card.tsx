@@ -5,6 +5,7 @@ import { BillStatusBadge, SponsorLine } from "@/components/bills/bill-card";
 import { FloorWhen } from "@/components/bills/bill-when";
 import { RelativeDate } from "@/components/app/relative-date";
 import { Flex, OuterBlock, Stack } from "@/components/blocks";
+import { AfterVote } from "@/components/civic/after-vote";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { Term } from "@/components/civic/term";
 import { buildDigest } from "@/lib/civic/digest";
@@ -42,6 +43,26 @@ function Outcome({ item }: { item: FloorItem }) {
   );
 }
 
+/** A signed-in person sees how a bill's doing after they've weighed in. */
+function GatedStatus({
+  slug,
+  signedIn,
+  position,
+  children,
+}: {
+  slug: string;
+  signedIn: boolean;
+  position: string | null;
+  children: React.ReactNode;
+}) {
+  if (!signedIn) return <>{children}</>;
+  return (
+    <AfterVote slug={slug} initialPosition={position}>
+      {children}
+    </AfterVote>
+  );
+}
+
 export function UpcomingBillCard({
   item,
   signedIn,
@@ -59,7 +80,7 @@ export function UpcomingBillCard({
       <Stack>
         <Flex gap="xs">
           <span className="mr-1 font-extrabold">{item.legislationRef}</span>
-          {bill ? <BillStatusBadge status={bill.currentStatus} /> : null}
+          {bill ? <GatedStatus slug={bill.slug} signedIn={signedIn} position={state?.position ?? null}><BillStatusBadge status={bill.currentStatus} /></GatedStatus> : null}
           <FloorCategoryPill category={item.category} />
         </Flex>
         {bill ? <PolicyChip name={bill.policyArea} link /> : null}
@@ -84,7 +105,9 @@ export function UpcomingBillCard({
         ) : null}
         {bill ? <SponsorLine bill={bill} /> : null}
         {item.bill && floorOutcome(item.bill.actions, item.weekOf) ? (
-          <Outcome item={item} />
+          <GatedStatus slug={item.bill.slug} signedIn={signedIn} position={state?.position ?? null}>
+            <Outcome item={item} />
+          </GatedStatus>
         ) : (
           <p className="flex items-center gap-1.5" data-testid="floor-when">
             <CalendarClock className="size-4 shrink-0 text-primary" aria-hidden />

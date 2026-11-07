@@ -14,6 +14,7 @@ Read these before starting a task, and check your work against them:
 - `docs/ui-guidelines.md`: how to build screens, including the layout blocks and Zustand rules
 - `docs/data-guidelines.md`: schemas, queries, pipelines, and handling gaps
 - `docs/acceptance-criteria.md`: what done means
+- `docs/loading-states.md`: what every page and API route shows while it waits
 - `docs/build-log.md`: what's been decided, and what's next
 
 ## Rules
@@ -89,6 +90,7 @@ Pages are server components that call `lib/civic/*` directly, so content is in t
 
 - **Same-day actions:** a bill's actions are ordered by `position`, which comes from the API. Don't sort them by time, because only House actions have one.
 - **Floor listings:** a bill on the schedule "may be considered". Don't describe that as a vote that will happen. `floorOutcome` only counts House action since the bill was scheduled.
+- **Senate floor:** the Senate has no weekly list. `SCHEDULED` rows come from orders that name a date, and `PENDING` rows have none. Each new Calendar repeats its `PENDING` rows, so `buildChamberBoard` keeps only the newest set.
 - **Bill text versions:** `pickLatestTextVersion` holds the order. An Enrolled Bill has no date from the API.
 - **Final votes:** alignment only compares a user's vote with a member's latest final vote on a bill, using `isFinalVote`. Amendments and procedural votes don't count.
 - **Missed votes:** a member who didn't vote isn't counted as disagreeing with a user.
@@ -140,8 +142,10 @@ Both paid routes need a signed-in user, and use text from the database, never te
 - **UI kits:** `components/ui` is shadcn/ui, restyled by hand for this app, and `components/magicui` is Magic UI.
 - **Progress bar:** `TopProgressBar` wraps `window.fetch`, so any request shows in it automatically. Prefetches are ignored.
 - **Themes:** light and dark, with tokens in `app/globals.css`. Use tokens and their `-foreground` pairs, not raw colors or `text-white`. See `docs/ui-guidelines.md`.
-- **Profiles:** `/users/{id}`. `buildProfileView` is the only thing that decides what's shown, from an allow list.
-- **Loading skeletons:** `loading.tsx` also applies to child routes, and it makes a missing page return 200 instead of 404. That's why the list pages sit in `(list)` route groups. Don't add a `loading.tsx` above a detail page.
+- **Profiles:** `/users/{id}`. `buildProfileView` is the only thing that decides what's shown, from an allow list. `getProfilePage` sends `form`, with the private values, only to the owner.
+- **Editing:** editing replaces the thing being edited, in the same spot, rather than opening another page. `ProfileBody` and `ForumComposerArea` are the examples.
+- **Floor board:** the dashboard always shows this week and next for both chambers, from `getFloorBoard`. `floor_schedule_item` also holds Senate rows and each chamber's next meeting, so House lists must use `HOUSE_LIST`.
+- **Loading skeletons:** every page and API route has a loading state, listed in `docs/loading-states.md`, and a unit test fails if a new one doesn't. `loading.tsx` also applies to child routes, and it makes a missing page return 200 instead of 404. So list pages sit in route groups, and detail pages check `lib/civic/exists.ts` and then use `<Suspense>`. Don't add a `loading.tsx` above a detail page.
 - **Styling:** Tailwind v4 with no `tailwind.config` file, although `components.json` still references one.
 - **Imports:** `@/*` resolves from the repo root.
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { Grid, PageHeader, PageShell, Section } from "@/components/blocks";
+import { Grid, PageHeader, PageSpacer, Section } from "@/components/blocks";
 import { FindReps } from "@/components/civic/find-reps";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { RepReportCard } from "@/components/civic/rep-report-card";
@@ -31,13 +31,13 @@ export default async function RepsPage() {
       followingCount: 0,
     });
     return (
-      <PageShell>
+      <PageSpacer>
         <PageHeader
           title="Your reps' report cards"
           description="Sign in to see your representative and senators, and whether they vote the way you would."
         />
         <NextStepCard step={step} />
-      </PageShell>
+      </PageSpacer>
     );
   }
 
@@ -49,7 +49,7 @@ export default async function RepsPage() {
   ]);
 
   return (
-    <PageShell>
+    <PageSpacer>
       <PageHeader
         title="Your reps' report cards"
         description="Two questions for each one: do they represent you, and are they doing the job? Only your votes decide the first."
@@ -85,6 +85,6 @@ export default async function RepsPage() {
           }}
         />
       </Section>
-    </PageShell>
+    </PageSpacer>
   );
 }

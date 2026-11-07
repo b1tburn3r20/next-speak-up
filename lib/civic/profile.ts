@@ -1,4 +1,5 @@
 // Queries behind public profiles. What may be shown is decided in profile-logic.ts, not here.
+import { AgeRange, IncomeRange } from "@prisma/client";
 import prisma from "@/prisma/client";
 import { STATE_NAMES } from "@/lib/constants/state-names";
 import { formatAgeRange, formatIncomeRange } from "@/lib/utils/string-functions";
@@ -7,6 +8,7 @@ import { repsForLocation } from "./people";
 import {
   buildProfileView,
   DEFAULT_PROFILE_SETTINGS,
+  type ProfileOwnerForm,
   type ProfileSettings,
   type ProfileStats,
   type ProfileView,
@@ -104,6 +106,8 @@ export type ProfilePage = {
   lean: Awaited<ReturnType<typeof getPolicyLean>>;
   badges: Badge[];
   activity: { items: ActivityItem[]; postCount: number };
+  /** Only for the owner, because it holds what they've kept private. */
+  form: ProfileOwnerForm | null;
 };
 
 export async function getProfilePage(userId: string, viewerId: string | null | undefined): Promise<ProfilePage | null> {
@@ -140,14 +144,35 @@ export async function getProfilePage(userId: string, viewerId: string | null | u
   const empty: ProfileStats = { rankName: "", level: 1, xp: 0, streak: 0, votesCast: 0, badgesEarned: 0, badgesTotal: 0 };
   // A private page does no more work than it has to, and has nothing to reveal.
   if (!settings.isPublic && viewerId !== user.id) {
-    return { view: buildProfileView(account, settings, empty, viewerId), lean: [], badges: [], activity: { items: [], postCount: 0 } };
+    return { view: buildProfileView(account, settings, empty, viewerId), lean: [], badges: [], activity: { items: [], postCount: 0 }, form: null };
   }
   const [{ stats, badges }, activity, lean] = await Promise.all([
     statsFor(user.id, new Date()),
     getActivity(user.id),
     settings.showVotingTopics ? getPolicyLean(user.id) : Promise.resolve([]),
   ]);
-  return { view: buildProfileView(account, settings, stats, viewerId), lean, badges, activity };
+  const form: ProfileOwnerForm | null =
+    viewerId === user.id
+      ? {
+          name: user.name ?? "",
+          username: user.username ?? "",
+          about: settings.about ?? "",
+          ageRange: user.ageRange ?? "",
+          householdIncome: user.householdIncome ?? "",
+          state: stateName(user.state) ?? "",
+          district: user.district ? String(user.district) : "",
+          isPublic: settings.isPublic,
+          showName: settings.showName,
+          showAgeRange: settings.showAgeRange,
+          showState: settings.showState,
+          showDistrict: settings.showDistrict,
+          showIncome: settings.showIncome,
+          showVotingTopics: settings.showVotingTopics,
+          ageOptions: Object.values(AgeRange).map((value) => ({ value, label: formatAgeRange(value) })),
+          incomeOptions: Object.values(IncomeRange).map((value) => ({ value, label: formatIncomeRange(value) })),
+        }
+      : null;
+  return { view: buildProfileView(account, settings, stats, viewerId), lean, badges, activity, form };
 }
 
 export async function getProfileSettings(userId: string): Promise<ProfileSettings> {

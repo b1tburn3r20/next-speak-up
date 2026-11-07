@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Check, Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -37,5 +38,33 @@ export function ThemeToggle() {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+/** The same choice as tiles, for the settings page. The theme is only known once in the browser. */
+export function ThemeChoice() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return (
+    <div className="grid grid-cols-3 gap-2" role="group" aria-label="Theme">
+      {OPTIONS.map(({ value, label, icon: Icon }) => (
+        <Button
+          key={value}
+          type="button"
+          variant="choice"
+          className="h-auto min-h-16 flex-col gap-1 py-2"
+          aria-pressed={mounted && theme === value}
+          onClick={() => setTheme(value)}
+          data-testid={`settings-theme-${value}`}
+        >
+          <Icon className="size-5" aria-hidden />
+          {label}
+        </Button>
+      ))}
+    </div>
   );
 }
