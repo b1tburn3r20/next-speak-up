@@ -351,13 +351,11 @@ test.describe("every main page", () => {
     }
   });
 
-  test("there's one theme, whatever the device prefers", async ({ browser }) => {
+  test("the page follows a dark device, until someone chooses", async ({ browser }) => {
     const context = await browser.newContext({ colorScheme: "dark" });
     const page = await context.newPage();
     await page.goto("/federal/bills");
-    const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    expect(background).toBe("rgb(244, 247, 253)");
-    await expect(page.locator('[data-testid="theme-picker"]')).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(true);
     await context.close();
   });
 });

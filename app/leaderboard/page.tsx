@@ -9,7 +9,7 @@ import { can } from "@/lib/auth/permissions";
 import { getLeaderboard } from "@/lib/civic/leaderboard";
 import { getUserLocation } from "@/lib/civic/users";
 import { STATE_NAMES } from "@/lib/constants/state-names";
-import { routes } from "@/lib/routes";
+import { profilePath, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { LeaderboardToggle, RemoveFromBoard } from "./leaderboard-actions";
 
@@ -87,7 +87,9 @@ export default async function LeaderboardPage() {
                 )}
               >
                 <span className="w-7 text-center text-lg font-extrabold tabular-nums">{row.rank}</span>
-                <span className="min-w-0 flex-1 break-words font-bold">{row.username}</span>
+                <Link href={profilePath(row.userId)} className="min-w-0 flex-1 break-words font-bold hover:underline">
+                  {row.username}
+                </Link>
                 <span className="font-extrabold tabular-nums">{row.xp} XP</span>
                 {moderator && row.userId !== userId ? <RemoveFromBoard userId={row.userId} username={row.username} /> : null}
               </li>

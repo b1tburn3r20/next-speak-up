@@ -16,7 +16,7 @@ const MobileVersion = ({ children }: { children: React.ReactNode }) => {
       <div className="absolute top-1 right-1">
         <Dialog>
           <DialogTrigger>
-            <div className="border p-1 h-4 w-4 text-gray-500">
+            <div className="border p-1 h-4 w-4 text-muted-foreground">
               <Info />
             </div>
           </DialogTrigger>
@@ -43,7 +43,7 @@ const DesktopVersion = ({ children }: { children: React.ReactNode }) => {
       <div className="absolute top-1 right-1">
         <Popover>
           <PopoverTrigger>
-            <div className="border p-1 text-gray-500 rounded-lg">
+            <div className="border p-1 text-muted-foreground rounded-lg">
               <Info />
             </div>
           </PopoverTrigger>

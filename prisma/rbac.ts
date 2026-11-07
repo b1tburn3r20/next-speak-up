@@ -5,9 +5,22 @@
 import type { PrismaClient } from "@prisma/client";
 import { DEFAULT_ROLE_PERMISSIONS, PERMISSIONS } from "../lib/auth/permissions";
 
+/** Roles added after launch. They need to exist everywhere, not only on a freshly seeded database. */
+const ADDED_ROLES: Record<string, string> = {
+  Moderator: "Keeps the community healthy",
+};
+
 export async function ensureRbac(prisma: PrismaClient) {
+  for (const [name, description] of Object.entries(ADDED_ROLES)) {
+    await prisma.role.upsert({ where: { name }, update: {}, create: { name, description } });
+  }
+
   const ids = new Map<string, number>();
+  // Nobody can have removed a permission that didn't exist yet, so these go to their default roles.
+  const brandNew = new Set<string>();
   for (const [name, description] of Object.entries(PERMISSIONS)) {
+    const existing = await prisma.permission.findUnique({ where: { name }, select: { id: true } });
+    if (!existing) brandNew.add(name);
     const permission = await prisma.permission.upsert({
       where: { name },
       update: { description },
@@ -25,9 +38,9 @@ export async function ensureRbac(prisma: PrismaClient) {
     const hasCatalogGrant = await prisma.rolePermission.count({
       where: { roleId: role.id, permissionId: { in: [...ids.values()] } },
     });
-    if (hasCatalogGrant > 0) continue;
+    const grants = hasCatalogGrant > 0 ? permissions.filter((name) => brandNew.has(name)) : permissions;
     await prisma.rolePermission.createMany({
-      data: permissions.map((name) => ({ roleId: role.id, permissionId: ids.get(name)! })),
+      data: grants.map((name) => ({ roleId: role.id, permissionId: ids.get(name)! })),
       skipDuplicates: true,
     });
   }

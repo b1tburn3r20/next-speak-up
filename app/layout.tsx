@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import AuthProvider from "./auth/provider";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 import Navbar from "./navbar/navbar";
 import { Nunito } from "next/font/google";
 import Modals from "@/components/cb/modals";
@@ -62,6 +63,7 @@ export default function RootLayout({
       <body
         suppressHydrationWarning
       >
+        <ThemeProvider>
         <AuthProvider>
                       <TopProgressBar />
             <Navbar>
@@ -75,6 +77,7 @@ export default function RootLayout({
             <OnboardingGate />
           <Modals />
         </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

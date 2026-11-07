@@ -1,5 +1,6 @@
 "use client"
 import { Hud } from "@/components/civic/hud";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { HudProgress } from "@/lib/civic/progress";
 import { SearchButton } from "@/components/search/search-dialog";
 import Image from "next/image";
@@ -25,9 +26,10 @@ const NavbarTop = ({ hud }: { hud: HudProgress | null }) => {
           )
         }
       </div>
-      <div className="flex gap-4 items-center ">
+      <div className="flex gap-2 items-center lg:gap-3">
         {hud ? <Hud initial={hud} /> : null}
         <SearchButton />
+        <ThemeToggle />
       </div>
     </div>
   );

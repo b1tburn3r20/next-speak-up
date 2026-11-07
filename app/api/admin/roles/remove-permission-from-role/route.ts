@@ -3,6 +3,10 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 import { removePermissionFromRole } from "@/lib/services/permissions";
 import { can } from "@/lib/auth/permissions";
+import { canRevokePermission, refused } from "@/lib/auth/role-rules";
+import { recordAudit } from "@/lib/admin/audit";
+import { countHolders } from "@/lib/admin/queries";
+import prisma from "@/prisma/client";
 
 export async function PUT(request: Request) {
   const session = await getServerSession(authOptions);
@@ -24,9 +28,19 @@ export async function PUT(request: Request) {
     );
   }
 
+  const permission = await prisma.permission.findUnique({ where: { id: Number(permissionId) }, select: { name: true } });
+  if (!permission) return NextResponse.json({ error: "No such permission." }, { status: 404 });
+  const allowed = canRevokePermission({
+    actorPermissions: session.user.permissions.map((item: { name: string }) => item.name),
+    permissionName: permission.name,
+    holdersAfter: await countHolders(permission.name, { roleId: Number(roleId) }),
+  });
+  if (refused(allowed)) return NextResponse.json({ error: allowed.reason }, { status: 403 });
+
   try {
     const updatedRole = await removePermissionFromRole(roleId, permissionId);
 
+    await recordAudit(session.user, "role.permission_removed", updatedRole?.name ?? String(roleId), permission.name);
     return NextResponse.json(
       {
         role: updatedRole,

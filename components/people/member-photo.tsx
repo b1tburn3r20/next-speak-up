@@ -45,7 +45,7 @@ export function MemberPhoto({
         aria-hidden
         style={{ width: size, height: size, fontSize: size * 0.36 }}
         className={cn(
-          "flex items-center justify-center font-extrabold text-white",
+          "flex items-center justify-center font-extrabold text-primary-foreground",
           (party && PARTY_FILL[party]) ?? "bg-muted-foreground",
           ring,
         )}

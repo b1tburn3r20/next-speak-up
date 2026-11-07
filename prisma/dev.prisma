@@ -3,6 +3,8 @@ model FeatureSuggestion {
   feature   String   @db.Text
   userId    String
   userRole  String?
+  // Set when someone in the admin panel has dealt with it.
+  resolvedAt DateTime?
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -16,6 +18,8 @@ model BugReport {
   bug       String   @db.Text
   userId    String
   userRole  String?
+  // Set when someone in the admin panel has dealt with it.
+  resolvedAt DateTime?
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

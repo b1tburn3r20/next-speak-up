@@ -49,8 +49,8 @@ function SplitBar({ split }: { split: CommunitySplit }) {
   return (
     <div className="animate-rise-in space-y-1 border-t-2 pt-3" data-testid="community-split">
       <p className="text-sm font-extrabold">{split.label}</p>
-      <div className="flex h-3 overflow-hidden rounded-full bg-oppose" aria-hidden>
-        <div className="bg-support transition-[width] duration-700 motion-reduce:transition-none" style={{ width: `${split.supportPercent}%` }} />
+      <div className="flex h-3 overflow-hidden rounded-full bg-chart-oppose" aria-hidden>
+        <div className="bg-chart-support transition-[width] duration-700 motion-reduce:transition-none" style={{ width: `${split.supportPercent}%` }} />
       </div>
       <p className="flex justify-between text-xs font-bold">
         <span>{split.supportPercent}% support</span>

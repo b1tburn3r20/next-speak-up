@@ -3,6 +3,9 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 import { assignPermissionToRole } from "@/lib/services/permissions";
 import { can } from "@/lib/auth/permissions";
+import { canGrantPermission, refused } from "@/lib/auth/role-rules";
+import { recordAudit } from "@/lib/admin/audit";
+import prisma from "@/prisma/client";
 
 export async function PUT(request: Request) {
   const session = await getServerSession(authOptions);
@@ -24,6 +27,14 @@ export async function PUT(request: Request) {
     );
   }
 
+  const permission = await prisma.permission.findUnique({ where: { id: Number(permissionId) }, select: { name: true } });
+  if (!permission) return NextResponse.json({ error: "No such permission." }, { status: 404 });
+  const allowed = canGrantPermission({
+    actorPermissions: session.user.permissions.map((item: { name: string }) => item.name),
+    permissionName: permission.name,
+  });
+  if (refused(allowed)) return NextResponse.json({ error: allowed.reason }, { status: 403 });
+
   try {
     const updatedRole = await assignPermissionToRole(
       roleId,
@@ -32,6 +43,7 @@ export async function PUT(request: Request) {
       session.user.role.name
     );
 
+    await recordAudit(session.user, "role.permission_granted", updatedRole?.name ?? String(roleId), permission.name);
     return NextResponse.json(
       {
         role: updatedRole,

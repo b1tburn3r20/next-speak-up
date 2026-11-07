@@ -23,6 +23,7 @@ export type UserUpdateData = {
   username?: string | null;
   ageRange?: AgeRange | null;
   state?: string | null;
+  district?: number | null;
   householdIncome?: IncomeRange | null;
 };
 

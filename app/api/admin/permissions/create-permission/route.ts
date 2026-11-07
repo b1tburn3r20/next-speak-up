@@ -3,6 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 import { createPermission } from "@/lib/services/permissions";
 import { can } from "@/lib/auth/permissions";
+import { recordAudit } from "@/lib/admin/audit";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
   try {
     const newPermission = await createPermission(permissionName, description);
 
+    await recordAudit(session.user, "permission.created", String(permissionName));
     return NextResponse.json(
       {
         success: true,

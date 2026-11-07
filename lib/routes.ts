@@ -34,6 +34,11 @@ function baseOfSlug(slug: string): string {
   return prefix === "us" ? FEDERAL_BASE : jurisdictionBase({ state: prefix });
 }
 
+/** Someone's public page. By ID, because not everyone has a username. */
+export function profilePath(userId: string): string {
+  return `/users/${encodeURIComponent(userId)}`;
+}
+
 export function billPath(slug: string): string {
   return `${baseOfSlug(slug)}/bills/${slug}`;
 }

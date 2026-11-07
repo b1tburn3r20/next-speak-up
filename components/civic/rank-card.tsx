@@ -14,7 +14,7 @@ export function RankCard({ initial }: { initial: HudProgress }) {
   return (
     <div className="space-y-4 rounded-3xl border-2 border-b-8 border-streak bg-streak-tint p-5 sm:p-7" data-testid="rank-card">
       <div className="flex items-center gap-4">
-        <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-streak">
+        <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-streak text-streak-foreground">
           <Medal className="size-8" aria-hidden />
         </span>
         <div className="min-w-0">

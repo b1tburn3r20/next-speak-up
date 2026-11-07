@@ -3,8 +3,8 @@ import {
   ChevronsUpDown,
   LogOut,
   Settings,
-  User,
-} from "lucide-react";
+  User, UserRound } from "lucide-react";
+import { profilePath } from "@/lib/routes";
 import { signOut } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -149,6 +149,12 @@ export function NavUser() {
           sideOffset={4}
         >
           <DropdownMenuGroup className="flex gap-2 justify-between">
+            <Link href={session?.user?.id ? profilePath(session.user.id) : "/settings"} className="w-full" data-testid="menu-profile">
+              <DropdownMenuItem className="w-full h-full">
+                <UserRound className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+            </Link>
             <Link href="/settings" className="w-full">
               <DropdownMenuItem className="w-full h-full">
                 <Settings className="mr-2 h-4 w-4" />

@@ -1,5 +1,6 @@
 // The Library of Congress's policy areas, with plain explanations. Each belongs to one of 8 color
-// families. The colors were validated for color blindness, and are never used without the name.
+// families. The colors live in globals.css, validated for color blindness on each theme, and are
+// never used without the name.
 
 export type PolicyFamily =
   | "economy"
@@ -11,15 +12,20 @@ export type PolicyFamily =
   | "learning"
   | "government";
 
+/** A soft background that works on either theme, because it's mixed with the card it sits on. */
+function tintOf(color: string): string {
+  return `color-mix(in srgb, ${color} 16%, var(--card))`;
+}
+
 export const POLICY_FAMILIES: Record<PolicyFamily, { label: string; color: string; tint: string }> = {
-  economy: { label: "Money and work", color: "#2a78d6", tint: "#e3effc" },
-  government: { label: "Government", color: "#eb6834", tint: "#fdebe3" },
-  learning: { label: "Learning and culture", color: "#1baf7a", tint: "#def6ec" },
-  places: { label: "Homes and travel", color: "#eda100", tint: "#fdf1d4" },
-  health: { label: "Health and families", color: "#e87ba4", tint: "#fcebf1" },
-  nature: { label: "Land and energy", color: "#008300", tint: "#dcf1dc" },
-  world: { label: "Defense and the world", color: "#6250d6", tint: "#e9e6fa" },
-  justice: { label: "Law and rights", color: "#e34948", tint: "#fce4e4" },
+  economy: { label: "Money and work", color: "var(--policy-economy)", tint: tintOf("var(--policy-economy)") },
+  government: { label: "Government", color: "var(--policy-government)", tint: tintOf("var(--policy-government)") },
+  learning: { label: "Learning and culture", color: "var(--policy-learning)", tint: tintOf("var(--policy-learning)") },
+  places: { label: "Homes and travel", color: "var(--policy-places)", tint: tintOf("var(--policy-places)") },
+  health: { label: "Health and families", color: "var(--policy-health)", tint: tintOf("var(--policy-health)") },
+  nature: { label: "Land and energy", color: "var(--policy-nature)", tint: tintOf("var(--policy-nature)") },
+  world: { label: "Defense and the world", color: "var(--policy-world)", tint: tintOf("var(--policy-world)") },
+  justice: { label: "Law and rights", color: "var(--policy-justice)", tint: tintOf("var(--policy-justice)") },
 };
 
 export type PolicyArea = { name: string; slug: string; family: PolicyFamily; explanation: string };
@@ -151,7 +157,7 @@ export function policyAreaBySlug(slug: string): PolicyArea | null {
 /** The family of a policy area. An unknown one still gets shown, in a neutral color. */
 export function policyStyle(name: string | null | undefined) {
   const found = policyAreaByName(name);
-  if (!found) return { color: "#55617f", tint: "#eef2fa" };
+  if (!found) return { color: "var(--muted-foreground)", tint: "var(--muted)" };
   const family = POLICY_FAMILIES[found.family];
   return { color: family.color, tint: family.tint };
 }

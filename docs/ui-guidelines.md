@@ -74,6 +74,10 @@ People relate to relative times. Show every date with `RelativeDate` from `compo
 - **Ranked by us:** use `commandScore` or `scoreFields` from `lib/search/score.ts`, so typos and initials work, and ranking stays the same everywhere.
 - **Permissions:** a provider's `access` is checked on the server for every request. Someone without permission gets the same 404 as for a provider that doesn't exist.
 
+## Admin panel
+
+`/admin`, with a section per permission, listed once in `ADMIN_SECTIONS` so the navigation and page checks can't disagree. The rules in `lib/auth/role-rules.ts` stop anyone using the panel to gain or remove more power than they hold, or locking everyone out. Record changes with `recordAudit`. Polling pauses when the tab isn't visible, and stays out of the loading bar.
+
 ## Permissions
 
 A role has many permissions. **Code asks about a permission, never a role's name**: `can(session, "users.manage")` in a page or component, and `requirePermission("users.manage")` in an API route. Hiding a button protects nothing, so a route must always check. The catalog is `PERMISSIONS` in `lib/auth/permissions.ts`. Rate limits are the one exception: they're tiers, set by role.
@@ -100,6 +104,10 @@ The bar on every page, `Hud`, is the one place progress lives. Read it with `use
 - **Self-reported actions**, like contacting a rep, are labelled as what someone said they did. Only offer contacting a rep when `billOutlook` says it could still change something.
 - **Never reward voting in a real election**, or how anyone voted.
 
+## Profiles
+
+`/users/{id}` is public, and out of search engines. `buildProfileView` in `lib/civic/profile-logic.ts` is the only thing that decides what it shows, and it works from an allow list, so a new account field stays private until someone adds it there. Name, age range, state, district, income, and voting topics are all off until someone turns them on, and an email never shows. The owner sees exactly what others see.
+
 ## Components
 
 Build every control from `components/ui`, and customize it there, so a change reaches everywhere at once. ESLint rejects a native `select`, `textarea`, `input`, `button`, `label`, `table`, `progress`, `details`, or `kbd` outside that folder.
@@ -117,9 +125,11 @@ The look: 2px borders with a thicker bottom edge, big corners, extra-bold text, 
 
 **The one exception:** `RelativeDate` keeps a native `button`, because it's inline text in a sentence, and `Button`'s layout would break the line.
 
-## One theme
+## Themes
 
-There's one theme, and it's light. Don't add `dark:` classes, theme pickers, or hard-coded colors. Use the tokens in `app/globals.css`. Themes may come back later, and tokens keep that possible.
+There's light and dark, plus following the device, chosen with `ThemeToggle` in the top bar. Use the tokens in `app/globals.css`, not raw colors or `dark:` classes, so both work without thinking about it.
+
+Dark isn't light with the colors flipped. Action colors get brighter with dark text on them, because the same blue has to read as both a button and a link on a dark card, so use the matching `-foreground` token on a filled background, never `text-white`. Charts use `chart-support`, `chart-oppose`, and the `--policy-*` colors, not the action colors, because bars need a narrower lightness range to stay distinguishable. Check new chart colors with the dataviz skill's validator, on both surfaces.
 
 | Token | Meaning |
 | --- | --- |

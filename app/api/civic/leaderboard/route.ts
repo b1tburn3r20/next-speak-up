@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { recordAudit } from "@/lib/admin/audit";
 import { requirePermission } from "@/lib/auth/require-permission";
 import { hideFromLeaderboard, setLeaderboardOptIn } from "@/lib/civic/leaderboard";
 import { checkRateLimit, getUserRole } from "@/lib/ratelimiter";
@@ -28,5 +29,6 @@ export async function DELETE(request: NextRequest) {
   const parsed = hideSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   await hideFromLeaderboard(parsed.data.userId);
+  await recordAudit(access.session.user, "leaderboard.removed", parsed.data.userId);
   return NextResponse.json({ hidden: true });
 }

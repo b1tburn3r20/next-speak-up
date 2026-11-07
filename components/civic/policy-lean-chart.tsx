@@ -74,10 +74,10 @@ export function PolicyLeanChart({ userId, areas }: { userId: string; areas: Poli
     <div className="space-y-3" data-testid="policy-lean">
       <p className="flex justify-between text-xs font-extrabold text-muted-foreground">
         <span className="flex items-center gap-1">
-          <span className="size-2.5 rounded-sm bg-oppose" aria-hidden />← Opposed
+          <span className="size-2.5 rounded-sm bg-chart-oppose" aria-hidden />← Opposed
         </span>
         <span className="flex items-center gap-1">
-          Supported →<span className="size-2.5 rounded-sm bg-support" aria-hidden />
+          Supported →<span className="size-2.5 rounded-sm bg-chart-support" aria-hidden />
         </span>
       </p>
       <ul className="space-y-2.5">
@@ -95,13 +95,13 @@ export function PolicyLeanChart({ userId, areas }: { userId: string; areas: Poli
                 <span className="text-right text-xs font-extrabold tabular-nums">{row.oppose}</span>
                 <div className="flex h-3 justify-end border-r-2 border-background-dark pr-px">
                   <div
-                    className="rounded-l bg-oppose transition-[width] duration-700 ease-out motion-reduce:transition-none"
+                    className="rounded-l bg-chart-oppose transition-[width] duration-700 ease-out motion-reduce:transition-none"
                     style={{ width: `${(current.oppose / max) * 100}%` }}
                   />
                 </div>
                 <div className="flex h-3 pl-px">
                   <div
-                    className="rounded-r bg-support transition-[width] duration-700 ease-out motion-reduce:transition-none"
+                    className="rounded-r bg-chart-support transition-[width] duration-700 ease-out motion-reduce:transition-none"
                     style={{ width: `${(current.support / max) * 100}%` }}
                   />
                 </div>

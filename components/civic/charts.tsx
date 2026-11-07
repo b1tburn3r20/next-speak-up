@@ -134,10 +134,10 @@ export function VoteSplitBars({
     <div className="space-y-3">
       <div className="flex gap-4 text-xs font-bold" aria-hidden>
         <span className="flex items-center gap-1">
-          <span className="size-2.5 rounded-full bg-support" /> Yes
+          <span className="size-2.5 rounded-full bg-chart-support" /> Yes
         </span>
         <span className="flex items-center gap-1">
-          <span className="size-2.5 rounded-full bg-oppose" /> No
+          <span className="size-2.5 rounded-full bg-chart-oppose" /> No
         </span>
       </div>
       <ul className="space-y-2.5" aria-label="Final votes by policy area" data-testid="vote-split">
@@ -157,9 +157,9 @@ export function VoteSplitBars({
               </div>
               <div className="flex h-2 gap-0.5 overflow-hidden rounded-full">
                 {row.yea > 0 ? (
-                  <div className="bg-support" style={{ width: `${(row.yea / total) * 100}%` }} />
+                  <div className="bg-chart-support" style={{ width: `${(row.yea / total) * 100}%` }} />
                 ) : null}
-                {row.nay > 0 ? <div className="flex-1 bg-oppose" /> : null}
+                {row.nay > 0 ? <div className="flex-1 bg-chart-oppose" /> : null}
               </div>
             </li>
           );

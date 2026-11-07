@@ -1,46 +1,22 @@
-import { getAllUsers } from "@/lib/services/user";
-import SelectUsers from "./components/select-users"
-import { redirect } from "next/navigation"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { AuthSession } from "@/lib/types/user-types";
-import { getServerSession } from "next-auth";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AllPermissions from "./components/all-permissions";
-import { getAllPermissions, getAllRoles } from "@/lib/services/permissions";
-import { Label } from "@/components/ui/label";
-import AllRoles from "./components/all-roles";
-import { can } from "@/lib/auth/permissions";
-const Page = async () => {
-  const session: AuthSession = await getServerSession(authOptions);
-  const userId = session?.user?.id;
-  if (!userId || !can(session, "users.manage")) {
-    redirect("/")
-  }
-  const users = await getAllUsers();
-  const permissions = await getAllPermissions()
-  const roles = await getAllRoles()
+import type { Metadata } from "next";
+import { PermissionMatrix } from "@/components/admin/permission-matrix";
+import { PageHeader } from "@/components/blocks";
+import { requirePagePermission } from "@/lib/admin/access";
+import { listRolesWithPermissions } from "@/lib/admin/queries";
+
+export const metadata: Metadata = { title: "Permissions" };
+
+export default async function AdminPermissionsPage() {
+  const session = await requirePagePermission("roles.manage");
+  const { roles, permissions } = await listRolesWithPermissions();
+  const held = (session.user.permissions ?? []).map((item: { name: string }) => item.name);
   return (
-    <div className="min-h-screen flex flex-col gap-4 p-4 container mx-auto">
-      <Tabs defaultValue="users">
-        <TabsList className="w-full flex">
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="permissions">Permission</TabsTrigger>
-          <TabsTrigger value="roles">Roles</TabsTrigger>
-        </TabsList>
-        <TabsContent value="users" className="flex flex-col gap-4">
-          <Label className="text-3xl">All Users</Label>
-          <SelectUsers users={users} />
-        </TabsContent>
-        <TabsContent value="permissions" >
-          <AllPermissions permissions={permissions} />
-        </TabsContent>
-        <TabsContent value="roles" >
-          <AllRoles roles={roles} />
-        </TabsContent>
-      </Tabs>
+    <div className="space-y-5">
+      <PageHeader
+        title="Roles and permissions"
+        description="A person has one role, and a role has many permissions. Change takes effect within a minute. You can't change a permission you don't hold."
+      />
+      <PermissionMatrix roles={roles} permissions={permissions} held={held} />
     </div>
   );
-};
-export const revalidate = 60;
-
-export default Page;
+}

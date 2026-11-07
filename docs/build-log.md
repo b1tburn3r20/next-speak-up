@@ -48,3 +48,11 @@ Bill pages ask for a vote before showing status, with a skip link. The queue now
 ## Quests, ranks, and the progress page (2026-11-07)
 
 Added `/progress`, named ranks with XP goals, daily quests, a policy area chart, an anonymous split, a statewide leaderboard, contacting a rep from the reveal, and your match with a rep visibly moving. Sessions now take turns between scheduled bills and bills your reps voted on, because there can be enough scheduled bills to fill a session and never show a rep's vote. The top bar no longer takes a page down if progress fails to load, after a stale database client broke every signed-in page.
+
+## Dark mode and public profiles (2026-11-07)
+
+Added light, dark, and system themes, with chart colors validated separately for dark. Added public profiles at `/users/{id}` with a switch for each personal detail, all off by default. The old `/community/users/{id}` page now redirects there, because it ignored privacy choices. Added a Moderator role. `ensureRbac` now gives brand-new permissions to existing roles, which it used to skip. Settings claimed to save a district but never did, which is fixed.
+
+## Admin panel and pipeline server (2026-11-07)
+
+Added `/admin` with users, a roles and permissions grid, pipelines, data checks, feedback, moderation, and an audit log. The pipelines panel talks to a new FastAPI server in `../civic-pipeline`, in a Docker container that starts with Docker and only listens on this machine, on port 18787. Its nightly run is off until someone turns it on. Closed two escalation paths: someone with `roles.manage` could grant themselves anything, and someone with `users.manage` could demote a Super Admin.

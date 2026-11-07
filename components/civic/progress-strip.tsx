@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Flame, Sparkles, Target } from "lucide-react";
+import Link from "next/link";
 import confetti from "canvas-confetti";
+import { profilePath, routes } from "@/lib/routes";
 import { Progress } from "@/components/ui/progress";
 import type { HudProgress } from "@/lib/civic/progress";
 import { rankFor } from "@/lib/civic/ranks";
@@ -16,14 +18,14 @@ export function ProgressStrip({ initial }: { initial: HudProgress }) {
   const goalPercent = Math.min(100, (today / dailyGoal) * 100);
   return (
     <div className="grid grid-cols-3 gap-2" data-testid="progress-strip">
-      <div className="rounded-xl bg-streak-tint p-2.5 text-center">
+      <Link href={profilePath(initial.userId)} className="rounded-xl bg-streak-tint p-2.5 text-center transition-transform hover:-translate-y-0.5" data-testid="strip-streak">
         <Flame className="mx-auto size-5 text-streak" aria-hidden />
         <p className="text-lg font-extrabold leading-tight tabular-nums" data-testid="streak">
           {liveStreak}
         </p>
         <p className="text-xs font-bold">day streak</p>
-      </div>
-      <div className="rounded-xl bg-xp-tint p-2.5 text-center">
+      </Link>
+      <Link href={routes.progress} className="rounded-xl bg-xp-tint p-2.5 text-center transition-transform hover:-translate-y-0.5" data-testid="strip-level">
         <Sparkles className="mx-auto size-5 text-xp" aria-hidden />
         <p className="text-lg font-extrabold leading-tight tabular-nums" data-testid="level">
           Level {liveLevel}
@@ -33,14 +35,14 @@ export function ProgressStrip({ initial }: { initial: HudProgress }) {
           {rank.name}
           {next ? `, ${xpToNext} to ${next.name}` : ""}
         </p>
-      </div>
-      <div className="rounded-xl bg-primary-tint p-2.5 text-center">
+      </Link>
+      <Link href={routes.vote} className="rounded-xl bg-primary-tint p-2.5 text-center transition-transform hover:-translate-y-0.5" data-testid="strip-goal">
         <Target className="mx-auto size-5 text-primary" aria-hidden />
         <p className="text-lg font-extrabold leading-tight tabular-nums" data-testid="daily-goal">
           {today >= dailyGoal ? "Goal met!" : `${today}/${dailyGoal}`}
         </p>
         <Progress value={goalPercent} aria-label="Daily goal" className="mx-auto mt-1 h-2 max-w-20 bg-card" />
-      </div>
+      </Link>
     </div>
   );
 }
@@ -73,7 +75,7 @@ export function RewardToast() {
   if (!reward || visible !== reward.id) return null;
   return (
     <div role="status" className="pointer-events-none fixed inset-x-0 top-20 z-50 flex flex-col items-center gap-2">
-      <span className="animate-xp-fly rounded-full bg-xp px-4 py-1.5 font-extrabold text-white shadow-lg" data-testid="reward">
+      <span className="animate-xp-fly rounded-full bg-xp px-4 py-1.5 font-extrabold text-xp-foreground shadow-lg" data-testid="reward">
         {reward.message}
       </span>
       {reward.celebration ? (

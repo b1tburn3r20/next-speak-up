@@ -12,12 +12,12 @@ const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground border-b-4 border-primary-edge hover:brightness-110 active:translate-y-0.5 active:border-b-2",
         support:
-          "bg-support text-white border-b-4 border-support-edge hover:brightness-110 active:translate-y-0.5 active:border-b-2",
+          "bg-support text-support-foreground border-b-4 border-support-edge hover:brightness-110 active:translate-y-0.5 active:border-b-2",
         oppose:
-          "bg-oppose text-white border-b-4 border-oppose-edge hover:brightness-110 active:translate-y-0.5 active:border-b-2",
+          "bg-oppose text-oppose-foreground border-b-4 border-oppose-edge hover:brightness-110 active:translate-y-0.5 active:border-b-2",
         streak:
-          "bg-streak text-foreground border-b-4 border-amber-600 hover:brightness-105 active:translate-y-0.5 active:border-b-2",
-        xp: "bg-xp text-white border-b-4 border-violet-800 hover:brightness-110 active:translate-y-0.5 active:border-b-2",
+          "bg-streak text-streak-foreground border-b-4 border-amber-600 hover:brightness-105 active:translate-y-0.5 active:border-b-2",
+        xp: "bg-xp text-xp-foreground border-b-4 border-violet-800 hover:brightness-110 active:translate-y-0.5 active:border-b-2",
 
         // A tile you choose, like an answer in a lesson. aria-pressed marks the chosen one.
         choice:

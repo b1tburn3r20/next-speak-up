@@ -11,6 +11,7 @@ import NavItem from "../nav-item";
 import { BottomNav } from "./bottom-nav";
 import { SearchButton } from "@/components/search/search-dialog";
 import { Hud, HudStrip } from "@/components/civic/hud";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { HudProgress } from "@/lib/civic/progress";
 
 /** The top bar and slide-out menu, shown only below the medium breakpoint. */
@@ -19,20 +20,22 @@ export function MobileNavbar({ items, hud }: { items: NavItemData[]; hud: HudPro
 
   return (
     <div className="md:hidden" data-testid="mobile-navbar">
-      <div className="flex items-center justify-between border-b border-primary bg-background px-3 py-1">
+      <div className="flex items-center justify-between gap-1 border-b border-primary bg-background px-2 py-1">
         <Link href="/dashboard" aria-label="Coolbills dashboard">
           <Image
             height={29}
             width={100}
             alt=""
             src="/images/assets/logo.png"
-            style={{ width: 100, height: "auto" }}
+            className="w-20 sm:w-[100px]"
+            style={{ height: "auto" }}
             loading="eager"
           />
         </Link>
         <div className="flex items-center gap-1">
           {hud ? <Hud initial={hud} /> : null}
           <SearchButton compact />
+          <ThemeToggle />
           <Button
             variant="ghost"
             size="icon"

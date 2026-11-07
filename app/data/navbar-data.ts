@@ -40,7 +40,7 @@ export const navItems: NavItem[] = [
   },
   { href: routes.federal.legislators, icon: Briefcase, label: "Legislators" },
   { href: routes.learn, icon: GraduationCap, label: "Learn the Lingo" },
-  { href: "/admin/permissions", icon: Key, label: "Permissions", permission: "users.manage" },
+  { href: "/admin", icon: Key, label: "Admin", permission: "admin.view" },
   { href: routes.settings, icon: Settings, label: "Settings", signedIn: true },
 ];
 

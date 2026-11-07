@@ -2,9 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* One theme, and it's light. No element ever has this class, so older dark: classes do nothing,
-   rather than following the phone's dark mode. */
-@custom-variant dark (&:is(.force-dark-never *));
+/* Light and dark. next-themes puts the class on <html>. Use tokens, not raw colors. */
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --font-sans: var(--font-nunito), ui-rounded, system-ui, sans-serif;
@@ -35,16 +34,22 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  --color-chart-support: var(--chart-support);
+  --color-chart-oppose: var(--chart-oppose);
   --color-support: var(--support);
   --color-support-edge: var(--support-edge);
   --color-support-tint: var(--support-tint);
+  --color-support-foreground: var(--support-foreground);
   --color-oppose: var(--oppose);
   --color-oppose-edge: var(--oppose-edge);
   --color-oppose-tint: var(--oppose-tint);
+  --color-oppose-foreground: var(--oppose-foreground);
   --color-streak: var(--streak);
   --color-streak-tint: var(--streak-tint);
+  --color-streak-foreground: var(--streak-foreground);
   --color-xp: var(--xp);
   --color-xp-tint: var(--xp-tint);
+  --color-xp-foreground: var(--xp-foreground);
   --color-party-d: var(--party-d);
   --color-party-r: var(--party-r);
   --color-party-i: var(--party-i);
@@ -142,18 +147,32 @@
   --support: #15803d;
   --support-edge: #166534;
   --support-tint: #dcfce7;
+  --support-foreground: #ffffff;
   --oppose: #e11d48;
   --oppose-edge: #be123c;
   --oppose-tint: #ffe4ea;
+  --oppose-foreground: #ffffff;
   --streak: #f59e0b;
   --streak-tint: #fef3c7;
+  --streak-foreground: #1b2545;
   --xp: #7c3aed;
   --xp-tint: #ede9fe;
+  --xp-foreground: #ffffff;
   --party-d: #2563eb;
   --party-r: #dc2626;
   --party-i: #7c3aed;
 
   /* Validated by the data visualization skill. These are the policy family colors. */
+  --policy-economy: #2a78d6;
+  --policy-government: #eb6834;
+  --policy-learning: #1baf7a;
+  --policy-places: #eda100;
+  --policy-health: #e87ba4;
+  --policy-nature: #008300;
+  --policy-world: #6250d6;
+  --policy-justice: #e34948;
+  --chart-support: #15803d;
+  --chart-oppose: #e11d48;
   --chart-1: #2a78d6;
   --chart-2: #eb6834;
   --chart-3: #1baf7a;
@@ -171,6 +190,99 @@
 
   --selection-background: #bfd3ff;
   --selection-color: #1b2545;
+}
+
+/*
+ * Dark isn't light with the colors flipped. Action colors get brighter, with dark text on them,
+ * because the same blue has to read both as a button and as a link on a dark card.
+ */
+.dark {
+  --background: #0f1729;
+  --background-dark: #1c2740;
+  --background-light: #172136;
+  --background-very-light: #1c2740;
+  --foreground: #e8edf8;
+  --card: #172136;
+  --card-foreground: #e8edf8;
+  --popover: #1c2740;
+  --popover-foreground: #e8edf8;
+
+  --primary: #7aa7ff;
+  --primary-foreground: #0b1226;
+  --primary-edge: #4a76cf;
+  --primary-tint: #1c2d55;
+  --secondary: #1f2b45;
+  --secondary-foreground: #e8edf8;
+  --muted: #1f2b45;
+  --muted-foreground: #a7b3cf;
+  --accent: #1c2d55;
+  --accent-foreground: #e8edf8;
+  --destructive: #fb7a97;
+  --destructive-foreground: #33060f;
+  --border: #2c3a58;
+  --input: #3a4a6b;
+  --ring: #7aa7ff;
+
+  --support: #4ade80;
+  --support-edge: #22a35a;
+  --support-tint: #12331f;
+  --support-foreground: #06240f;
+  --oppose: #fb7a97;
+  --oppose-edge: #d14d6c;
+  --oppose-tint: #3d1622;
+  --oppose-foreground: #33060f;
+  --streak: #f59e0b;
+  --streak-tint: #3a2a0c;
+  --streak-foreground: #2a1a00;
+  --xp: #b197fc;
+  --xp-tint: #2a1f4d;
+  --xp-foreground: #1a0f3d;
+  --party-d: #7aa7ff;
+  --party-r: #f87171;
+  --party-i: #b197fc;
+
+  /* Validated for this surface by the data visualization skill. Bars need a narrower lightness range
+     than buttons do, or their colors can't be told apart. */
+  --policy-economy: #3f86e8;
+  --policy-government: #df6a3a;
+  --policy-learning: #1fa372;
+  --policy-places: #b8840a;
+  --policy-health: #d65f92;
+  --policy-nature: #3c9a3c;
+  --policy-world: #8a78ec;
+  --policy-justice: #d9534f;
+  --chart-support: #2fae6b;
+  --chart-oppose: #c43a5e;
+  --chart-1: #3f86e8;
+  --chart-2: #df6a3a;
+  --chart-3: #1fa372;
+  --chart-4: #b8840a;
+  --chart-5: #8a78ec;
+
+  --sidebar: #131c30;
+  --sidebar-foreground: #e8edf8;
+  --sidebar-primary: #7aa7ff;
+  --sidebar-primary-foreground: #0b1226;
+  --sidebar-accent: #1c2d55;
+  --sidebar-accent-foreground: #e8edf8;
+  --sidebar-border: #2c3a58;
+  --sidebar-ring: #7aa7ff;
+
+  --selection-background: #2f4a86;
+  --selection-color: #e8edf8;
+
+  color-scheme: dark;
+}
+
+/* Summaries are sanitized HTML, so they take their color from here. */
+.dark .prose {
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-links: var(--primary);
+  --tw-prose-bullets: var(--muted-foreground);
+  --tw-prose-counters: var(--muted-foreground);
+  color: var(--foreground);
 }
 
 @layer base {

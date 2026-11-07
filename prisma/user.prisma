@@ -40,6 +40,8 @@ model User {
   policyTopics    UserPolicyTopic[]
   billVotes       UserBillVote[]
   billGateSkips   UserBillSkip[]
+  profile         UserProfile?
+  auditActions    AdminAuditLog[] @relation("AuditActor")
   xpEvents        XpEvent[]
   civicActions    CivicAction[]
   // Off unless they choose it, because being listed shows they use this app, and their state.
@@ -265,4 +267,41 @@ enum AgeRange {
   FROM_65_TO_74
   OVER_75
   PREFER_NOT_TO_SAY
+}
+
+// What someone shares on their public page. Kept apart from User, so a query that returns a user
+// can't pick these up. No row means the defaults: public page, nothing personal shown.
+model UserProfile {
+  userId           String   @id
+  about            String?  @db.VarChar(500)
+  isPublic         Boolean  @default(true)
+  showName         Boolean  @default(false)
+  showAgeRange     Boolean  @default(false)
+  showState        Boolean  @default(false)
+  showDistrict     Boolean  @default(false)
+  showIncome       Boolean  @default(false)
+  showVotingTopics Boolean  @default(false)
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profile")
+}
+
+// Who changed what in the admin panel. Kept if the account is deleted, with the actor's name copied.
+model AdminAuditLog {
+  id         Int      @id @default(autoincrement())
+  actorId    String?
+  actorName  String   @db.VarChar(160)
+  action     String   @db.VarChar(60)
+  target     String?  @db.VarChar(191)
+  detail     String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([action, createdAt])
+  @@index([actorId])
+  @@map("admin_audit_log")
 }

@@ -78,6 +78,7 @@ model Jurisdiction {
   parent    Jurisdiction?        @relation("JurisdictionTree", fields: [parentId], references: [id])
   children  Jurisdiction[]       @relation("JurisdictionTree")
   chambers  LegislativeChamber[]
+  events    CivicEvent[]
   sessions  LegislativeSession[]
   bills     Bill[]
   rollCalls RollCall[]
@@ -150,6 +151,7 @@ model District {
   chamber   LegislativeChamber @relation(fields: [chamberId], references: [id], onDelete: Restrict)
   terms     OfficeTerm[]
   locations UserLocation[]
+  upperLocations UserLocation[] @relation("UpperDistrictLocations")
 
   @@unique([chamberId, regionCode, code, vintage])
   @@index([regionCode])
@@ -266,6 +268,7 @@ model Bill {
   rollCalls     RollCall[]
   userVotes     UserBillVote[]
   gateSkips     UserBillSkip[]
+  eventItems    CivicEventItem[]
   civicActions  CivicAction[]
   follows       UserBillFollow[]
   floorItems    FloorScheduleItem[]
@@ -523,6 +526,10 @@ model UserLocation {
   jurisdictionId Int
   regionCode     String         @db.VarChar(8)
   districtId     Int?
+  // A state has two chambers: districtId is the lower one, and this is the upper.
+  upperDistrictId Int?
+  // The Census's ID for their city or town, which is how we know their local government
+  placeGeoid     String?        @db.VarChar(10)
   source         LocationSource
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -530,9 +537,11 @@ model UserLocation {
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   jurisdiction Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
   district     District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  upperDistrict District?   @relation("UpperDistrictLocations", fields: [upperDistrictId], references: [id], onDelete: SetNull)
 
   @@id([userId, jurisdictionId])
   @@index([districtId])
+  @@index([upperDistrictId])
   @@map("user_location")
 }
 
@@ -576,6 +585,66 @@ model XpEvent {
   @@map("xp_event")
 }
 
+enum CivicEventKind {
+  COMMITTEE
+  SUBCOMMITTEE
+  HEARING
+  COUNCIL_MEETING
+  ELECTION
+  DEADLINE
+}
+
+enum CivicEventStatus {
+  SCHEDULED
+  CANCELED
+}
+
+// Something happening in government that a person could attend or act on.
+model CivicEvent {
+  id             Int              @id @default(autoincrement())
+  jurisdictionId Int
+  kind           CivicEventKind
+  title          String           @db.VarChar(255)
+  startsAt       DateTime
+  // False when the source only gives a date
+  hasTime        Boolean          @default(true)
+  location       String?          @db.VarChar(255)
+  joinUrl        String?          @db.VarChar(500)
+  documentUrl    String?          @db.VarChar(500)
+  agenda         String?          @db.Text
+  status         CivicEventStatus @default(SCHEDULED)
+  // Stable across fetches: "ia:meeting:39038"
+  sourceKey      String           @unique @db.VarChar(120)
+  sourceUrl      String?          @db.VarChar(500)
+  asOf           DateTime
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  jurisdiction Jurisdiction     @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
+  items        CivicEventItem[]
+  actions      CivicAction[]
+
+  @@index([jurisdictionId, startsAt])
+  @@index([startsAt])
+  @@map("civic_event")
+}
+
+// What's on an event's agenda, like "HF 123".
+model CivicEventItem {
+  id        Int     @id @default(autoincrement())
+  eventId   Int
+  billId    Int?
+  title     String  @db.VarChar(255)
+  sortOrder Int     @default(0)
+
+  event CivicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  bill  Bill?      @relation(fields: [billId], references: [id], onDelete: SetNull)
+
+  @@index([eventId, sortOrder])
+  @@index([billId])
+  @@map("civic_event_item")
+}
+
 enum CivicActionKind {
   CONTACTED_REP
   ATTENDED_EVENT
@@ -588,15 +657,18 @@ model CivicAction {
   kind      CivicActionKind
   billId    Int?
   personId  Int?
+  eventId   Int?
   createdAt DateTime        @default(now())
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   bill   Bill?   @relation(fields: [billId], references: [id], onDelete: SetNull)
   person Person? @relation(fields: [personId], references: [id], onDelete: SetNull)
+  event  CivicEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([billId])
   @@index([personId])
+  @@index([eventId])
   @@map("civic_action")
 }
 

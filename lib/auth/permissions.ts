@@ -10,6 +10,10 @@ export const PERMISSIONS = {
   "users.search": "Find accounts in search",
   "forum.moderate": "Pin, lock, and delete anyone's forum posts and comments",
   "feedback.view": "Read bug reports and feature ideas",
+  "admin.view": "Open the admin panel",
+  "pipelines.view": "See data pipelines, their logs, and metrics",
+  "pipelines.manage": "Run and stop data pipelines, and turn the nightly run on or off",
+  "audit.view": "See the record of who changed what",
 } as const;
 
 export type PermissionName = keyof typeof PERMISSIONS;
@@ -20,6 +24,7 @@ const ALL = Object.keys(PERMISSIONS) as PermissionName[];
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionName[]> = {
   "Super Admin": ALL,
   Admin: ALL,
+  Moderator: ["admin.view", "forum.moderate", "feedback.view", "users.search"],
   Supporter: [],
   Member: [],
 };

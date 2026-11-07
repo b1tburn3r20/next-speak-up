@@ -127,6 +127,8 @@ Both paid routes need a signed-in user, and use text from the database, never te
 - **Vote first:** a signed-in user who hasn't voted on a bill gets `VoteGateCard`, and the server doesn't send the bill's status until they vote or skip. Cards that ask for a vote keep status inside `AfterVote`.
 - **XP:** `lib/civic/xp.ts` writes the `XpEvent` ledger, and its unique key stops an action earning twice. `useProgress` is the one copy on the client. Server pages must not add votes to their own numbers.
 - **The game:** `/progress` is its home. See "The game" in `docs/ui-guidelines.md` for the rules, including never rewarding a real vote.
+- **Admin panel:** `/admin`. Check `lib/auth/role-rules.ts` before changing who can do what, and call `recordAudit` for every admin action.
+- **Pipelines panel:** `/admin/pipelines` calls the Docker server in `../civic-pipeline`, through an explicit list in `lib/pipeline/routes.ts`. The token stays on the server.
 - **Dates:** show them with `RelativeDate`. `billMoment` and `floorMoment` choose what to say about a bill.
 - **Search:** `lib/search/registry.ts` lists the providers, and `/api/search/[provider]` runs one at a time. See `docs/ui-guidelines.md`.
 - **Onboarding:** `/onboarding`. `OnboardingGate` sends new accounts there.
@@ -137,7 +139,8 @@ Both paid routes need a signed-in user, and use text from the database, never te
 - **Shared pieces:** `components/app` has the progress bar and page states. `components/civic` has the core loop, charts, and next steps. `components/bills`, `components/people`, and `components/onboarding` hold feature components.
 - **UI kits:** `components/ui` is shadcn/ui, restyled by hand for this app, and `components/magicui` is Magic UI.
 - **Progress bar:** `TopProgressBar` wraps `window.fetch`, so any request shows in it automatically. Prefetches are ignored.
-- **Theme:** there's one, in `app/globals.css`, and it's light. Use its tokens, not raw colors.
+- **Themes:** light and dark, with tokens in `app/globals.css`. Use tokens and their `-foreground` pairs, not raw colors or `text-white`. See `docs/ui-guidelines.md`.
+- **Profiles:** `/users/{id}`. `buildProfileView` is the only thing that decides what's shown, from an allow list.
 - **Loading skeletons:** `loading.tsx` also applies to child routes, and it makes a missing page return 200 instead of 404. That's why the list pages sit in `(list)` route groups. Don't add a `loading.tsx` above a detail page.
 - **Styling:** Tailwind v4 with no `tailwind.config` file, although `components.json` still references one.
 - **Imports:** `@/*` resolves from the repo root.
@@ -147,6 +150,8 @@ Both paid routes need a signed-in user, and use text from the database, never te
 Local variables go in `.env` at the repo root, which is gitignored. Use `.env` rather than `.env.local` for `DATABASE_URL` so the Prisma CLI can read it. Use `127.0.0.1` as its host, not `localhost`: on Windows, `localhost` tries IPv6 first, and each new connection waits about 2 seconds.
 
 Needed locally: `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `CONGRESS_API_KEY`, `RATE_LIMITING_DISABLED`, `SEED_USER_PASSWORD`.
+
+For the pipelines panel, locally: `PIPELINE_SERVER_URL` and `PIPELINE_SERVER_TOKEN`, with the same token as `../civic-pipeline/.env`.
 
 Paid services, only for when they're being used: `GOOGLE_API_KEY`, `GEMINI_MODEL`, `LEMONFOX_API_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SECURE`, `EMAIL_USER`, `EMAIL_PASS`.
 

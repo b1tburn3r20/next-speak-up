@@ -37,7 +37,7 @@ export function createProgressTracker() {
 export type ProgressTracker = ReturnType<typeof createProgressTracker>;
 
 // NextAuth polls this in the background, and nobody's waiting on it.
-const BACKGROUND_REQUESTS = /\/api\/auth\/(session|_log|csrf)/;
+const BACKGROUND_REQUESTS = /(?:\/api\/auth\/(session|_log|csrf))|\/api\/admin\/pipelines\/(?:status|pipelines|runs|metrics)/;
 
 export function isBackgroundRequest(url: string): boolean {
   return BACKGROUND_REQUESTS.test(url);

@@ -6,6 +6,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { userService } from "@/lib/services/user";
 import { SettingsForm } from "./components/settings-form";
+import { ProfileSettingsCard } from "./components/profile-settings-card";
+import { getProfileSettings } from "@/lib/civic/profile";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { routes } from "@/lib/routes";
 
@@ -18,7 +20,11 @@ export const metadata: Metadata = {
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
-  const user = await userService.getUserById(session.user.id);
+  if (!session?.user?.id) redirect("/");
+  const [user, profile] = await Promise.all([
+    userService.getUserById(session.user.id),
+    getProfileSettings(session.user.id),
+  ]);
 
   if (!user) {
     redirect("/");
@@ -38,6 +44,7 @@ export default async function SettingsPage() {
           householdIncome={user.householdIncome}
         />
       </OuterBlock>
+      <ProfileSettingsCard initial={profile} userId={user.id} hasUsername={Boolean(user.username)} />
       <NextStepCard
         label="Choose what you follow"
         step={{
