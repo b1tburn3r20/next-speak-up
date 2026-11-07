@@ -217,7 +217,7 @@ test.describe("pipelines, against the real server", () => {
     test.skip(testInfo.project.name !== "desktop", "One real run is enough");
     test.setTimeout(60_000);
     await page.goto("/admin/pipelines");
-    // This stub makes no web requests without an API key, so it's safe to really run.
+    // This stub only reads two small pages and writes nothing to the app, so it's safe to really run.
     await page.locator('[data-testid="pipeline-row"][data-name="ia_calendar"]').getByTestId("run-pipeline").click();
     await page.getByTestId("run-confirm").click();
     const link = page.getByTestId("run-row").filter({ hasText: "ia_calendar" }).first().getByRole("link");
