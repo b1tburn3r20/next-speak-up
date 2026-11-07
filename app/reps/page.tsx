@@ -8,6 +8,8 @@ import { RepReportCard } from "@/components/civic/rep-report-card";
 import { getMemberStats, getRepRecaps } from "@/lib/civic/engage";
 import { computeNextSteps } from "@/lib/civic/next-steps";
 import { getUserMetrics } from "@/lib/civic/users";
+import { StateSeats } from "@/components/state/state-seats";
+import { stateRoutes } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "Your reps",
@@ -44,7 +46,7 @@ export default async function RepsPage() {
   const metrics = await getUserMetrics(userId);
   const reps = metrics.reps.map(({ rep }) => rep);
   const [recaps, stats] = await Promise.all([
-    getRepRecaps(reps),
+    getRepRecaps([...reps, ...metrics.stateSeats.flatMap((seat) => (seat.member ? [seat.member] : []))]),
     getMemberStats(reps.map((rep) => rep.id)),
   ]);
 
@@ -73,6 +75,16 @@ export default async function RepsPage() {
       ) : (
         <FindReps />
       )}
+      {metrics.location?.regionCode === "IA" ? (
+        <Section
+          title="Your Statehouse"
+          description="They vote for you in Des Moines. Scores stay separate for each person, and never blend Washington and Iowa together."
+          action={{ href: stateRoutes.home, label: "All of Iowa" }}
+          data-testid="reps-statehouse"
+        >
+          <StateSeats seats={metrics.stateSeats} recaps={recaps} />
+        </Section>
+      ) : null}
       <Section title="Sharpen your scores">
         <NextStepCard
           step={{

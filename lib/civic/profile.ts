@@ -1,4 +1,5 @@
 // Queries behind public profiles. What may be shown is decided in profile-logic.ts, not here.
+import { getIowaBadgeFacts } from "@/lib/civic/state";
 import { AgeRange, IncomeRange } from "@prisma/client";
 import prisma from "@/prisma/client";
 import { STATE_NAMES } from "@/lib/constants/state-names";
@@ -33,6 +34,7 @@ async function statsFor(userId: string, now: Date): Promise<{ stats: ProfileStat
   const reps = location ? await repsForLocation(location.regionCode, location.districtCode) : [];
   const facts = await getEngagementFacts(userId, reps.map((rep) => rep.id));
   const { badges } = computeProgress({
+    iowa: await getIowaBadgeFacts(userId),
     xp: hud.xp,
     voteDates: facts.voteDates,
     now,

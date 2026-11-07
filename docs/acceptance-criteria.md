@@ -167,3 +167,62 @@ Work isn't done until each line is proven by a test or by looking at it. `[ ]` m
 - [x] Every page has a `loading.tsx` or `<Suspense>`, or is listed as having nothing to wait for (unit test)
 - [x] No `loading.tsx` sits above a detail page (unit test)
 - [x] Every API route is listed in `docs/loading-states.md` (unit test)
+
+## Iowa
+
+What "built out" means for the first state. Unchecked items say what's in the way.
+
+**Federal and state stay apart**
+
+- [x] Federal lists, rep lookups, district lookups, and the vote queue only use federal data unless asked (test)
+- [x] A federal URL won't open an Iowa bill, or the reverse, and a state we don't cover is a 404 (test)
+- [x] Scores stay separate for each person, and never blend Washington and Iowa (test)
+- [x] Words follow the government: Governor, the Iowa Legislature, Acts Chapter (test)
+
+**Data**
+
+- [x] Every sitting legislator, with phone and page, and vacancies named rather than hidden (test)
+- [ ] Bills have a real status, worked out from their whole history. Parser tested, but only 469 of about 3,160 are loaded so far
+- [x] Bills replaced by a renumbered copy or a companion are left out, so nobody votes on a dead copy (test)
+- [ ] A passage vote only loads if the names, the journal's totals, and the history's totals all agree. Unit tested, and tried on two real bills' votes by hand, but `ia_votes` hasn't loaded any yet
+- [x] Topics come from the bill's committee, and the page says so. A committee too broad to say gets none (test)
+- [ ] Each bill's summary is its own explanation, labeled as written at introduction, with its PDF linked. Parser tested, but `ia_bill_text` hasn't loaded any yet
+- [ ] Debate calendars. They're PDFs, and there's nothing to debate until January, so there's nothing to check a parser against
+
+**Honest about the calendar**
+
+- [x] The app says the Legislature is out, and until when, instead of showing an empty list (test)
+- [x] A bill that never finished says the session ended, and never says your voice can still count (test)
+- [x] Sitting members are shown, not people who just won (test)
+
+**The hub and pages**
+
+- [ ] `/state/ia` shows your legislators, a bill to vote on, where to show up, and recent laws. The bill to vote on needs votes loaded
+- [x] Bills: search by number and title, filter by status and topic, each with the vote gate (test)
+- [x] Legislators: filter by chamber, party, and district, each with contact details and votes (test)
+- [x] Meetings: upcoming and past, searchable by committee or bill, each saying how to take part (test)
+- [x] Des Moines has its own page, and says what's missing (test)
+
+**Across the app**
+
+- [ ] Geocoding finds both Iowa districts and the city, and saves only the numbers. Parsing is tested on the Census's real answer, but the whole lookup hasn't been run in a browser
+- [x] People who chose Iowa by hand can choose their districts (test)
+- [x] Dashboard and report cards group Washington and the Statehouse (test)
+- [ ] Iowans get Iowa bills in their vote queue, and in the reveal after voting. Written, but it can't be checked until votes are loaded
+- [ ] Onboarding names their state legislators after a lookup. Written, not yet seen working in a browser
+- [x] Search finds Iowa legislators and bills (test)
+- [x] One Iowa link in the nav, only for people located in Iowa (test)
+- [x] Moving away from Iowa removes its legislators (test)
+
+**Taking part**
+
+- [ ] "I went" earns XP once per meeting, labeled self-reported. Refusing old meetings and signed-out people is tested, but no meeting is recent enough to test earning it
+- [x] Add a meeting to your calendar (test)
+- [ ] Badges and a quest for Iowans. None of them reward voting in an election, or a side. Written, not yet tested
+- [ ] Vote before a scheduled debate. It needs debate calendars
+
+**Not built, because there's no source we can read and check**
+
+- [ ] Des Moines council members, wards, and their votes. dsm.gov didn't resolve from here, and the archive only has agenda PDFs
+- [ ] Election dates. sos.iowa.gov refuses automated requests, so the page links to it instead
+

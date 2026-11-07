@@ -26,7 +26,7 @@ export function NextBillCard({ item }: { item: QueueItem }) {
       <p className="text-xs font-extrabold uppercase tracking-wide text-muted-foreground">{REASON[reason]}</p>
       {bill.policyArea ? (
         <div className="relative z-10 w-fit">
-          <PolicyChip name={bill.policyArea} link />
+          <PolicyChip name={bill.policyArea} link slug={bill.slug} />
         </div>
       ) : null}
       <h2 className="break-words text-lg font-extrabold leading-snug sm:text-xl">

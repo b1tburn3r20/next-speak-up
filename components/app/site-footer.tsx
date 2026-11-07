@@ -22,7 +22,7 @@ export function SiteFooter() {
           ))}
         </nav>
         <p className="text-xs">
-          Data from Congress.gov, the House Clerk, docs.house.gov, GovInfo, and Voteview. Coolbills isn&apos;t
+          Data from Congress.gov, the House Clerk, docs.house.gov, GovInfo, Voteview, and legis.iowa.gov. Coolbills isn&apos;t
           part of the U.S. government.
         </p>
       </div>

@@ -71,7 +71,7 @@ export const billsProvider: SearchProvider = {
           id: bill.slug,
           badge: label,
           title: bill.title,
-          subtitle: BILL_STATUS_LABELS[bill.currentStatus as BillStatusValue],
+          subtitle: `${bill.slug.startsWith("ia-") ? "Iowa · " : ""}${BILL_STATUS_LABELS[bill.currentStatus as BillStatusValue]}`,
           href: billPath(bill.slug),
           policyArea: bill.policyArea,
           score: Math.max(

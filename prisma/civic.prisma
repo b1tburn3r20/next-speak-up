@@ -49,12 +49,15 @@ enum SponsorshipKind {
 enum SummarySource {
   CRS
   AI
+  // The drafters' explanation at the end of an Iowa bill. Legislators don't vote on its wording.
+  BILL_EXPLANATION
 }
 
 enum DataSource {
   CONGRESS_GOV
   HOUSE_CLERK
   VOTEVIEW
+  IOWA_LEGISLATURE
 }
 
 enum LocationSource {

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { policyAreaByName, policyStyle, type PolicyFamily } from "@/lib/civic/policy-areas";
 import { cn } from "@/lib/utils";
-import { topicPath } from "@/lib/routes";
+import { stateRoutes, topicPath } from "@/lib/routes";
 
 const FAMILY_ICON: Record<PolicyFamily, LucideIcon> = {
   economy: Coins,
@@ -39,9 +39,12 @@ export function PolicyIcon({
 export function PolicyChip({
   name,
   link = false,
+  slug,
   className,
 }: {
   name: string | null | undefined;
+  /** The bill it's on. A state bill's topic leads to that state's bills, not Congress's. */
+  slug?: string;
   /** Turn this off inside something that's already a link. */
   link?: boolean;
   className?: string;
@@ -51,7 +54,7 @@ export function PolicyChip({
   const chip = (
     <span
       data-testid="policy-chip"
-      title={area?.explanation}
+      title={slug?.startsWith("ia-") ? undefined : area?.explanation}
       className={cn(
         "inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold text-foreground",
         className,
@@ -62,5 +65,12 @@ export function PolicyChip({
       <span className="min-w-0 truncate">{name ?? "Not categorized yet"}</span>
     </span>
   );
+  if (link && area && slug?.startsWith("ia-")) {
+    return (
+      <Link href={`${stateRoutes.bills}?policyArea=${encodeURIComponent(area.name)}`} className="tap inline-flex max-w-full">
+        {chip}
+      </Link>
+    );
+  }
   return link && area ? <Link href={topicPath(area.slug)} className="tap inline-flex max-w-full">{chip}</Link> : chip;
 }

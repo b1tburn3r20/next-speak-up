@@ -41,6 +41,11 @@ export async function removeVoteXp(tx: Tx, userId: string, billId: number, now =
   await syncDailyGoal(tx, userId, now);
 }
 
+/** Someone says they went to a meeting. One reward per meeting, and it's labeled self-reported. */
+export async function awardAttendXp(tx: Tx, userId: string, eventId: number) {
+  await award(tx, userId, "ATTENDED_EVENT", String(eventId));
+}
+
 /** Someone says they contacted a rep. One reward per bill, however many reps they contact. */
 export async function awardContactXp(tx: Tx, userId: string, billId: number) {
   const refKey = String(billId);

@@ -53,10 +53,10 @@ export function BlindVoteCard({
         ) : null}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="font-extrabold">{billLabel(bill.billType, bill.number)}</span>
-          <PolicyChip name={bill.policyArea} link />
+          <PolicyChip name={bill.policyArea} link slug={bill.slug} />
           {/* Where it stands waits until after the vote. */}
           <AfterVote slug={bill.slug} initialPosition={initialPosition}>
-            <BillStatusBadge status={bill.currentStatus} />
+            <BillStatusBadge status={bill.currentStatus} slug={bill.slug} endDate={bill.session?.endDate} />
           </AfterVote>
         </div>
         <h3 className="break-words text-lg font-extrabold leading-snug">

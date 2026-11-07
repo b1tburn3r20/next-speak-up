@@ -1,3 +1,4 @@
+import { getIowaBadgeFacts } from "@/lib/civic/state";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
@@ -58,6 +59,7 @@ export default async function ProgressPage() {
     location ? getLeaderboard(userId, location.regionCode, now) : null,
   ]);
   const { badges } = computeProgress({
+    iowa: await getIowaBadgeFacts(userId),
     xp: hud.xp,
     voteDates: facts.voteDates,
     now,

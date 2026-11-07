@@ -3,8 +3,8 @@ import { billOutlook } from "@/lib/civic/bill-outlook";
 import { cn } from "@/lib/utils";
 
 /** The status, worded around what it means for you, shown after you've voted. */
-export function BillOutlookCard({ status }: { status: string }) {
-  const outlook = billOutlook(status);
+export function BillOutlookCard({ status, slug, endDate }: { status: string; slug?: string; endDate?: Date | null }) {
+  const outlook = billOutlook(status, { slug, endDate });
   const Icon = outlook.kind === "OPEN" ? Hourglass : Landmark;
   return (
     <div

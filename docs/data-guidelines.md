@@ -47,6 +47,10 @@ A check in `checks/rules.py` should catch each gap that the pipeline can detect.
 | Each member's full sponsored bill history | Congress.gov API, `/member/{id}/sponsored-legislation` | Complete records without loading every bill |
 | House votes | House Clerk XML | Cross-checked against the Congress.gov API |
 | Senate votes | Voteview | senate.gov refuses automated requests, so we don't use it |
+| Iowa legislators, bills, meetings | legis.iowa.gov | `/chambers/` is disallowed by robots.txt, so nothing reads it |
+| Iowa votes | The journal page each bill's history links to | Only loaded if names and both sets of totals agree |
+| Iowa bill summaries | The explanation at the end of each bill's PDF | Written at introduction, and legislators don't vote on its wording. Label it that way |
+| Des Moines | Agenda PDFs in its public archive | Meetings only. No members, wards, or votes yet |
 | Senate floor | GovInfo's Senate Calendar and Daily Digest | Only what its orders name. The Senate publishes no weekly list, so a short list isn't a quiet week |
 | Upcoming House floor | docs.house.gov weekly XML | "May be considered" |
 | Member photos | Congress.gov depictions | |

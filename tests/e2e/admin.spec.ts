@@ -207,7 +207,7 @@ test.describe("pipelines, against the real server", () => {
     await page.goto("/admin/pipelines");
     await expect(page.getByTestId("pipelines-dashboard")).toBeVisible();
     await expect(page.locator('[data-testid="pipeline-row"][data-name="congress_bills"]')).toBeVisible();
-    await expect(page.locator('[data-testid="pipeline-row"][data-name="ia_votes"]')).toContainText("By hand");
+    await expect(page.locator('[data-testid="pipeline-row"][data-name="ia_calendar"]')).toContainText("By hand");
     await expect(page.getByTestId("chart-requests")).toBeVisible({ timeout: 25_000 });
     await expect(page.getByTestId("sources-table")).toContainText("congress_gov");
     await expectNoHorizontalOverflow(page);
@@ -218,9 +218,9 @@ test.describe("pipelines, against the real server", () => {
     test.setTimeout(60_000);
     await page.goto("/admin/pipelines");
     // This stub makes no web requests without an API key, so it's safe to really run.
-    await page.locator('[data-testid="pipeline-row"][data-name="ia_votes"]').getByTestId("run-pipeline").click();
+    await page.locator('[data-testid="pipeline-row"][data-name="ia_calendar"]').getByTestId("run-pipeline").click();
     await page.getByTestId("run-confirm").click();
-    const link = page.getByTestId("run-row").filter({ hasText: "ia_votes" }).first().getByRole("link");
+    const link = page.getByTestId("run-row").filter({ hasText: "ia_calendar" }).first().getByRole("link");
     await expect(link).toBeVisible({ timeout: 20_000 });
     await link.click();
     await expect(page).toHaveURL(/\/admin\/pipelines\/runs\/\d+$/);

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { OuterBlock, Stack } from "@/components/blocks";
 import { PolicyBars, StatTile } from "@/components/civic/charts";
 import { MemberPhoto } from "@/components/people/member-photo";
-import { bioguideOf, type MemberCard } from "@/lib/civic/people";
+import { memberKeyOf, type MemberCard } from "@/lib/civic/people";
 import { comparedToChamber, lawSuccess } from "@/lib/civic/verdict";
 import { memberPath } from "@/lib/routes";
 
@@ -21,7 +21,7 @@ export type RepWork = {
 export function RepWorkCard({ data }: { data: RepWork }) {
   const { rep, stat, areas } = data;
   const term = rep.terms[0];
-  const bioguide = bioguideOf(rep);
+  const bioguide = memberKeyOf(rep);
   const success = stat ? lawSuccess(stat) : null;
   return (
     <OuterBlock data-testid="rep-work">

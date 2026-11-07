@@ -16,7 +16,8 @@ const FIPS_TO_STATE: Record<string, string> = {
   "55": "WI", "56": "WY", "60": "AS", "66": "GU", "69": "MP", "72": "PR", "78": "VI",
 };
 
-export type ResolvedDistrict = { regionCode: string; districtCode: string };
+export type StateSeats = { upper: string | null; lower: string | null; placeGeoid: string | null };
+export type ResolvedDistrict = { regionCode: string; districtCode: string; stateSeats?: StateSeats };
 
 /**
  * Normalizes a district to the code stored in the database. The Census uses "00" for
@@ -45,9 +46,30 @@ export function parseGeographies(geographies: unknown): ResolvedDistrict | null 
   const regionCode = FIPS_TO_STATE[String(district.STATE)];
   const districtField = Object.keys(district).find((key) => /^CD\d+$/.test(key));
   if (!regionCode || !districtField) return null;
+  const seats = parseStateSeats(layers);
   return {
     regionCode,
     districtCode: normalizeDistrict(district[districtField] as string),
+    ...(seats.upper || seats.lower ? { stateSeats: seats } : {}),
+  };
+}
+
+/** The layer names carry a year, like "2024 State Legislative Districts - Upper", so they're matched by pattern. */
+function parseStateSeats(layers: Record<string, unknown>): StateSeats {
+  const first = (pattern: RegExp) => {
+    const name = Object.keys(layers).find((key) => pattern.test(key));
+    const entries = name ? layers[name] : null;
+    return Array.isArray(entries) ? (entries[0] as Record<string, unknown> | undefined) : undefined;
+  };
+  const seat = (entry: Record<string, unknown> | undefined) => {
+    const number = Number.parseInt(String(entry?.BASENAME ?? ""), 10);
+    return Number.isInteger(number) ? String(number) : null;
+  };
+  const place = first(/^Incorporated Places$/i);
+  return {
+    upper: seat(first(/State Legislative Districts? - Upper$/i)),
+    lower: seat(first(/State Legislative Districts? - Lower$/i)),
+    placeGeoid: place?.GEOID ? String(place.GEOID) : null,
   };
 }
 

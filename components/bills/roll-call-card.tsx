@@ -14,6 +14,7 @@ export type RollCallCardProps = {
   number: number;
   subSession: number;
   source: string;
+  sourceUrl?: string | null;
   asOf: Date | null;
   totals: { yea: number; nay: number; present: number; notVoting: number };
   parties: PartyBreakdown[];
@@ -45,7 +46,8 @@ export function RollCallCard(props: RollCallCardProps) {
           {props.chamber}: {props.question ?? "Recorded vote"}
         </p>
         <p className="text-sm text-muted-foreground">
-          {props.occurredAt ? <RelativeDate date={props.occurredAt} label="Voted" /> : null} · Roll {props.number}
+          {props.occurredAt ? <RelativeDate date={props.occurredAt} label="Voted" /> : null}
+          {props.source === "IOWA_LEGISLATURE" ? null : ` · Roll ${props.number}`}
         </p>
       </div>
       {props.result ? <p className="text-sm">{props.result}</p> : null}
@@ -84,6 +86,11 @@ export function RollCallCard(props: RollCallCardProps) {
             </TableBody>
           </Table>
         </div>
+      ) : null}
+      {props.source === "IOWA_LEGISLATURE" && props.sourceUrl ? (
+        <a href={props.sourceUrl} target="_blank" rel="noreferrer" className="tap inline-block text-sm font-bold text-primary hover:underline" data-testid="journal-link">
+          See this page of the journal
+        </a>
       ) : null}
       {props.source === "VOTEVIEW" ? (
         <AsOfNote date={props.asOf} label="Senate data from Voteview, which can lag. Fetched" />

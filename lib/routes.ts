@@ -28,6 +28,16 @@ export const routes = {
   },
 } as const;
 
+/** Iowa is the only state so far. Adding one means its pipelines, and a line in `SUPPORTED_STATES`. */
+const IOWA_BASE = jurisdictionBase({ state: "ia" });
+export const stateRoutes = {
+  home: IOWA_BASE,
+  bills: `${IOWA_BASE}/bills`,
+  legislators: `${IOWA_BASE}/legislators`,
+  events: `${IOWA_BASE}/events`,
+  city: `${IOWA_BASE}/city/des-moines`,
+} as const;
+
 /** Bill slugs start with their government: "us-119-hr-1". State slugs would start with "tx-". */
 function baseOfSlug(slug: string): string {
   const prefix = slug.split("-", 1)[0];
@@ -51,8 +61,14 @@ export function rollCallPath(slug: string, rollCallId: number | string): string 
   return `${billPath(slug)}/votes/${rollCallId}`;
 }
 
-export function memberPath(bioguideId: string): string {
-  return `${routes.federal.legislators}/${bioguideId}`;
+/** From `memberKeyOf`: a Bioguide ID, or "ia:123" for an Iowa legislator. */
+export function memberPath(memberKey: string): string {
+  if (memberKey.startsWith("ia:")) return `${stateRoutes.legislators}/${memberKey.slice(3)}`;
+  return `${routes.federal.legislators}/${memberKey}`;
+}
+
+export function eventPath(id: number): string {
+  return `${stateRoutes.events}/${id}`;
 }
 
 export function topicPath(slug: string): string {

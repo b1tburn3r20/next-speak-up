@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { partyAdjective, roleLabel, seatLabel } from "@/lib/civic/labels";
-import { bioguideOf, type MemberCard as MemberData } from "@/lib/civic/people";
+import { partyAdjective, roleLabel } from "@/lib/civic/labels";
+import { memberKeyOf, type MemberCard as MemberData } from "@/lib/civic/people";
 import { MemberPhoto } from "./member-photo";
 import { stateName } from "./state-name";
 import { memberPath } from "@/lib/routes";
+import { seatOf } from "./seat";
 
 export { MemberPhoto, stateName };
 
 export function MemberCard({ member, extra }: { member: MemberData; extra?: React.ReactNode }) {
-  const bioguide = bioguideOf(member);
+  const bioguide = memberKeyOf(member);
   const term = member.terms[0];
   const body = (
     <div className="flex min-w-0 items-center gap-3">
@@ -18,7 +19,7 @@ export function MemberCard({ member, extra }: { member: MemberData; extra?: Reac
         {term ? (
           <p className="text-sm text-muted-foreground">
             {partyAdjective(term.party)} {roleLabel(term.role).toLowerCase()},{" "}
-            {seatLabel(stateName(term.regionCode), term.district?.code, term.chamber.kind)}
+            {seatOf(term, bioguide)}
           </p>
         ) : null}
         {extra}

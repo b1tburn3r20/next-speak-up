@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Coolbills is a civic app for browsing U.S. federal legislation and members of Congress. Users can see what's coming up for a House vote, vote on bills themselves, compare their positions with their representatives, ask AI questions about bills, listen to summaries read aloud, and post in a forum. It covers federal government now, and is built so states can follow. It is a single Next.js 16 App Router app (React 19) using Prisma with MySQL. The repo is `next-speak-up`, the npm package is `next-politics`, and the brand is Coolbills.
+Coolbills is a civic app for browsing U.S. federal legislation and members of Congress. Users can see what's coming up for a House vote, vote on bills themselves, compare their positions with their representatives, ask AI questions about bills, listen to summaries read aloud, and post in a forum. It covers federal government and Iowa, the first state, with Des Moines as its first city. It is a single Next.js 16 App Router app (React 19) using Prisma with MySQL. The repo is `next-speak-up`, the npm package is `next-politics`, and the brand is Coolbills.
 
 ## Reference sheets
 
@@ -63,7 +63,7 @@ npx prisma generate --schema=./prisma                 # after install and after 
 
 Government data arrives through a separate Python project, `../civic-pipeline`, and the app reads the result:
 
-1. Pipelines fetch from Congress.gov, the House Clerk, docs.house.gov, and Voteview, and store raw responses in the `civic_raw` database. See `../civic-pipeline/README.md`.
+1. Pipelines fetch from Congress.gov, the House Clerk, docs.house.gov, GovInfo, Voteview, legis.iowa.gov, and Des Moines's agenda archive, and store raw responses in the `civic_raw` database. See `../civic-pipeline/README.md`.
 2. Transforms load those into the app's tables, and accuracy checks record problems in `data_quality_issue`.
 3. Prisma owns the app's schema and migrations. The pipeline reflects the tables rather than defining them, so a column it writes must exist in `prisma/civic.prisma`.
 
@@ -86,12 +86,18 @@ Pages are server components that call `lib/civic/*` directly, so content is in t
 - Services in `lib/services/` back the forum, permissions, settings, and password login.
 - **Stored alignment:** `UserRepAlignment` holds each user's agreement with their reps. `getUserMetrics` recalculates it when new votes have arrived since.
 
+### Federal and state in one set of tables
+
+Iowa's bills, people, districts, and votes sit in the same tables as Congress's, so a query with no jurisdiction filter mixes them. `listBills` and `listCurrentMembers` default to federal, and `repsForLocation` is federal only. State pages live under `app/state/ia`, with queries in `lib/civic/state.ts`. `lib/civic/government.ts` holds the words that differ. `memberKeyOf` gives what `memberPath` takes, for either government. Bill and roll call pages are shared, in `components/bills`, and each route is a thin wrapper.
+
 ### Accuracy rules that were learned the hard way
 
 - **Same-day actions:** a bill's actions are ordered by `position`, which comes from the API. Don't sort them by time, because only House actions have one.
 - **Floor listings:** a bill on the schedule "may be considered". Don't describe that as a vote that will happen. `floorOutcome` only counts House action since the bill was scheduled.
 - **Senate floor:** the Senate has no weekly list. `SCHEDULED` rows come from orders that name a date, and `PENDING` rows have none. Each new Calendar repeats its `PENDING` rows, so `buildChamberBoard` keeps only the newest set.
 - **Bill text versions:** `pickLatestTextVersion` holds the order. An Enrolled Bill has no date from the API.
+- **Iowa's votes:** journals are PDFs with surnames only. `check_vote` in the pipeline only accepts a vote when the names, the journal's totals, and the history's totals all agree, and refuses a surname two people share. A vote that doesn't check out is left out, and the bill page says so.
+- **Iowa's sessions:** a bill's status stops meaning anything once its session ends. `diedWithSession` turns it into "Session ended", and the queue doesn't treat it as open.
 - **Final votes:** alignment only compares a user's vote with a member's latest final vote on a bill, using `isFinalVote`. Amendments and procedural votes don't count.
 - **Missed votes:** a member who didn't vote isn't counted as disagreeing with a user.
 - **District maps:** after an election, the Census's "current" maps move to the next Congress, weeks before its members take office. `censusVintage` picks the map for the sitting Congress. Add an entry to `VINTAGE_BY_CONGRESS` when needed.

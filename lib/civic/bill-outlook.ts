@@ -1,5 +1,8 @@
 // What a bill's status means for the person who just voted on it. No database access here.
+import { diedWithSession, governmentOfSlug } from "./government";
 import type { BillStatusValue } from "./labels";
+
+const capitalized = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 /** Congress hasn't finished with these, so they're the bills where a voice can still count. */
 export const OPEN_STATUSES = [
@@ -31,7 +34,19 @@ export type BillOutlook = {
 
 const STILL_COUNTS = "Your vote still counts toward whether your reps represent you.";
 
-export function billOutlook(status: string): BillOutlook {
+export function billOutlook(
+  status: string,
+  context: { slug?: string; endDate?: Date | null } = {},
+): BillOutlook {
+  const government = governmentOfSlug(context.slug ?? "us");
+  if (diedWithSession(status, context.endDate)) {
+    return {
+      kind: "DECIDED",
+      title: "This didn't finish before the session ended",
+      body: `It would have to be filed again to move. ${STILL_COUNTS}`,
+      canInfluence: false,
+    };
+  }
   switch (status as BillStatusValue) {
     case "BECAME_LAW":
     case "SIGNED":
@@ -44,22 +59,22 @@ export function billOutlook(status: string): BillOutlook {
     case "VETOED":
       return {
         kind: "DECIDED",
-        title: "The President vetoed this",
-        body: `Congress could still try to override it. ${STILL_COUNTS}`,
+        title: `The ${government.executive} vetoed this`,
+        body: `${capitalized(government.legislature)} could try to override it. ${STILL_COUNTS}`,
         canInfluence: true,
       };
     case "TO_EXECUTIVE":
       return {
         kind: "OPEN",
-        title: "It's on the President's desk",
-        body: `Congress has passed it, and the President decides next. ${STILL_COUNTS}`,
+        title: `It's on the ${government.executive}'s desk`,
+        body: `${capitalized(government.legislature)} passed it, and the ${government.executive} decides next. ${STILL_COUNTS}`,
         canInfluence: false,
       };
     default:
       return {
         kind: "OPEN",
         title: "Still undecided",
-        body: "Congress hasn't finished with this one, so your voice can still count.",
+        body: `${capitalized(government.legislature)} hasn't finished with this one, so your voice can still count.`,
         canInfluence: true,
       };
   }

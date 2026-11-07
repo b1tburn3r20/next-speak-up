@@ -66,7 +66,7 @@ function FloorRow({
   // The Senate's text is a legal order, so its plain title comes from the bill.
   const senateOrder = item.title.startsWith("Ordered");
   const title = bill?.title ?? (senateOrder ? "We don't have this bill's details yet." : item.title);
-  const status = bill ? <BillStatusBadge status={bill.currentStatus} /> : null;
+  const status = bill ? <BillStatusBadge status={bill.currentStatus} slug={bill.slug} endDate={bill.session?.endDate} /> : null;
   return (
     <li className="space-y-2 py-3 first:pt-0 last:pb-0" data-testid="board-item" data-category={item.category}>
       <div className="flex flex-wrap items-center gap-1.5">
@@ -91,7 +91,7 @@ function FloorRow({
           title
         )}
       </p>
-      {bill?.policyArea ? <PolicyChip name={bill.policyArea} link /> : null}
+      {bill?.policyArea ? <PolicyChip name={bill.policyArea} link slug={bill.slug} /> : null}
       {bill ? (
         <BillActionButtons
           slug={bill.slug}

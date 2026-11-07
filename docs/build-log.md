@@ -59,3 +59,8 @@ Added `/admin` with users, a roles and permissions grid, pipelines, data checks,
 ## Floor board, in-place editing, and loading states (2026-11-06)
 
 The dashboard now leads with both chambers' next meetings, and this week and next on the House and Senate floors, using a new `senate_floor` pipeline that reads GovInfo. Added `PageSpacer` around every page. Profile details are edited on the profile, and forum posts are written on the forum, with `/settings` cut down to the theme and two links. Every page and API route now has a listed loading state, with a unit test to keep it that way. Eleven API routes turned out to have no callers, and are listed in `docs/loading-states.md`.
+
+## Iowa (2026-11-07)
+
+Built the first state, against the criteria in `docs/acceptance-criteria.md`. The plan expected to need Open States for votes, but each bill's history links to the exact journal page of its passage, so votes are read from there with no key, and checked three ways before loading. Bill histories gave real statuses. Every federal query had to be scoped first, because Iowa's rows would otherwise show up as an Iowan's U.S. senators. Des Moines only has agendas so far, because there's no source for its members or votes that we can read.
+

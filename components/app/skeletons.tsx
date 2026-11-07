@@ -611,3 +611,45 @@ export function AnswerSkeleton() {
 export function HudSkeleton() {
   return <Skeleton className="h-6 w-32" aria-hidden />;
 }
+
+export function DetailEventSkeleton() {
+  return (
+    <Busy>
+      <Skeleton className="h-4 w-32" />
+      <Skeleton className="h-9 w-96 max-w-full" />
+      <Skeleton className="h-5 w-56" />
+      <RailLayout rail={<BlockSkeleton className="h-56" />}>
+        <BlockSkeleton className="h-28" />
+        <BlockSkeleton className="h-40" />
+      </RailLayout>
+    </Busy>
+  );
+}
+
+export function EventListSkeleton() {
+  return (
+    <Busy>
+      <HeaderSkeleton />
+      <FiltersSkeleton />
+      <CardsSkeleton />
+    </Busy>
+  );
+}
+
+export function IowaHubSkeleton() {
+  return (
+    <Busy>
+      <HeaderSkeleton />
+      <BlockSkeleton className="h-28" />
+      <div className="grid gap-4 md:grid-cols-2">
+        <BlockSkeleton className="h-64" />
+        <BlockSkeleton className="h-64" />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {[0, 1, 2, 3].map((index) => (
+          <BlockSkeleton key={index} className="h-20" />
+        ))}
+      </div>
+    </Busy>
+  );
+}

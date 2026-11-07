@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Book, Briefcase, CalendarClock, Compass, type LucideIcon } from "lucide-react";
+import { Landmark, ArrowRight, Book, Briefcase, CalendarClock, Compass, type LucideIcon } from "lucide-react";
 import { Grid, OuterBlock, PageHeader, PageSpacer } from "@/components/blocks";
 import { NextStepCard } from "@/components/civic/next-step-card";
-import { routes } from "@/lib/routes";
+import { routes, stateRoutes } from "@/lib/routes";
 
 export const metadata: Metadata = {
   title: "Federal government",
@@ -34,6 +34,12 @@ const PLACES: { href: string; icon: LucideIcon; title: string; description: stri
     icon: Compass,
     title: "Topics",
     description: "Bills grouped by what they're about, like health or taxes.",
+  },
+  {
+    href: stateRoutes.home,
+    icon: Landmark,
+    title: "Iowa",
+    description: "The first state we cover: its legislators, bills, and meetings.",
   },
 ];
 

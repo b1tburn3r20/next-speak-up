@@ -5,9 +5,9 @@ import { AlignmentRing, PolicyBars, StatTile } from "@/components/civic/charts";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { Term } from "@/components/civic/term";
 import { MemberPhoto } from "@/components/people/member-photo";
-import { stateName } from "@/components/people/state-name";
-import { partyAdjective, roleLabel, seatLabel } from "@/lib/civic/labels";
-import { bioguideOf, type MemberCard } from "@/lib/civic/people";
+import { seatOf } from "@/components/people/seat";
+import { partyAdjective, roleLabel } from "@/lib/civic/labels";
+import { memberKeyOf, type MemberCard } from "@/lib/civic/people";
 import { RECAP_DAYS, type RepRecap } from "@/lib/civic/engage";
 import {
   alignmentVerdict,
@@ -59,7 +59,7 @@ export type RepCardData = {
 export function RepReportCard({ data, compact = false }: { data: RepCardData; compact?: boolean }) {
   const { rep, compared, matched, byPolicyArea, recap, stat } = data;
   const term = rep.terms[0];
-  const bioguide = bioguideOf(rep);
+  const bioguide = memberKeyOf(rep);
   const verdict = alignmentVerdict(compared, matched);
   const difference = biggestDifference(byPolicyArea);
   const href = bioguide ? memberPath(bioguide) : routes.federal.legislators;
@@ -78,7 +78,7 @@ export function RepReportCard({ data, compact = false }: { data: RepCardData; co
             {term ? (
               <p className="text-sm text-muted-foreground">
                 {partyAdjective(term.party)} {roleLabel(term.role).toLowerCase()},{" "}
-                {seatLabel(stateName(term.regionCode), term.district?.code, term.chamber.kind)}
+                {seatOf(term, bioguide)}
               </p>
             ) : null}
           </div>

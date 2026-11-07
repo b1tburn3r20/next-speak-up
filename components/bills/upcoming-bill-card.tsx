@@ -80,10 +80,10 @@ export function UpcomingBillCard({
       <Stack>
         <Flex gap="xs">
           <span className="mr-1 font-extrabold">{item.legislationRef}</span>
-          {bill ? <GatedStatus slug={bill.slug} signedIn={signedIn} position={state?.position ?? null}><BillStatusBadge status={bill.currentStatus} /></GatedStatus> : null}
+          {bill ? <GatedStatus slug={bill.slug} signedIn={signedIn} position={state?.position ?? null}><BillStatusBadge status={bill.currentStatus} slug={bill.slug} endDate={bill.session?.endDate} /></GatedStatus> : null}
           <FloorCategoryPill category={item.category} />
         </Flex>
-        {bill ? <PolicyChip name={bill.policyArea} link /> : null}
+        {bill ? <PolicyChip name={bill.policyArea} link slug={bill.slug} /> : null}
         <h3 className="break-words text-lg font-extrabold leading-snug">
           {bill ? (
             <Link href={billPath(bill.slug)} className="hover:underline">

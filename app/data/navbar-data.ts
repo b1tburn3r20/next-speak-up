@@ -8,18 +8,21 @@ import {
   GraduationCap,
   Home,
   Key,
+  Landmark,
   LucideIcon,
   Scale,
   Settings,
   Vote,
 } from "lucide-react";
 import type { NavAccess } from "@/lib/auth/permissions";
-import { routes } from "@/lib/routes";
+import { routes, stateRoutes } from "@/lib/routes";
 
 export type NavItem = NavAccess & {
   href: string;
   icon: LucideIcon;
   label: string;
+  /** Only for people who live in Iowa, the one state we cover so far. */
+  iowa?: boolean;
   /** Secondary pages, shown indented under this link. */
   children?: NavItem[];
 };
@@ -32,6 +35,7 @@ export const navItems: NavItem[] = [
   { href: routes.progress, icon: Sparkles, label: "My Progress", signedIn: true },
   { href: routes.leaderboard, icon: Trophy, label: "Leaderboard", signedIn: true },
   { href: routes.federal.upcoming, icon: CalendarClock, label: "Upcoming Votes" },
+  { href: stateRoutes.home, icon: Landmark, label: "Iowa", iowa: true },
   {
     href: routes.federal.bills,
     icon: Book,

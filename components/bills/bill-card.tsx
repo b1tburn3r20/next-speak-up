@@ -1,3 +1,4 @@
+import { billStatusText, diedWithSession } from "@/lib/civic/government";
 import Link from "next/link";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { MemberPhoto } from "@/components/people/member-photo";
@@ -32,16 +33,18 @@ const STATUS_STYLE: Partial<Record<BillStatusValue, string>> = {
   AGREED_TO: "bg-primary-tint text-primary-edge",
 };
 
-export function BillStatusBadge({ status }: { status: string }) {
+/** Pass the slug and session end to use that government's words, and to say when a session ended. */
+export function BillStatusBadge({ status, slug, endDate }: { status: string; slug?: string; endDate?: Date | null }) {
+  const died = diedWithSession(status, endDate);
   return (
     <span
       className={cn(
         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold",
-        STATUS_STYLE[status as BillStatusValue] ?? "bg-muted text-muted-foreground",
+        died ? "bg-muted text-muted-foreground" : STATUS_STYLE[status as BillStatusValue] ?? "bg-muted text-muted-foreground",
       )}
       data-testid="bill-status"
     >
-      {BILL_STATUS_LABELS[status as BillStatusValue] ?? status}
+      {billStatusText(status, slug, endDate)}
     </span>
   );
 }
@@ -52,7 +55,11 @@ export function SponsorLine({ bill }: { bill: BillListItem }) {
   const term = sponsor?.terms[0];
   const cosponsors = bill._count.sponsorships;
   if (!sponsor) {
-    return <p className="text-sm text-muted-foreground">Sponsor not listed yet</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        {bill.slug.startsWith("ia-") ? "No individual sponsor listed" : "Sponsor not listed yet"}
+      </p>
+    );
   }
   return (
     <div className="flex items-center gap-2 text-sm" data-testid="sponsor-line">
@@ -81,7 +88,7 @@ export function BillCard({
     <OuterBlock className="relative transition-colors hover:border-primary/60" data-testid="bill-card">
       <div className="mb-2 flex flex-wrap items-center gap-1.5">
         <span className="font-extrabold">{billLabel(bill.billType, bill.number)}</span>
-        <BillStatusBadge status={bill.currentStatus} />
+        <BillStatusBadge status={bill.currentStatus} slug={bill.slug} endDate={bill.session?.endDate} />
         {bill.policyArea ? <PolicyChip name={bill.policyArea} /> : null}
         {myPosition !== undefined ? <VoteStatusChip slug={bill.slug} initialPosition={myPosition} /> : null}
       </div>

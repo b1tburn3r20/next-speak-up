@@ -7,8 +7,10 @@ import {
   districtFromAddress,
   districtFromCoordinates,
   isValidCoordinate,
+  type StateSeats,
 } from "@/lib/civic/location";
-import { saveUserLocation, type LocationSource } from "@/lib/civic/users";
+import { saveStateLocation } from "@/lib/civic/state";
+import { refreshUserAlignment, saveUserLocation, type LocationSource } from "@/lib/civic/users";
 
 // Coordinates and addresses are used for the lookup and then discarded. Only the state and
 // district are saved, and that's only for signed-in users.
@@ -40,7 +42,7 @@ export async function POST(request: NextRequest) {
   }
   const input = parsed.data;
 
-  let resolved: { regionCode: string; districtCode: string | null } | null;
+  let resolved: { regionCode: string; districtCode: string | null; stateSeats?: StateSeats } | null;
   let source: LocationSource;
   try {
     if ("lat" in input) {
@@ -82,6 +84,11 @@ export async function POST(request: NextRequest) {
     );
     if (!saved) {
       return NextResponse.json({ error: "That district doesn't exist." }, { status: 400 });
+    }
+    // A lookup also gives their statehouse seats. Choosing by hand doesn't, so those are asked for later.
+    if (resolved.regionCode === "IA" && resolved.stateSeats) {
+      await saveStateLocation(session.user.id, resolved.stateSeats, source);
+      await refreshUserAlignment(session.user.id);
     }
   }
   return NextResponse.json(resolved);

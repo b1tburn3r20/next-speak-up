@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE `bill_summary_version` MODIFY `source` ENUM('CRS', 'AI', 'BILL_EXPLANATION') NOT NULL DEFAULT 'CRS';
+
+-- AlterTable
+ALTER TABLE `roll_call` MODIFY `source` ENUM('CONGRESS_GOV', 'HOUSE_CLERK', 'VOTEVIEW', 'IOWA_LEGISLATURE') NOT NULL;
+

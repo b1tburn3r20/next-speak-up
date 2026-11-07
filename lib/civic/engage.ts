@@ -9,7 +9,8 @@ import { BILL_CARD_SELECT, type BillListItem } from "./bills";
 import { OPEN_STATUSES } from "./bill-outlook";
 import { easternToday, mondayOf } from "./floor-logic";
 import { billLabel, roleLabel } from "./labels";
-import { bioguideOf, repsForLocation } from "./people";
+import { memberKeyOf, repsForLocation, type MemberCard } from "./people";
+import { getStateLocation, getStateSeats, IOWA_CODE } from "./state";
 import { communitySplit, computeQuests, interleave, policyLean, type CommunitySplit, type MatchRecord } from "./engagement-logic";
 import { easternMidnight, DAILY_GOAL, XP_AMOUNTS } from "./progress";
 import { comparedVotesFor, getUserLocation } from "./users";
@@ -100,9 +101,16 @@ export async function getVoteQueue(
   limit = 10,
   now = new Date(),
   topics: string[] = [],
+  options: { includeIowa?: boolean } = {},
 ): Promise<QueueItem[]> {
   const notVoted: Prisma.BillWhereInput = userId ? { userVotes: { none: { userId } } } : {};
-  const open: Prisma.BillWhereInput = { currentStatus: { in: [...OPEN_STATUSES] } };
+  // A bill can't move once its session is over, whatever its last status says.
+  const open: Prisma.BillWhereInput = {
+    currentStatus: { in: [...OPEN_STATUSES] },
+    session: { OR: [{ endDate: null }, { endDate: { gt: now } }] },
+  };
+  const federal: Prisma.BillWhereInput = { jurisdiction: { code: "US" } };
+  const iowa: Prisma.BillWhereInput = { jurisdiction: { code: IOWA_CODE } };
   const seen = new Set<number>();
   const items: QueueItem[] = [];
   const room = () => limit - items.length;
@@ -134,12 +142,12 @@ export async function getVoteQueue(
   const pulseItems = (billWhere: Prisma.BillWhereInput = {}) =>
     userId ? getPulseItems(userId, repIds, limit + seen.size, billWhere) : Promise.resolve([]);
 
-  const addRecent = async (where: Prisma.BillWhereInput) => {
+  const addRecent = async (where: Prisma.BillWhereInput, most = limit) => {
     if (room() <= 0) return;
     const recent = await prisma.bill.findMany({
-      where: { ...notVoted, id: { notIn: [...seen] }, summaries: { some: {} }, ...where },
+      where: { ...federal, ...notVoted, id: { notIn: [...seen] }, summaries: { some: {} }, ...where },
       orderBy: [{ latestActionDate: { sort: "desc", nulls: "last" } }, { id: "desc" }],
-      take: room(),
+      take: Math.min(room(), most),
       select: BILL_CARD_SELECT,
     });
     for (const bill of recent) {
@@ -153,6 +161,12 @@ export async function getVoteQueue(
   // scheduled bills to fill a whole session, which would never show a rep's vote.
   const [scheduled, repVoted] = await Promise.all([floorItems(), pulseItems(open)]);
   for (const item of interleave(scheduled, repVoted)) push(item);
+  // Iowans get their statehouse too. Its session is over, so these are the ones with a vote to compare.
+  if (options.includeIowa) {
+    const share = Math.max(1, Math.ceil(limit / 3));
+    for (const item of (await pulseItems(iowa)).slice(0, share)) push(item);
+    await addRecent({ ...iowa, ...hasFinalVote }, share);
+  }
   if (topics.length > 0) await addRecent({ ...open, policyArea: { in: topics } });
   // Ones with a recorded vote make the best questions, because there's something to compare.
   await addRecent({ ...open, ...hasFinalVote });
@@ -160,6 +174,26 @@ export async function getVoteQueue(
   if (room() > 0) for (const item of await pulseItems()) push(item);
   await addRecent(hasFinalVote);
   return items;
+}
+
+/** Iowa's bills to vote on: your legislators' votes first, then any with a vote to compare. */
+export async function getIowaVoteQueue(userId: string | null, repIds: number[], limit = 5): Promise<QueueItem[]> {
+  const iowa: Prisma.BillWhereInput = { jurisdiction: { code: IOWA_CODE } };
+  const items = userId ? await getPulseItems(userId, repIds, limit, iowa) : [];
+  if (items.length >= limit) return items.slice(0, limit);
+  const seen = items.map((item) => item.bill.id);
+  const rest = await prisma.bill.findMany({
+    where: {
+      ...iowa,
+      id: { notIn: seen },
+      rollCalls: { some: { isFinalVote: true } },
+      ...(userId ? { userVotes: { none: { userId } } } : {}),
+    },
+    orderBy: [{ latestActionDate: { sort: "desc", nulls: "last" } }, { id: "desc" }],
+    take: limit - items.length,
+    select: BILL_CARD_SELECT,
+  });
+  return [...items, ...rest.map((bill) => ({ bill, reason: "RECENT" as const, reps: [], occurredAt: null }))];
 }
 
 export type BillReveal = {
@@ -186,9 +220,15 @@ export async function getBillReveal(userId: string, slug: string): Promise<BillR
     select: { id: true, userVotes: { where: { userId }, select: { position: true } } },
   });
   if (!bill) return null;
-  const location = await getUserLocation(userId);
-  if (!location) return [];
-  const reps = await repsForLocation(location.regionCode, location.districtCode);
+  let reps: MemberCard[];
+  if (slug.startsWith("ia-")) {
+    const seats = await getStateSeats(await getStateLocation(userId));
+    reps = seats.flatMap((seat) => (seat.member ? [seat.member] : []));
+  } else {
+    const location = await getUserLocation(userId);
+    if (!location) return [];
+    reps = await repsForLocation(location.regionCode, location.districtCode);
+  }
   if (reps.length === 0) return [];
   const positions = await prisma.rollCallPosition.findMany({
     where: {
@@ -225,7 +265,7 @@ export async function getBillReveal(userId: string, slug: string): Promise<BillR
       personId: rep.id,
       name: rep.fullName,
       imageUrl: rep.imageUrl,
-      bioguide: bioguideOf(rep),
+      bioguide: memberKeyOf(rep),
       party: term?.party ?? null,
       role: term ? roleLabel(term.role) : "",
       position,
@@ -300,9 +340,11 @@ export async function getPolicyLean(userId: string) {
 export async function getQuests(userId: string, topics: string[], now = new Date()) {
   const today = await prisma.userBillVote.findMany({
     where: { userId, createdAt: { gte: easternMidnight(now) } },
-    select: { bill: { select: { currentStatus: true, policyArea: true } } },
+    select: { bill: { select: { currentStatus: true, policyArea: true, slug: true } } },
   });
+  const location = await getUserLocation(userId);
   return computeQuests({
+    iowaVotesToday: location?.regionCode === "IA" ? today.filter(({ bill }) => bill.slug.startsWith("ia-")).length : undefined,
     votedToday: today.length,
     dailyGoal: DAILY_GOAL,
     openVotesToday: today.filter(({ bill }) => (OPEN_STATUSES as readonly string[]).includes(bill.currentStatus)).length,
@@ -324,7 +366,7 @@ export type RepRecap = {
 
 /** What each rep has done lately, and when their chamber last voted, for quiet stretches. */
 export async function getRepRecaps(
-  reps: { id: number; terms: { chamber: { kind: string } }[] }[],
+  reps: { id: number; terms: { chamber: { kind: string; jurisdiction?: { code: string } } }[] }[],
   now = new Date(),
 ): Promise<Map<number, RepRecap>> {
   if (reps.length === 0) return new Map();
@@ -342,7 +384,9 @@ export async function getRepRecaps(
       }),
     ),
   );
-  const [groups, house, senate] = await Promise.all([
+  const lastVote = (kind: "LOWER" | "UPPER", code: string) =>
+    prisma.rollCall.aggregate({ where: { chamber: { kind, jurisdiction: { code } } }, _max: { occurredAt: true } });
+  const [groups, house, senate, iowaHouse, iowaSenate] = await Promise.all([
     prisma.rollCallPosition.groupBy({
       by: ["personId", "position"],
       where: {
@@ -351,14 +395,10 @@ export async function getRepRecaps(
       },
       _count: { _all: true },
     }),
-    prisma.rollCall.aggregate({
-      where: { chamber: { kind: "LOWER" } },
-      _max: { occurredAt: true },
-    }),
-    prisma.rollCall.aggregate({
-      where: { chamber: { kind: "UPPER" } },
-      _max: { occurredAt: true },
-    }),
+    lastVote("LOWER", "US"),
+    lastVote("UPPER", "US"),
+    lastVote("LOWER", IOWA_CODE),
+    lastVote("UPPER", IOWA_CODE),
   ]);
   return new Map(
     reps.map((rep, index) => {
@@ -367,12 +407,13 @@ export async function getRepRecaps(
       const missed = own.find((group) => group.position === "NOT_VOTING")?._count._all ?? 0;
       const total = own.reduce((sum, group) => sum + group._count._all, 0);
       const kind = rep.terms[0]?.chamber.kind;
+      const isIowa = rep.terms[0]?.chamber.jurisdiction?.code === IOWA_CODE;
       return [
         rep.id,
         {
           votes: total - missed,
           missed,
-          lastChamberVote: (kind === "UPPER" ? senate : house)._max.occurredAt,
+          lastChamberVote: (isIowa ? (kind === "UPPER" ? iowaSenate : iowaHouse) : kind === "UPPER" ? senate : house)._max.occurredAt,
           latestBill: latest
             ? {
                 slug: latest.slug,

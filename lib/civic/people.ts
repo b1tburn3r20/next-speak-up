@@ -13,17 +13,23 @@ const CURRENT_TERM = {
     partyName: true,
     regionCode: true,
     startYear: true,
-    chamber: { select: { kind: true, shortName: true } },
+    chamber: { select: { kind: true, shortName: true, jurisdiction: { select: { code: true } } } },
     district: { select: { code: true } },
   },
 } satisfies Prisma.Person$termsArgs;
 
-const MEMBER_SELECT = {
+/** The IDs that lead to someone's page, whichever government they're in. */
+export const PAGE_IDENTIFIERS = {
+  where: { scheme: { in: ["bioguide", "iowa_legis"] } },
+  select: { scheme: true, value: true },
+} satisfies Prisma.Person$identifiersArgs;
+
+export const MEMBER_SELECT = {
   id: true,
   fullName: true,
   sortName: true,
   imageUrl: true,
-  identifiers: { where: { scheme: "bioguide" }, select: { value: true } },
+  identifiers: PAGE_IDENTIFIERS,
   terms: CURRENT_TERM,
 } satisfies Prisma.PersonSelect;
 
@@ -34,17 +40,29 @@ export type MemberFilters = {
   state?: string;
   party?: string;
   q?: string;
+  district?: string;
+  /** Federal unless it says otherwise, because state members share the same tables. */
+  jurisdiction?: string;
 };
 
-export function bioguideOf(person: { identifiers: { value: string }[] }): string | null {
-  return person.identifiers[0]?.value ?? null;
+/** What `memberPath` takes: a Bioguide ID, or "ia:123" for an Iowa legislator. */
+export function memberKeyOf(person: { identifiers: { scheme?: string; value: string }[] }): string | null {
+  const identifier = person.identifiers[0];
+  if (!identifier) return null;
+  return identifier.scheme === "iowa_legis" ? `ia:${identifier.value}` : identifier.value;
 }
 
 function memberWhere(filters: MemberFilters): Prisma.PersonWhereInput {
-  const term: Prisma.OfficeTermWhereInput = { isCurrent: true };
-  if (filters.chamber) term.chamber = { kind: filters.chamber };
+  const term: Prisma.OfficeTermWhereInput = {
+    isCurrent: true,
+    chamber: {
+      jurisdiction: { code: filters.jurisdiction ?? "US" },
+      ...(filters.chamber ? { kind: filters.chamber } : {}),
+    },
+  };
   if (filters.state) term.regionCode = filters.state;
   if (filters.party) term.party = filters.party;
+  if (filters.district) term.district = { code: filters.district };
   return {
     terms: { some: term },
     ...(filters.q ? { fullName: { contains: filters.q.trim() } } : {}),
@@ -75,6 +93,7 @@ export const repsForLocation = cache(async (regionCode: string, districtCode: st
         some: {
           isCurrent: true,
           regionCode,
+          chamber: { jurisdiction: { code: "US" } },
           OR: [
             { chamber: { kind: "UPPER" } },
             ...(districtCode
@@ -101,7 +120,7 @@ export const getMemberByBioguide = cache(async (bioguide: string) => {
   return prisma.person.findUnique({
     where: { id: identifier.personId },
     include: {
-      identifiers: { where: { scheme: "bioguide" }, select: { value: true } },
+      identifiers: PAGE_IDENTIFIERS,
       terms: {
         orderBy: { startYear: "desc" },
         select: {
@@ -195,6 +214,7 @@ export async function getMemberSponsoredBills(personId: number, take = 10) {
       select: {
         bill: {
           select: {
+            session: { select: { endDate: true } },
             slug: true,
             title: true,
             billType: true,

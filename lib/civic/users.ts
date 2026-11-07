@@ -9,6 +9,7 @@ import {
   type Position,
 } from "./alignment";
 import { repsForLocation } from "./people";
+import { clearStateLocation, getStateLocation, getStateSeats } from "./state";
 import { normalizeDistrict } from "./location";
 import { STATE_NAMES } from "@/lib/constants/state-names";
 
@@ -52,6 +53,15 @@ export async function getUserLocation(userId: string) {
     : null;
 }
 
+/** The nav loads on every page, so a failure here hides one link rather than breaking the page. */
+export async function getUserLocationSafe(userId: string) {
+  try {
+    return await getUserLocation(userId);
+  } catch {
+    return null;
+  }
+}
+
 export type LocationSource = "BROWSER" | "ADDRESS" | "MANUAL";
 
 /** Saves a user's state and district. Returns false if that district doesn't exist. */
@@ -63,7 +73,7 @@ export async function saveUserLocation(
 ): Promise<boolean> {
   const district = districtCode
     ? await prisma.district.findFirst({
-        where: { regionCode, code: districtCode, chamber: { kind: "LOWER" } },
+        where: { regionCode, code: districtCode, chamber: { kind: "LOWER", jurisdiction: { code: FEDERAL_CODE } } },
         select: { id: true },
       })
     : null;
@@ -85,6 +95,7 @@ export async function saveUserLocation(
       },
     }),
   ]);
+  if (regionCode !== "IA") await clearStateLocation(userId);
   await refreshUserAlignment(userId);
   return true;
 }
@@ -132,7 +143,7 @@ export async function syncLocationFromProfile(userId: string): Promise<void> {
           where: {
             regionCode,
             code: normalizeDistrict(user.district),
-            chamber: { kind: "LOWER" },
+            chamber: { kind: "LOWER", jurisdiction: { code: FEDERAL_CODE } },
           },
           select: { id: true },
         });
@@ -147,7 +158,7 @@ export async function syncLocationFromProfile(userId: string): Promise<void> {
 
 export async function listDistricts(regionCode: string): Promise<string[]> {
   const rows = await prisma.district.findMany({
-    where: { regionCode, chamber: { kind: "LOWER" }, vintage: "119" },
+    where: { regionCode, chamber: { kind: "LOWER", jurisdiction: { code: FEDERAL_CODE } }, vintage: "119" },
     select: { code: true },
   });
   return rows
@@ -205,7 +216,11 @@ export async function refreshUserAlignment(userId: string) {
     await prisma.userRepAlignment.deleteMany({ where: { userId } });
     return;
   }
-  const reps = await repsForLocation(location.regionCode, location.districtCode);
+  const stateSeats = await getStateSeats(await getStateLocation(userId));
+  const reps = [
+    ...(await repsForLocation(location.regionCode, location.districtCode)),
+    ...stateSeats.flatMap((seat) => (seat.member ? [seat.member] : [])),
+  ];
   const rows = [];
   for (const rep of reps) {
     const compared = await comparedVotesFor(userId, rep.id);
@@ -446,7 +461,32 @@ export async function getUserMetrics(userId: string) {
     );
   }
   const reps = location ? await repsForLocation(location.regionCode, location.districtCode) : [];
+  const stateLocation = await getStateLocation(userId);
+  const stateSeats = await getStateSeats(stateLocation);
+  const scoreFor = (rep: (typeof reps)[number]) => {
+    const rows = alignments.filter((row) => row.personId === rep.id);
+    const overall = rows.find((row) => row.policyArea === "");
+    return {
+      rep,
+      compared: overall?.comparedVotes ?? 0,
+      matched: overall?.matchedVotes ?? 0,
+      percent:
+        overall && overall.comparedVotes > 0
+          ? Math.round((overall.matchedVotes / overall.comparedVotes) * 100)
+          : null,
+      byPolicyArea: rows
+        .filter((row) => row.policyArea !== "")
+        .map((row) => ({
+          policyArea: row.policyArea,
+          compared: row.comparedVotes,
+          percent: Math.round((row.matchedVotes / row.comparedVotes) * 100),
+        }))
+        .sort((a, b) => b.compared - a.compared),
+    };
+  };
   return {
+    stateLocation,
+    stateSeats: stateSeats.map((seat) => ({ ...seat, score: seat.member ? scoreFor(seat.member) : null })),
     votesCast: votes.length,
     supported: votes.filter((vote) => vote.position === "YEA").length,
     opposed: votes.filter((vote) => vote.position === "NAY").length,
@@ -456,26 +496,6 @@ export async function getUserMetrics(userId: string) {
       votes.map((vote) => vote.createdAt),
       12,
     ),
-    reps: reps.map((rep) => {
-      const rows = alignments.filter((row) => row.personId === rep.id);
-      const overall = rows.find((row) => row.policyArea === "");
-      return {
-        rep,
-        compared: overall?.comparedVotes ?? 0,
-        matched: overall?.matchedVotes ?? 0,
-        percent:
-          overall && overall.comparedVotes > 0
-            ? Math.round((overall.matchedVotes / overall.comparedVotes) * 100)
-            : null,
-        byPolicyArea: rows
-          .filter((row) => row.policyArea !== "")
-          .map((row) => ({
-            policyArea: row.policyArea,
-            compared: row.comparedVotes,
-            percent: Math.round((row.matchedVotes / row.comparedVotes) * 100),
-          }))
-          .sort((a, b) => b.compared - a.compared),
-      };
-    }),
+    reps: reps.map(scoreFor),
   };
 }

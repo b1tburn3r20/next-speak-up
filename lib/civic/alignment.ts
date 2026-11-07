@@ -92,7 +92,7 @@ export function majorityPosition(yea: number, nay: number): Position | null {
 // Built from the wording in real House and Senate data. Note that "On Agreeing to the
 // Amendment" must not match: a vote on an amendment isn't a position on the whole bill.
 const FINAL_VOTE =
-  /^on passage|^on (the )?(joint |concurrent )?resolution|agreeing to the (joint |concurrent )?resolution|^on (agreeing to )?the conference report|suspend the rules|concur|overrid/i;
+  /^on passage|^on (the )?(joint |concurrent )?resolution|agreeing to the (joint |concurrent )?resolution|^on (agreeing to )?the conference report|suspend the rules|concur|overrid|^shall the bill pass/i;
 
 /**
  * Whether a roll call decides a bill's fate, rather than a procedural step like a motion to

@@ -8,8 +8,8 @@ The skeletons are in `components/app/skeletons.tsx`.
 
 | Kind | How it loads | Pages |
 | --- | --- | --- |
-| List and home pages | `loading.tsx` beside the page, in a route group when it has child pages | Dashboard, federal home, bills, legislators, topics, upcoming, reps, vote, progress, leaderboard, settings, feedback, forum, onboarding, every admin list |
-| Detail pages | An existence check, then `<Suspense>` around the content | Bill, bill text, roll call, legislator, topic, profile, forum post, admin user |
+| List and home pages | `loading.tsx` beside the page, in a route group when it has child pages | Dashboard, federal home, bills, legislators, topics, upcoming, reps, vote, progress, leaderboard, settings, feedback, forum, onboarding, every admin list, and Iowa's hub, bills, legislators, meetings, and Des Moines |
+| Detail pages | An existence check, then `<Suspense>` around the content | Bill, bill text, roll call, legislator, topic, profile, forum post, admin user, and Iowa's bill, roll call, legislator, and meeting |
 | Client dashboards | The page waits only on a session check, and the client shows the skeleton while it fetches | Pipeline run log, which uses `RunDetailSkeleton` |
 | Static pages | Nothing to wait for | Landing, learn, mission, privacy |
 | Redirects | Nothing to show | `/community/users/{id}`, `/admin/permissions/{id}`, `/forum/create-forum-post` |
@@ -25,6 +25,7 @@ Detail pages can't use `loading.tsx`, because it makes a missing page return 200
 | `civic/bills/reveal` | How your reps voted | `RevealSkeleton` |
 | `civic/location/districts` | Location picker | `SelectSkeleton` |
 | `civic/policy-lean` | Vote session | `LeanSkeleton` |
+| `civic/pulse` | The count on the nav | A skeleton dot the same size |
 | `civic/reps` | Onboarding | `RepsRowSkeleton` |
 | `forum/comments` | Forum post comments, also saving a comment | `Skeleton` rows; the Post button shows progress when saving |
 | `search` | Search dialog | `ResultSkeleton` |
@@ -46,8 +47,10 @@ These keep the content on screen. The control is disabled or shows a spinner, an
 | `civic/bills/listen` | Listen button | Spinner on the button |
 | `civic/bills/skip` | Vote gate | Button disabled |
 | `civic/bills/vote` | Support and Oppose | Buttons disabled |
+| `civic/events/attend` | "I went" button | Button shows "Saving…" |
 | `civic/leaderboard` | Leaderboard opt-in | Switch disabled |
 | `civic/location` | Location picker | Button disabled |
+| `civic/location/state` | Iowa district picker | Button shows "Saving…" |
 | `civic/onboarding` | Onboarding | Button disabled |
 | `forum/bookmark`, `forum/lock`, `forum/pin` | Post controls | Spinner on the button |
 | `forum/comment-vote`, `forum/post-vote` | Vote arrows | Updates right away, and blocks another tap |
@@ -62,9 +65,10 @@ These keep the content on screen. The control is disabled or shows a spinner, an
 | API route | Why |
 | --- | --- |
 | `auth/[...nextauth]` | NextAuth's own redirects |
-| `civic/pulse` | Only a dot on the nav, which appears when the count arrives |
 | `user/onboarding` | Decides whether to send someone to onboarding |
-| `civic/floor`, `civic/progress`, `health` | Data for other programs and tests. No screen calls them |
+| `civic/floor`, `health` | Data for other programs and tests. No screen calls them |
+| `civic/progress` | Moves the XP bar after an action. The bar already shows the last number, so nothing is empty |
+| `civic/events/[id]/ics` | A file download. The browser shows its own progress |
 
 ## Routes nothing calls
 

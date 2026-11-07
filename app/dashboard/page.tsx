@@ -31,7 +31,9 @@ import { getUserBillStates, getUserDashboardLists, getUserMetrics, getUserTopics
 import { NextBillCard } from "@/components/civic/next-bill-card";
 import { RepWorkCard } from "@/components/civic/rep-work-card";
 import { PolicyChip } from "@/components/civic/policy-chip";
-import { billPath, routes } from "@/lib/routes";
+import { billPath, routes, stateRoutes } from "@/lib/routes";
+import { IowaSessionNote } from "@/components/state/session-note";
+import { StateSeats } from "@/components/state/state-seats";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -112,16 +114,18 @@ export default async function DashboardPage() {
     getUserTopics(userId),
   ]);
   const reps = metrics.reps.map(({ rep }) => rep);
-  const repIds = reps.map((rep) => rep.id);
+  const stateReps = metrics.stateSeats.flatMap((seat) => (seat.member ? [seat.member] : []));
+  const isIowan = metrics.location?.regionCode === "IA";
+  const repIds = [...reps, ...stateReps].map((rep) => rep.id);
   const floorBillIds = floorBoardBillIds(board);
   const [facts, pulse, recaps, stats, floorStates, sponsoredAreas, queue] = await Promise.all([
     getEngagementFacts(userId, repIds),
     getPulseItems(userId, repIds, 3),
-    getRepRecaps(reps, now),
+    getRepRecaps([...reps, ...stateReps], now),
     getMemberStats(repIds),
     getUserBillStates(userId, floorBillIds),
     getSponsoredAreas(repIds),
-    getVoteQueue(userId, repIds, 1, now, topics),
+    getVoteQueue(userId, repIds, 1, now, topics, { includeIowa: isIowan }),
   ]);
   const nextBill = queue[0];
   const [hud, quests, lean] = await Promise.all([
@@ -163,6 +167,7 @@ export default async function DashboardPage() {
       </header>
 
       <RightNow board={board} />
+      {isIowan ? <IowaSessionNote /> : null}
 
       <WithRail
         lead={<FloorSection board={board} states={floorStates} signedIn now={now} />}
@@ -194,7 +199,7 @@ export default async function DashboardPage() {
 
       {metrics.reps.length > 0 ? (
         <Section
-          title="Your representatives"
+          title={isIowan ? "Your members of Congress" : "Your representatives"}
           description="Your House rep and two senators vote for you in Congress."
           action={{ href: "/reps", label: "Report cards" }}
           data-testid="dashboard-reps"
@@ -215,6 +220,17 @@ export default async function DashboardPage() {
               />
             ))}
           </Grid>
+        </Section>
+      ) : null}
+
+      {isIowan ? (
+        <Section
+          title="Your Statehouse"
+          description="They vote for you in Des Moines. Their scores are separate from your members of Congress."
+          action={{ href: stateRoutes.home, label: "All of Iowa" }}
+          data-testid="dashboard-statehouse"
+        >
+          <StateSeats seats={metrics.stateSeats} compact recaps={recaps} />
         </Section>
       ) : null}
 

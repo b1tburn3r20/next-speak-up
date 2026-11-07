@@ -35,9 +35,12 @@ Build pages only from `components/blocks`. Don't hand-write spacing, card styles
 
 ## Federal and state
 
-We cover both, starting with federal. Every screen and model must leave room for states.
+We cover federal and Iowa. Every screen and model must leave room for more states.
 
-- **URLs:** a government's pages live under its prefix: `/federal/bills`, and later `/state/tx/bills`. Things that belong to the person, not a government, stay at the root: `/dashboard`, `/vote`, `/reps`, `/settings`.
+- **State pages:** `/state/ia` is the hub. It says when the Legislature is out rather than showing empty lists, shows who's sitting rather than who just won, and names empty seats. One "Iowa" nav link appears for people located there.
+- **Words:** `lib/civic/government.ts` has what differs, like Governor and President. Never write "Congress" in something a state bill can reach.
+
+- **URLs:** a government's pages live under its prefix: `/federal/bills`, and `/state/ia/bills`. Things that belong to the person, not a government, stay at the root: `/dashboard`, `/vote`, `/reps`, `/settings`.
 - **Never hand-write a government URL.** Use `lib/routes.ts`: `routes.federal.bills`, `billPath(slug)`, `memberPath(id)`, `topicPath(slug)`. Old URLs redirect from `next.config.mjs`.
 - **Labels stay plain.** Don't put "Federal" in front of everything. There's only one federal government, so it keeps root nav links: "Bills", not "Federal Bills". How states appear in the nav is still to be decided, so don't build a state nav yet.
 - **Models take a jurisdiction.** Queries and components shouldn't assume Congress when a bill or person can say where it's from.

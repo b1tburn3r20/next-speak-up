@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCivicStore } from "@/stores/use-civic-store";
 
 /** The alert in the navigation: how many of your reps' votes you haven't weighed in on. */
@@ -12,6 +13,8 @@ export function PulseDot({ className }: { className?: string }) {
     load();
   }, [load]);
 
+  // Still loading: the shape of the number, so nothing jumps when it arrives.
+  if (count === null) return <Skeleton className="h-5 w-5 rounded-full" data-testid="pulse-skeleton" />;
   if (!count) return null;
   return (
     <span

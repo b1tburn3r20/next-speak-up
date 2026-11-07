@@ -1,6 +1,8 @@
+import { billLabel } from "./labels";
 import { cache } from "react";
 import { Prisma } from "@prisma/client";
 import prisma from "@/prisma/client";
+import { PAGE_IDENTIFIERS } from "./people";
 import { pickLatestTextVersion } from "./bill-text-logic";
 import { majorityPosition } from "./alignment";
 import type { BillStatusValue } from "./labels";
@@ -8,6 +10,8 @@ import type { BillStatusValue } from "./labels";
 const PAGE_SIZE = 20;
 
 export type BillFilters = {
+  /** Federal unless it says otherwise, because state bills share the same table. */
+  jurisdiction?: string;
   q?: string;
   status?: BillStatusValue;
   policyArea?: string;
@@ -43,6 +47,7 @@ export const BILL_CARD_SELECT = {
   latestActionDate: true,
   latestActionText: true,
   introducedDate: true,
+  session: { select: { endDate: true } },
   summaries: {
     orderBy: [{ actionDate: "desc" }, { id: "desc" }],
     take: 1,
@@ -78,14 +83,14 @@ export function parseBillSearch(query: string): { billType?: string; number: num
     .trim()
     .toLowerCase()
     .replace(/[.\s]/g, "")
-    .match(/^(hr|s|hjres|sjres|hconres|sconres|hres|sres)?(\d+)$/);
+    .match(/^(hr|s|hjres|sjres|hconres|sconres|hres|sres|hf|sf|hcr|scr|hjr|sjr)?(\d+)$/);
   if (!match) return null;
   return { billType: match[1], number: Number.parseInt(match[2], 10) };
 }
 
 export async function listBills(filters: BillFilters = {}) {
   const limit = Math.min(filters.limit ?? PAGE_SIZE, 100);
-  const where: Prisma.BillWhereInput = {};
+  const where: Prisma.BillWhereInput = { jurisdiction: { code: filters.jurisdiction ?? "US" } };
   if (filters.status) where.currentStatus = filters.status;
   if (filters.policyArea) where.policyArea = filters.policyArea;
   const query = filters.q?.trim();
@@ -125,9 +130,9 @@ export async function listBills(filters: BillFilters = {}) {
   };
 }
 
-export const listPolicyAreas = cache(async () => {
+export const listPolicyAreas = cache(async (jurisdiction = "US") => {
   const rows = await prisma.bill.findMany({
-    where: { policyArea: { not: null } },
+    where: { policyArea: { not: null }, jurisdiction: { code: jurisdiction } },
     distinct: ["policyArea"],
     select: { policyArea: true },
     orderBy: { policyArea: "asc" },
@@ -139,7 +144,7 @@ export const getBill = cache(async (slug: string) => {
   return prisma.bill.findUnique({
     where: { slug },
     include: {
-      session: { select: { identifier: true } },
+      session: { select: { identifier: true, endDate: true } },
       originChamber: { select: { shortName: true } },
       actions: {
         orderBy: [{ actionDate: "desc" }, { position: "desc" }],
@@ -162,7 +167,7 @@ export const getBill = cache(async (slug: string) => {
             select: {
               fullName: true,
               imageUrl: true,
-              identifiers: { where: { scheme: "bioguide" }, select: { value: true } },
+              identifiers: PAGE_IDENTIFIERS,
               terms: {
                 orderBy: { startYear: "desc" },
                 take: 1,
@@ -184,6 +189,7 @@ export const getBill = cache(async (slug: string) => {
         select: {
           id: true,
           question: true,
+          sourceUrl: true,
           result: true,
           occurredAt: true,
           totalYea: true,
@@ -333,7 +339,7 @@ export async function getRollCallDetail(
       person: {
         select: {
           fullName: true,
-          identifiers: { where: { scheme: "bioguide" }, select: { value: true } },
+          identifiers: PAGE_IDENTIFIERS,
         },
       },
     },
@@ -344,4 +350,14 @@ export async function getRollCallDetail(
 export async function hasBillText(billId: number): Promise<boolean> {
   const count = await prisma.billTextContent.count({ where: { billId } });
   return count > 0;
+}
+
+/** Which of these bills we have, with a short name for each. A bill replaced by another isn't loaded. */
+export async function existingBills(slugs: string[]): Promise<Map<string, string>> {
+  if (slugs.length === 0) return new Map();
+  const rows = await prisma.bill.findMany({
+    where: { slug: { in: slugs } },
+    select: { slug: true, billType: true, number: true },
+  });
+  return new Map(rows.map((row) => [row.slug, billLabel(row.billType, row.number)]));
 }

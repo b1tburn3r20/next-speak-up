@@ -37,9 +37,19 @@ const NO_LOADING_NEEDED = new Set([
   "admin/pipelines/runs/[id]/page.tsx",
 ]);
 
+const SHARED_PAGES = {
+  "<BillPage": "components/bills/bill-page.tsx",
+  "<RollCallPage": "components/bills/roll-call-page.tsx",
+};
+
 describe("loading states", () => {
   it.each(filesNamed(APP, "page.tsx").map((page) => [fromApp(page), page]))("%s has one", (name, page) => {
-    const suspense = readFileSync(page, "utf8").includes("<Suspense");
+    const text = readFileSync(page, "utf8");
+    // Federal and state share these, so the wrapper only passes through to them.
+    const shared = Object.entries(SHARED_PAGES).some(
+      ([tag, file]) => text.includes(tag) && readFileSync(join(ROOT, file), "utf8").includes("<Suspense"),
+    );
+    const suspense = text.includes("<Suspense") || shared;
     expect(hasLoadingAbove(page) || suspense || NO_LOADING_NEEDED.has(name)).toBe(true);
   });
 

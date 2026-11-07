@@ -103,7 +103,25 @@ function AgeStep({ value, onChoose }: { value: string | null; onChoose: (age: st
   );
 }
 
-function RepsFound({ reps, onContinue }: { reps: Rep[]; onContinue: () => void }) {
+function RepList({ reps }: { reps: Rep[] }) {
+  return (
+    <ul className="space-y-2">
+      {reps.map((rep) => (
+        <li key={rep.id} className="flex items-center gap-3 rounded-xl bg-muted p-2.5">
+          <MemberPhoto name={rep.name} url={rep.imageUrl} party={rep.party} size={48} />
+          <div className="min-w-0">
+            <p className="break-words font-extrabold leading-snug">{rep.name}</p>
+            <p className="text-sm text-muted-foreground">
+              {rep.role}, {rep.seat} · {partyLabel(rep.party)}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function RepsFound({ reps, stateReps, onContinue }: { reps: Rep[]; stateReps: Rep[]; onContinue: () => void }) {
   return (
     <div className="space-y-4" data-testid="onboarding-reps">
       <div>
@@ -116,19 +134,13 @@ function RepsFound({ reps, onContinue }: { reps: Rep[]; onContinue: () => void }
             : "We'll show your representatives on your dashboard."}
         </p>
       </div>
-      <ul className="space-y-2">
-        {reps.map((rep) => (
-          <li key={rep.id} className="flex items-center gap-3 rounded-xl bg-muted p-2.5">
-            <MemberPhoto name={rep.name} url={rep.imageUrl} party={rep.party} size={48} />
-            <div className="min-w-0">
-              <p className="break-words font-extrabold leading-snug">{rep.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {rep.role}, {rep.seat} · {partyLabel(rep.party)}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <RepList reps={reps} />
+      {stateReps.length > 0 ? (
+        <div className="space-y-2" data-testid="onboarding-state-reps">
+          <h2 className="font-extrabold">You also have these at the Iowa statehouse</h2>
+          <RepList reps={stateReps} />
+        </div>
+      ) : null}
       <Button size="lg" className="w-full" onClick={onContinue} data-testid="onboarding-next">
         Continue
       </Button>
@@ -213,6 +225,7 @@ export function OnboardingFlow({
   const [region, setRegion] = useState(initialRegion);
   const [reps, setReps] = useState<Rep[] | null>(null);
   const [findingReps, setFindingReps] = useState(false);
+  const [stateReps, setStateReps] = useState<Rep[]>([]);
   // Null until they choose for themselves. Until then, it follows their first two answers.
   const [picked, setPicked] = useState<Set<string> | null>(initialTopics.length > 0 ? new Set(initialTopics) : null);
   const [saving, setSaving] = useState(false);
@@ -235,7 +248,9 @@ export function OnboardingFlow({
       if (districtCode) query.set("district", districtCode);
       const response = await fetch(`/api/civic/reps?${query}`);
       if (!response.ok) throw new Error();
-      setReps((await response.json()).reps);
+      const data = await response.json();
+      setReps(data.reps);
+      setStateReps(data.stateReps ?? []);
     } catch {
       setReps([]);
     } finally {
@@ -274,7 +289,7 @@ export function OnboardingFlow({
           {findingReps ? (
             <RepsRowSkeleton />
           ) : reps ? (
-            <RepsFound reps={reps} onContinue={() => setStep(2)} />
+            <RepsFound reps={reps} stateReps={stateReps} onContinue={() => setStep(2)} />
           ) : (
             <div className="space-y-4">
               <div>
