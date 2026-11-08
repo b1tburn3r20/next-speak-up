@@ -25,6 +25,12 @@ const nextConfig = {
         hostname: "www.congress.gov",
         pathname: "/img/member/**",
       },
+      // Each city we cover serves its officials' photos. Add its host here with its entry in lib/civic/states.ts.
+      {
+        protocol: "https",
+        hostname: "www.dsm.city",
+        pathname: "/Images/**",
+      },
     ],
   },
   typescript: {

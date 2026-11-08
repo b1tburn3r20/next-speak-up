@@ -230,14 +230,14 @@ What "built out" means for the first state. Unchecked items say what's in the wa
 
 Built from `CityConfig` in `lib/civic/states.ts`, so a new city is its pipeline plus an entry there.
 
-- [ ] The mayor, at-large members, and each ward's member, with phone, email, photo, and term (parser test; live run waiting on the database)
-- [ ] The next regular meeting, from the city's published schedule, with where and when (parser test)
+- [x] The mayor, at-large members, and each ward's member, with phone, email, photo, and term (test)
+- [x] The next regular meeting, from the city's published schedule, with where and when (test)
 - [x] When you can ask to speak, worked out from the city's own rule, across daylight saving (unit test)
 - [x] When the agenda goes up, from the city's own rule (unit test)
-- [ ] Recent topics in the agenda's own words, grouped by section, leaving out routine consent items (parser test)
-- [ ] Past meetings with agenda, minutes, and recording links (parser test)
-- [ ] A resident picks their ward and sees their own council member (browser test written)
-- [ ] City Hall on the dashboard and state page for residents (browser test written)
+- [x] Recent topics in the agenda's own words, grouped by section, leaving out routine consent items (test)
+- [x] Past meetings with agenda, minutes, and recording links (test)
+- [x] A resident picks their ward and sees their own council member (test)
+- [x] City Hall on the dashboard and state page for residents (test)
 - [x] A city we don't cover is a 404, and a ward the city doesn't have is refused
 - [x] Nothing reads dsmcity.primegov.com, whose robots.txt disallows everything. The page links people to the city instead
 

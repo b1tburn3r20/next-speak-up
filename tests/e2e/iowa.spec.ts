@@ -199,7 +199,8 @@ test.describe("showing up", () => {
 
   test("attending can't be reported for a meeting that's long past", async ({ page }) => {
     await newIowan(page);
-    const html = await (await page.request.get("/state/ia/events?when=past&kind=COUNCIL_MEETING")).text();
+    // The newest city meeting can be inside the two-week window, so this takes a statehouse meeting from October.
+    const html = await (await page.request.get("/state/ia/events?when=past&kind=SUBCOMMITTEE")).text();
     const id = Number(html.match(/\/state\/ia\/events\/(\d+)/)?.[1]);
     const old = await page.request.post("/api/civic/events/attend", { headers: ORIGIN, data: { eventId: id } });
     expect(old.status()).toBe(400);
@@ -222,8 +223,8 @@ test.describe("showing up", () => {
 test.describe("Des Moines", () => {
   test("shows agendas, and is honest about what's missing", async ({ page }) => {
     await page.goto("/state/ia/city/des-moines");
-    await expect(main(page).getByTestId("city-gaps")).toContainText("Council members");
-    await expect(main(page).getByTestId("city-past").getByTestId("event-card").first()).toBeVisible();
+    await expect(main(page).getByTestId("city-gaps")).toContainText("How each member voted isn't here yet");
+    await expect(main(page).getByTestId("city-past").getByTestId("city-past-meeting").first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
 });
