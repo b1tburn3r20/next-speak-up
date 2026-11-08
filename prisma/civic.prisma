@@ -23,6 +23,8 @@ enum OfficeRole {
   DELEGATE
   RESIDENT_COMMISSIONER
   LEGISLATOR
+  MAYOR
+  COUNCIL_MEMBER
 }
 
 enum BillStatus {
@@ -175,6 +177,8 @@ model Person {
   imageAttribution String?   @db.Text
   websiteUrl       String?   @db.VarChar(500)
   phone            String?   @db.VarChar(40)
+  // Officials whose office publishes one, like a city council member
+  email            String?   @db.VarChar(191)
   officeAddress    String?   @db.VarChar(255)
   sourceUpdatedAt  DateTime?
   createdAt        DateTime  @default(now())
@@ -614,6 +618,9 @@ model CivicEvent {
   location       String?          @db.VarChar(255)
   joinUrl        String?          @db.VarChar(500)
   documentUrl    String?          @db.VarChar(500)
+  minutesUrl     String?          @db.VarChar(500)
+  // A recording or live stream
+  videoUrl       String?          @db.VarChar(500)
   agenda         String?          @db.Text
   status         CivicEventStatus @default(SCHEDULED)
   // Stable across fetches: "ia:meeting:39038"
@@ -637,6 +644,8 @@ model CivicEventItem {
   id        Int     @id @default(autoincrement())
   eventId   Int
   billId    Int?
+  // Where it sits on the agenda, like "Public hearings"
+  section   String? @db.VarChar(80)
   title     String  @db.VarChar(255)
   sortOrder Int     @default(0)
 

@@ -33,6 +33,7 @@ import { RepWorkCard } from "@/components/civic/rep-work-card";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import { billPath, routes, stateRoutes } from "@/lib/routes";
 import { StateSessionNote } from "@/components/state/session-note";
+import { CityGlance } from "@/components/city/city-glance";
 import { StateSeats } from "@/components/state/state-seats";
 
 export const metadata: Metadata = {
@@ -232,6 +233,10 @@ export default async function DashboardPage() {
         >
           <StateSeats state={userState} seats={metrics.stateSeats} compact recaps={recaps} />
         </Section>
+      ) : null}
+
+      {userState && metrics.stateLocation?.city ? (
+        <CityGlance state={userState} city={metrics.stateLocation.city} userId={userId} />
       ) : null}
 
       {/* The next bill is already above, so this starts from the one after it. */}

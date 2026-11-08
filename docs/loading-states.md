@@ -50,7 +50,8 @@ These keep the content on screen. The control is disabled or shows a spinner, an
 | `civic/events/attend` | "I went" button | Button shows "Saving…" |
 | `civic/leaderboard` | Leaderboard opt-in | Switch disabled |
 | `civic/location` | Location picker | Button disabled |
-| `civic/location/state` | Iowa district picker | Button shows "Saving…" |
+| `civic/location/state` | State district picker | Button shows "Saving…" |
+| `civic/location/city` | Ward picker | Button shows "Saving…" |
 | `civic/onboarding` | Onboarding | Button disabled |
 | `forum/bookmark`, `forum/lock`, `forum/pin` | Post controls | Spinner on the button |
 | `forum/comment-vote`, `forum/post-vote` | Vote arrows | Updates right away, and blocks another tap |

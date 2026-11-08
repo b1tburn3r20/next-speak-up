@@ -12,6 +12,27 @@ export type CityConfig = {
   placeGeoid: string;
   /** What the city's data covers so far, said plainly on its page. */
   coverage: string;
+  council: {
+    name: string;
+    /** Wards with their own member. Everyone also has the at-large members and the mayor. */
+    wards: number;
+  };
+  /** The city's own rules for speaking at a regular meeting, from the page that states them. */
+  requestToSpeak: {
+    url: string;
+    rulesUrl: string;
+    /** Requests open this many days before the meeting. */
+    opensDaysBefore: number;
+    /** And close at this local time on the day before. */
+    closesDayBeforeAt: { hour: number; minute: number };
+    maxSpeakers: number;
+    minutesEach: number;
+  };
+  /** When the agenda goes up: this local time, this many days before the meeting. */
+  agendaPosted: { daysBefore: number; hour: number; minute: number };
+  meetingsUrl: string;
+  /** The city's own tool for finding your ward, because it doesn't publish the boundaries. */
+  wardFinderUrl: string;
 };
 
 export type StateConfig = {
@@ -65,7 +86,21 @@ export const STATES: StateConfig[] = [
         jurisdiction: "US-IA-DSM",
         placeGeoid: "1921000",
         coverage:
-          "Meetings and their agendas, from the city's public document archive. Council members, wards, and how they voted aren't here yet, because we don't have a source we can read and check.",
+          "The mayor and council, the meeting schedule, and past agendas, minutes, and recordings, from the city's own site. Agendas since August are on a site that doesn't allow automated reading, so for those, follow the link to the city. How each member voted isn't here yet.",
+        council: { name: "City Council", wards: 4 },
+        // From the city's meeting schedule page, read on November 8, 2026.
+        requestToSpeak: {
+          url: "https://desmoines.rja.revize.com/forms/401",
+          rulesUrl: "https://www.dsm.city/government/city_council/meetings/meeting_schedule.php",
+          opensDaysBefore: 10,
+          closesDayBeforeAt: { hour: 17, minute: 0 },
+          maxSpeakers: 20,
+          minutesEach: 5,
+        },
+        // "Agendas are available to the public by 4 p.m. on the Thursday preceding the meeting." Meetings are Mondays.
+        agendaPosted: { daysBefore: 4, hour: 16, minute: 0 },
+        meetingsUrl: "https://www.dsm.city/government/city_council/meetings/index.php",
+        wardFinderUrl: "https://showmemyhouse.dsm.city/",
       },
     ],
   },
@@ -103,7 +138,7 @@ export function cityByGeoid(state: StateConfig, placeGeoid: string | null | unde
 
 /** What a client component may receive. A RegExp or a function can't cross to the browser. */
 export type ClientState = Pick<StateConfig, "key" | "name" | "chambers"> & {
-  cities: Pick<CityConfig, "key" | "name">[];
+  cities: (Pick<CityConfig, "key" | "name" | "wardFinderUrl"> & { wards: number })[];
 };
 
 export function toClientState(state: StateConfig): ClientState {
@@ -111,7 +146,7 @@ export function toClientState(state: StateConfig): ClientState {
     key: state.key,
     name: state.name,
     chambers: state.chambers,
-    cities: state.cities.map(({ key, name }) => ({ key, name })),
+    cities: state.cities.map(({ key, name, wardFinderUrl, council }) => ({ key, name, wardFinderUrl, wards: council.wards })),
   };
 }
 

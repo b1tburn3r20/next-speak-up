@@ -169,6 +169,8 @@ const EVENT_SELECT = {
   location: true,
   joinUrl: true,
   documentUrl: true,
+  minutesUrl: true,
+  videoUrl: true,
   agenda: true,
   status: true,
   sourceUrl: true,

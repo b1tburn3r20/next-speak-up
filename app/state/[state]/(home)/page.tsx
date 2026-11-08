@@ -9,6 +9,7 @@ import { NextBillCard } from "@/components/civic/next-bill-card";
 import { EventCard } from "@/components/state/event-card";
 import { StateSessionNote } from "@/components/state/session-note";
 import { FindStateSeats } from "@/components/state/find-state-seats";
+import { CityGlance } from "@/components/city/city-glance";
 import { StateSeats } from "@/components/state/state-seats";
 import { listBills } from "@/lib/civic/bills";
 import { getRepRecaps, getStateVoteQueue } from "@/lib/civic/engage";
@@ -102,6 +103,10 @@ export default async function StateHubPage({ params }: StateParams) {
           </p>
         </OuterBlock>
       )}
+
+      {livesHere && metrics?.stateLocation?.city ? (
+        <CityGlance state={state} city={metrics.stateLocation.city} userId={userId} />
+      ) : null}
 
       {nextBill ? (
         <Section title="Weigh in" description="Vote first, then see if your legislators agree with you." data-testid="state-next">

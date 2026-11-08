@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Ban, CalendarDays, FileText, MapPin } from "lucide-react";
+import { Ban, CalendarDays, FileText, MapPin, PlayCircle } from "lucide-react";
 import { OuterBlock } from "@/components/blocks";
 import { EVENT_KIND_LABELS, type EventKind } from "@/lib/civic/state-logic";
 import type { CivicEventRow } from "@/lib/civic/state";
@@ -56,12 +56,26 @@ export function EventCard({ event }: { event: CivicEventRow }) {
           {event.items.length > 6 ? `, and ${event.items.length - 6} more` : ""}
         </p>
       ) : null}
-      {event.documentUrl ? (
-        <a href={event.documentUrl} target="_blank" rel="noreferrer" className="tap inline-flex items-center gap-1 text-sm font-bold text-primary hover:underline">
-          <FileText className="size-4" aria-hidden />
-          Agenda (PDF)
-        </a>
-      ) : null}
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {event.documentUrl ? (
+          <a href={event.documentUrl} target="_blank" rel="noreferrer" className="tap inline-flex items-center gap-1 text-sm font-bold text-primary hover:underline">
+            <FileText className="size-4" aria-hidden />
+            Agenda (PDF)
+          </a>
+        ) : null}
+        {event.minutesUrl ? (
+          <a href={event.minutesUrl} target="_blank" rel="noreferrer" className="tap inline-flex items-center gap-1 text-sm font-bold text-primary hover:underline">
+            <FileText className="size-4" aria-hidden />
+            Minutes
+          </a>
+        ) : null}
+        {event.videoUrl ? (
+          <a href={event.videoUrl} target="_blank" rel="noreferrer" className="tap inline-flex items-center gap-1 text-sm font-bold text-primary hover:underline">
+            <PlayCircle className="size-4" aria-hidden />
+            Watch it
+          </a>
+        ) : null}
+      </div>
     </OuterBlock>
   );
 }
