@@ -33,6 +33,12 @@ export type CityConfig = {
   meetingsUrl: string;
   /** The city's own tool for finding your ward, because it doesn't publish the boundaries. */
   wardFinderUrl: string;
+  /** The ID scheme its officials carry in person_identifier. Their pages use it. */
+  personScheme: string;
+  /** What each role does, in a sentence, from how the city describes itself. */
+  roles: { MAYOR: string; AT_LARGE: string; WARD: string };
+  /** The city's own forms for things people ask of a role, like a proclamation from the mayor. */
+  roleLinks: Partial<Record<"MAYOR" | "COUNCIL_MEMBER", { label: string; url: string }[]>>;
 };
 
 export type StateConfig = {
@@ -101,6 +107,24 @@ export const STATES: StateConfig[] = [
         agendaPosted: { daysBefore: 4, hour: 16, minute: 0 },
         meetingsUrl: "https://www.dsm.city/government/city_council/meetings/index.php",
         wardFinderUrl: "https://showmemyhouse.dsm.city/",
+        personScheme: "dsm_official",
+        // The council page: a Council-Manager government, where voters elect the mayor, two at-large
+        // members, and one member for each ward, and the council appoints a City Manager. The minutes
+        // list the mayor on every roll call, so the mayor votes like the others.
+        roles: {
+          MAYOR: "Elected by the whole city. Chairs City Council meetings, and votes on each item like every other member.",
+          AT_LARGE: "Elected by the whole city, so they represent everyone in Des Moines.",
+          WARD: "Elected by one ward, and the council member who's only that ward's.",
+        },
+        roleLinks: {
+          MAYOR: [
+            { label: "Request a proclamation", url: "https://desmoines.rja.revize.com/forms/408" },
+            {
+              label: "Request a mayor appearance",
+              url: "https://forms.office.com/Pages/ResponsePage.aspx?id=yvTRtZprxkGF4e2PSYpaNT28pA8N1TNPlBdNH6gHi1RUMUVDQk0zNFdaTkcxS1FQM0tIMkwxOE5ROC4u",
+            },
+          ],
+        },
       },
     ],
   },

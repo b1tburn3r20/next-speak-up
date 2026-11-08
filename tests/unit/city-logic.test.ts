@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { agendaPostsAt, groupTopics, seatName, speakWindow, validWard } from "@/lib/civic/city-logic";
+import { agendaPostsAt, cityPositionLabel, groupTopics, seatName, speakWindow, summarizeOfficialRecord, validWard } from "@/lib/civic/city-logic";
 import { cityByKey, stateByKey, type CityConfig, type StateConfig } from "@/lib/civic/states";
 
 const IOWA = stateByKey("ia") as StateConfig;
@@ -64,5 +64,40 @@ describe("seats and wards", () => {
     expect(validWard(DES_MOINES, "4")).toBe("4");
     expect(validWard(DES_MOINES, "5")).toBeNull();
     expect(validWard(DES_MOINES, "0")).toBeNull();
+  });
+});
+
+describe("an official's record", () => {
+  const vote = (position: string, day: string, description: string | null = null, totalNay = 0) => ({
+    position,
+    rollCall: { description, occurredAt: new Date(`${day}T23:00:00Z`), totalNay },
+  });
+
+  it("counts attendance, no votes, motions, and stepping aside, from the checked votes", () => {
+    const record = summarizeOfficialRecord(
+      [
+        vote("YEA", "2026-07-13", "Moved by Gatto, seconded by Voss"),
+        vote("NAY", "2026-07-13", "Moved by Simonson, seconded by Gatto", 1),
+        vote("PRESENT", "2026-06-29"),
+        vote("NOT_VOTING", "2026-06-08"),
+      ],
+      "Gatto",
+    );
+    expect(record).toMatchObject({ votes: 4, present: 3, nays: 1, abstained: 1, moved: 1, seconded: 1, meetings: 3, meetingsAttended: 2 });
+    expect(record.attendancePercent).toBe(75);
+  });
+
+  it("never rounds a missed vote up to a perfect record", () => {
+    const votes = [...Array.from({ length: 300 }, () => vote("YEA", "2026-07-13")), vote("NOT_VOTING", "2026-07-13")];
+    expect(summarizeOfficialRecord(votes, "Voss").attendancePercent).toBe(99);
+  });
+
+  it("doesn't credit a motion to someone whose name is only part of another's", () => {
+    expect(summarizeOfficialRecord([vote("YEA", "2026-07-13", "Moved by Vossberg")], "Voss").moved).toBe(0);
+  });
+
+  it("says each position plainly", () => {
+    expect(cityPositionLabel("PRESENT")).toBe("Stepped aside");
+    expect(cityPositionLabel("NOT_VOTING")).toBe("Absent");
   });
 });

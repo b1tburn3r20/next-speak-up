@@ -72,6 +72,11 @@ export function memberPath(memberKey: string): string {
   return `${routes.federal.legislators}/${memberKey}`;
 }
 
+/** A city official's page, by the ID their city's pipeline gives them. */
+export function cityOfficialPath(stateKey: string, cityKey: string, officialId: string): string {
+  return `${stateRoutes(stateKey).city(cityKey)}/officials/${encodeURIComponent(officialId)}`;
+}
+
 export function eventPath(stateKey: string, id: number): string {
   return `${stateRoutes(stateKey).events}/${id}`;
 }

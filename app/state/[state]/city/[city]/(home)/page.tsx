@@ -13,6 +13,7 @@ import { getCityOfficials, getLatestTopics, getNextRegularMeeting, getPastMeetin
 import { groupTopics } from "@/lib/civic/city-logic";
 import { getStateLocation, listEvents } from "@/lib/civic/state";
 import { cityByKey, stateByKey } from "@/lib/civic/states";
+import { cityOfficialPath } from "@/lib/routes";
 
 type CityParams = { params: Promise<{ state: string; city: string }> };
 
@@ -48,6 +49,8 @@ export default async function CityPage({ params }: CityParams) {
   const mayor = officials.find((official) => official.terms[0]?.role === "MAYOR");
   const council = officials.filter((official) => official !== mayor);
   const yours = ward ? council.find((official) => official.terms[0]?.district?.code === ward) : null;
+  const officialHref = (official: (typeof officials)[number]) =>
+    official.identifiers[0] ? cityOfficialPath(state.key, city.key, official.identifiers[0].value) : undefined;
   const atLarge = council.filter((official) => official.terms[0]?.district?.code === "AL");
 
   return (
@@ -58,7 +61,7 @@ export default async function CityPage({ params }: CityParams) {
       />
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        {mayor ? <CityOfficialCard official={mayor} cityName={city.name} highlight="Your mayor" large /> : null}
+        {mayor ? <CityOfficialCard official={mayor} cityName={city.name} highlight="Your mayor" large href={officialHref(mayor)} /> : null}
         {next ? (
           <NextMeetingCard city={city} stateKey={state.key} meeting={next} timeZone={state.timeZone} now={now} />
         ) : (
@@ -108,7 +111,7 @@ export default async function CityPage({ params }: CityParams) {
           {livesHere ? (
             <OuterBlock className="space-y-3" data-testid="your-ward">
               {yours ? (
-                <CityOfficialCard official={yours} cityName={city.name} highlight="Your council member" />
+                <CityOfficialCard official={yours} cityName={city.name} highlight="Your council member" href={officialHref(yours)} />
               ) : (
                 <p className="text-sm">Choose your ward to see which council member is yours.</p>
               )}
@@ -118,7 +121,7 @@ export default async function CityPage({ params }: CityParams) {
           {council.length > 0 ? (
             <Grid cols="halves" data-testid="city-council-members">
               {[...atLarge, ...council.filter((official) => !atLarge.includes(official))].map((official) => (
-                <CityOfficialCard key={official.id} official={official} cityName={city.name} />
+                <CityOfficialCard key={official.id} official={official} cityName={city.name} href={officialHref(official)} />
               ))}
             </Grid>
           ) : (

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 import { OuterBlock } from "@/components/blocks";
 import { MemberPhoto } from "@/components/people/member-photo";
@@ -11,9 +12,12 @@ export function CityOfficialCard({
   cityName,
   highlight,
   large = false,
+  href,
 }: {
   official: CityOfficial;
   cityName: string;
+  /** Their page. Every card in a city links to it. */
+  href?: string;
   /** Shown above the name, like "Your council member". */
   highlight?: string;
   large?: boolean;
@@ -27,7 +31,13 @@ export function CityOfficialCard({
         <MemberPhoto name={official.fullName} url={official.imageUrl} party={null} size={large ? 88 : 56} />
         <div className="min-w-0">
           <p className={cn("break-words font-extrabold leading-snug", large ? "text-xl" : "")} data-testid="city-official-name">
-            {official.fullName}
+            {href ? (
+              <Link href={href} className="hover:underline">
+                {official.fullName}
+              </Link>
+            ) : (
+              official.fullName
+            )}
           </p>
           <p className="text-sm text-muted-foreground">
             {term?.role === "MAYOR" ? `Mayor of ${cityName}` : `Council member, ${seat}`}

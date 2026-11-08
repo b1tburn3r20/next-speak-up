@@ -106,3 +106,37 @@ test.describe("your ward", () => {
     await expect(main(page).getByTestId("city-glance")).toHaveCount(0);
   });
 });
+
+test.describe("an official's page", () => {
+  test("the mayor's card leads to the mayor's page, with role, contact, and record", async ({ page }) => {
+    await page.goto(CITY);
+    await main(page).getByTestId("city-official").first().getByRole("link", { name: "Connie Boesen" }).click();
+    await expect(page).toHaveURL(/\/state\/ia\/city\/des-moines\/officials\/connie-boesen$/);
+    await expect(main(page).getByTestId("official-seat")).toHaveText("Mayor of Des Moines");
+    await expect(main(page)).toContainText("Chairs City Council meetings");
+    await expect(main(page).getByTestId("official-contact")).toContainText("(515) 283-4944");
+    await expect(main(page).getByTestId("official-role-link").first()).toContainText("proclamation");
+    await expect(main(page).getByTestId("official-attendance")).toContainText("%");
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("a council member's page lists where they voted no", async ({ page }) => {
+    await page.goto(`${CITY}/officials/carl-voss`);
+    await expect(main(page).getByTestId("official-seat")).toContainText("At-large");
+    const noVotes = main(page).getByTestId("official-no-votes").getByTestId("official-vote");
+    await expect(noVotes.first()).toBeVisible();
+    for (const position of await noVotes.evaluateAll((rows) => rows.map((row) => row.getAttribute("data-position")))) {
+      expect(position).toBe("NAY");
+    }
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("shows no party, because the city's offices are nonpartisan", async ({ page }) => {
+    await page.goto(`${CITY}/officials/connie-boesen`);
+    await expect(main(page)).not.toContainText(/Democrat|Republican/);
+  });
+
+  test("someone who isn't an official there is a 404", async ({ page }) => {
+    expect((await page.goto(`${CITY}/officials/nobody-here`))?.status()).toBe(404);
+  });
+});

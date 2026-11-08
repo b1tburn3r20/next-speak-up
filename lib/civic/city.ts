@@ -4,8 +4,25 @@ import { Prisma } from "@prisma/client";
 import prisma from "@/prisma/client";
 import type { CityConfig } from "./states";
 
+const officialSelect = (city: CityConfig) =>
+  ({
+    id: true,
+    fullName: true,
+    imageUrl: true,
+    phone: true,
+    email: true,
+    websiteUrl: true,
+    identifiers: { where: { scheme: city.personScheme }, take: 1, select: { value: true } },
+    terms: {
+      where: { isCurrent: true, chamber: { jurisdiction: { code: city.jurisdiction } } },
+      take: 1,
+      select: { role: true, startYear: true, endYear: true, district: { select: { code: true } } },
+    },
+  }) satisfies Prisma.PersonSelect;
+
 const OFFICIAL_SELECT = {
   id: true,
+  identifiers: { take: 1, select: { value: true } },
   fullName: true,
   imageUrl: true,
   phone: true,
@@ -24,7 +41,7 @@ export type CityOfficial = Prisma.PersonGetPayload<{ select: typeof OFFICIAL_SEL
 export const getCityOfficials = cache(async (city: CityConfig): Promise<CityOfficial[]> => {
   const people = await prisma.person.findMany({
     where: { terms: { some: { isCurrent: true, chamber: { jurisdiction: { code: city.jurisdiction } } } } },
-    select: OFFICIAL_SELECT,
+    select: officialSelect(city),
   });
   const rank = (person: CityOfficial) => {
     const term = person.terms[0];
@@ -120,4 +137,39 @@ export async function saveUserWard(userId: string, city: CityConfig, regionCode:
     create: { userId, jurisdictionId: jurisdiction.id, districtId: district.id, regionCode, source: "MANUAL" },
   });
   return true;
+}
+
+/** One official, by the ID their city's pipeline gave them. */
+export const getCityOfficial = cache(async (city: CityConfig, officialId: string): Promise<CityOfficial | null> => {
+  const identifier = await prisma.personIdentifier.findUnique({
+    where: { scheme_value: { scheme: city.personScheme, value: officialId } },
+    select: { person: { select: officialSelect(city) } },
+  });
+  return identifier?.person.terms.length ? identifier.person : null;
+});
+
+/** Every council vote of theirs we could check, newest first. */
+export async function getOfficialVotes(city: CityConfig, personId: number) {
+  return prisma.rollCallPosition.findMany({
+    where: { personId, rollCall: { jurisdiction: { code: city.jurisdiction } } },
+    orderBy: [{ rollCall: { occurredAt: "desc" } }, { rollCall: { number: "desc" } }],
+    select: {
+      position: true,
+      rollCall: {
+        select: {
+          id: true,
+          legislationRef: true,
+          question: true,
+          description: true,
+          result: true,
+          occurredAt: true,
+          totalYea: true,
+          totalNay: true,
+          totalNotVoting: true,
+          totalPresent: true,
+          sourceUrl: true,
+        },
+      },
+    },
+  });
 }

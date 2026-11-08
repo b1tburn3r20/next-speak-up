@@ -223,7 +223,6 @@ What "built out" means for the first state. Unchecked items say what's in the wa
 
 **Not built, because there's no source we can read and check**
 
-- [ ] Des Moines council votes. The roll call PDFs exist, but aren't read yet
 - [ ] Election dates. sos.iowa.gov refuses automated requests, so the page links to it instead
 
 ## Cities
@@ -240,4 +239,9 @@ Built from `CityConfig` in `lib/civic/states.ts`, so a new city is its pipeline 
 - [x] City Hall on the dashboard and state page for residents (test)
 - [x] A city we don't cover is a 404, and a ward the city doesn't have is refused
 - [x] Nothing reads dsmcity.primegov.com, whose robots.txt disallows everything. The page links people to the city instead
+- [x] Every official has a page: role, term, contact, the city's own forms for that role, and their record (test)
+- [x] Votes are rebuilt from the minutes, and kept only when the names match the clerk's tally (test)
+- [x] A vote split across sub-items, or naming someone not on the roster, is left out rather than guessed (test)
+- [x] No party is shown for city officials, because the offices are nonpartisan (test)
+- [ ] Votes before January 2026. They name former members, who aren't loaded, so they're left out
 

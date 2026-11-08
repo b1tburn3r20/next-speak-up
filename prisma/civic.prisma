@@ -60,6 +60,8 @@ enum DataSource {
   HOUSE_CLERK
   VOTEVIEW
   IOWA_LEGISLATURE
+  // A city clerk's minutes, like Des Moines's
+  CITY_RECORDS
 }
 
 enum LocationSource {
