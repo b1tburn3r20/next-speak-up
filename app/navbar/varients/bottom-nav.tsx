@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Building2, Home, Landmark, LayoutGrid, Map, Vote } from "lucide-react";
 import NavUser from "@/components/nav-user";
+import { InstallTile } from "@/components/app/install-prompt";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { NavItem, NavLabels } from "@/app/data/navbar-data";
@@ -115,6 +116,7 @@ export function BottomNav({ groups, labels }: { groups: Group[]; labels: NavLabe
                 </ul>
               </section>
             ))}
+            <InstallTile onDone={() => setOpen(false)} />
           </nav>
           <div className="border-t-2">
             <NavUser />

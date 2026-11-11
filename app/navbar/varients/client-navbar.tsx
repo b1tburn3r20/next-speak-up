@@ -15,6 +15,7 @@ import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { SearchDialog } from "@/components/search/search-dialog";
 import { MobileNavbar } from "./mobile-navbar";
+import { InstallPrompt } from "@/components/app/install-prompt";
 
 interface ClientNavbarProps {
   visibleNavHrefs: string[];
@@ -66,6 +67,7 @@ const ClientNavbar = ({ visibleNavHrefs, labels, session, userRole, hud, childre
     <div className="flex h-dvh flex-col">
       <NavbarTop hud={hud} signedIn={Boolean(session?.user)} />
       <MobileNavbar groups={groups} labels={labels} hud={hud} />
+      <InstallPrompt />
       <div className="flex min-h-0 flex-1">
         <div
           className={cn(

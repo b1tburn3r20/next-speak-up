@@ -65,6 +65,16 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={nunito.variable}>
+      <head>
+        {/* Android offers to install as the page loads, often before React or Next's own scripts.
+            An inline script runs while the HTML is still being read, so the offer is kept for the
+            install prompt (stores/use-install-store.ts) instead of lost. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__coolbillsInstall=e;});`,
+          }}
+        />
+      </head>
       <body
         suppressHydrationWarning
       >
