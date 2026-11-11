@@ -58,7 +58,7 @@ function SplitBar({ split }: { split: CommunitySplit }) {
         <span>{100 - split.supportPercent}% oppose</span>
       </p>
       <p className="text-xs text-muted-foreground">
-        {split.total} votes from people using this app. It isn&apos;t a poll of everyone.
+        {split.total}{" "}votes from people using this app. It isn&apos;t a poll of everyone.
       </p>
     </div>
   );

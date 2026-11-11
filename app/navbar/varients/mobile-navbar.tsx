@@ -1,88 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Menu, X } from "lucide-react";
-import NavUser from "@/components/nav-user";
-import { Button } from "@/components/ui/button";
-import type { NavItem as NavItemData } from "../../data/navbar-data";
-import NavItem from "../nav-item";
+import type { NavItem, NavLabels } from "../../data/navbar-data";
 import { BottomNav } from "./bottom-nav";
-import { SearchButton } from "@/components/search/search-dialog";
-import { Hud, HudStrip } from "@/components/civic/hud";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { HudStrip } from "@/components/civic/hud";
 import type { HudProgress } from "@/lib/civic/progress";
 
-/** The top bar and slide-out menu, shown only below the medium breakpoint. */
-export function MobileNavbar({ items, hud }: { items: NavItemData[]; hud: HudProgress | null }) {
-  const [open, setOpen] = useState(false);
-
+/** What only phones get: a thin progress line under the top bar, and the tabs at the bottom. */
+export function MobileNavbar({
+  groups,
+  labels,
+  hud,
+}: {
+  groups: { id: string; label: string | null; items: NavItem[] }[];
+  labels: NavLabels;
+  hud: HudProgress | null;
+}) {
   return (
     <div className="md:hidden" data-testid="mobile-navbar">
-      <div className="flex items-center justify-between gap-1 border-b border-primary bg-background px-2 py-1">
-        <Link href="/dashboard" aria-label="Coolbills dashboard">
-          <Image
-            height={29}
-            width={100}
-            alt=""
-            src="/images/assets/logo.png"
-            className="w-20 sm:w-[100px]"
-            style={{ height: "auto" }}
-            loading="eager"
-          />
-        </Link>
-        <div className="flex items-center gap-1">
-          {hud ? <Hud initial={hud} /> : null}
-          <SearchButton compact />
-          <ThemeToggle />
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Open menu"
-            aria-expanded={open}
-            onClick={() => setOpen(true)}
-            data-testid="mobile-menu-button"
-          >
-            <Menu className="size-5" />
-          </Button>
-        </div>
-      </div>
       {hud ? <HudStrip initial={hud} /> : null}
-
-      {open ? (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setOpen(false)} />
-          <div
-            role="dialog"
-            aria-label="Menu"
-            className="fixed right-0 top-0 z-50 flex h-dvh w-64 max-w-[85vw] flex-col border-l border-primary/50 bg-background"
-          >
-            <div className="flex items-center justify-between border-b border-primary/50 p-3">
-              <span className="font-semibold">Menu</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Close menu"
-                onClick={() => setOpen(false)}
-              >
-                <X className="size-5" />
-              </Button>
-            </div>
-            <nav className="flex-1 overflow-y-auto" aria-label="Main">
-              {items.map((item) => (
-                <div key={item.href} onClick={() => setOpen(false)}>
-                  <NavItem href={item.href} />
-                </div>
-              ))}
-            </nav>
-            <div className="border-t border-primary/50">
-              <NavUser />
-            </div>
-          </div>
-        </>
-      ) : null}
-      <BottomNav />
+      <BottomNav groups={groups} labels={labels} />
     </div>
   );
 }

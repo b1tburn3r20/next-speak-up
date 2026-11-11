@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { FORUM_OPEN } from "../../lib/features";
 import { BASE_URL, blockPaidServices, expectNoHorizontalOverflow, loginAs } from "./helpers";
 
 const ORIGIN = { origin: BASE_URL };
@@ -141,9 +142,17 @@ test.describe("the profile page", () => {
     await page.goto(`/users/${id}`);
     await expect(page.getByTestId("profile-cover")).toBeVisible();
     await expect(page.getByTestId("profile-avatar")).toBeVisible();
-    await expect(page.getByTestId("profile-stat")).toHaveCount(6);
-    await expect(page.getByTestId("profile-no-activity")).toBeVisible();
-    await page.getByTestId("tab-badges").click();
+    // Posts are a stat only while the forum is open.
+    await expect(page.getByTestId("profile-stat")).toHaveCount(FORUM_OPEN ? 6 : 5);
+    // With no posts but some badges, it opens on Badges, so the first thing seen isn't empty.
+    await expect(page.getByTestId("profile-badges")).toBeVisible();
+    if (FORUM_OPEN) {
+      await page.getByTestId("tab-activity").click();
+      await expect(page.getByTestId("profile-no-activity")).toBeVisible();
+      await page.getByTestId("tab-badges").click();
+    } else {
+      await expect(page.getByTestId("tab-activity")).toHaveCount(0);
+    }
     // This account has a state, so it has its reps, as well as its first vote.
     await expect(page.locator('[data-testid="profile-badge"][data-earned="true"]')).toHaveCount(2);
     await expectNoHorizontalOverflow(page);
@@ -157,9 +166,7 @@ test.describe("the profile page", () => {
     const { id } = await newUser(page);
     // Cleared directly, because the settings form treats an unset username as unchanged.
     await page.request.patch("/api/user/settings", { headers: ORIGIN, data: { username: null } });
-    await page.goto("/federal/bills");
-    await page.locator('[data-testid="hud-streak"]:visible').first().click();
-    await expect(page).toHaveURL(new RegExp(`/users/${id}$`));
+    await page.goto(`/users/${id}`);
     await expect(page.getByTestId("profile-title")).toHaveText("Coolbills member");
   });
 
@@ -273,19 +280,20 @@ test.describe("the profile page", () => {
 });
 
 test.describe("clickable progress", () => {
-  test("the streak goes to your profile, and level to your progress", async ({ page }) => {
-    const { id, username } = await newUser(page);
+  test("the streak, today's goal, and level are one link to your progress, where they're explained", async ({ page }) => {
+    await newUser(page);
     await page.goto("/federal/bills");
-    await page.locator('[data-testid="hud-streak"]:visible').first().click();
-    await expect(page).toHaveURL(new RegExp(`/users/${id}$`));
-    await page.locator('[data-testid="hud-link"]:visible').first().click();
+    const hud = page.locator('a[data-testid="hud"]:visible').first();
+    await expect(hud).toHaveAttribute("href", "/progress");
+    await expect(hud.getByTestId("hud-streak")).toBeVisible();
+    await hud.click();
     await expect(page).toHaveURL(/\/progress$/);
   });
 
   test("the dashboard's tiles go to the same places", async ({ page }) => {
     const { id, username } = await newUser(page);
     await page.goto("/dashboard");
-    await expect(page.getByTestId("strip-streak")).toHaveAttribute("href", `/users/${id}`);
+    await expect(page.getByTestId("strip-streak")).toHaveAttribute("href", "/progress");
     await expect(page.getByTestId("strip-level")).toHaveAttribute("href", "/progress");
     await expect(page.getByTestId("strip-goal")).toHaveAttribute("href", "/vote");
   });

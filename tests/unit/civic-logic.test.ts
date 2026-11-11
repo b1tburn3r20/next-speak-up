@@ -18,6 +18,9 @@ import {
   seatLabel,
 } from "@/lib/civic/labels";
 import {
+  censusLayers,
+  censusLookupUrl,
+  parseCensusResult,
   censusVintage,
   congressOn,
   districtFromAddress,
@@ -285,6 +288,43 @@ describe("geocoder calls", () => {
       .fn()
       .mockResolvedValue(new Response(JSON.stringify({ result: { addressMatches: [] } })));
     await expect(districtFromAddress("nowhere", fetcher)).resolves.toBeNull();
+  });
+
+  it("asks only for the layers it reads, for the map in use", async () => {
+    const fetcher = ok();
+    await districtFromCoordinates(30, -95, fetcher);
+    const url = new URL(fetcher.mock.calls[0][0]);
+    expect(url.searchParams.get("layers")).toBe(censusLayers(url.searchParams.get("vintage") as string));
+    expect(censusLayers("ACS2024_Current")).toBe("28,54,56,58");
+    expect(censusLayers("Current_Current")).toBe("all");
+  });
+
+  it("tries once more when the Census couldn't be reached, but not when it answered with an error", async () => {
+    const flaky = vi.fn().mockRejectedValueOnce(new TypeError("fetch failed")).mockResolvedValue(new Response(JSON.stringify(body)));
+    await expect(districtFromCoordinates(30, -95, flaky)).resolves.toEqual({ regionCode: "TX", districtCode: "2" });
+    expect(flaky).toHaveBeenCalledTimes(2);
+    const down = vi.fn().mockResolvedValue(new Response("", { status: 503 }));
+    await expect(districtFromCoordinates(30, -95, down)).rejects.toThrow("503");
+    expect(down).toHaveBeenCalledTimes(1);
+  });
+
+  it("builds the same lookup for the browser, as JSONP with a callback", () => {
+    const point = new URL(censusLookupUrl({ lat: 41.5, lng: -93.6 }, "jsonp", "answer"));
+    expect(point.pathname).toMatch(/\/coordinates$/);
+    expect(point.searchParams.get("format")).toBe("jsonp");
+    expect(point.searchParams.get("callback")).toBe("answer");
+    expect(point.searchParams.get("x")).toBe("-93.6");
+    const address = new URL(censusLookupUrl({ address: "400 Robert D. Ray Dr, Des Moines, IA" }));
+    expect(address.pathname).toMatch(/\/onelineaddress$/);
+    expect(address.searchParams.get("address")).toBe("400 Robert D. Ray Dr, Des Moines, IA");
+    expect(address.searchParams.get("callback")).toBeNull();
+  });
+
+  it("reads a point's district, or an address's first match, and nothing from junk", () => {
+    expect(parseCensusResult({ lat: 30, lng: -95 }, body)).toEqual({ regionCode: "TX", districtCode: "2" });
+    expect(parseCensusResult({ address: "x" }, body)).toEqual({ regionCode: "NY", districtCode: "14" });
+    expect(parseCensusResult({ lat: 30, lng: -95 }, "<script>")).toBeNull();
+    expect(parseCensusResult({ address: "x" }, null)).toBeNull();
   });
 
   it("raises an error when the geocoder is down", async () => {

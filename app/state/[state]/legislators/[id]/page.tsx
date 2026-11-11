@@ -18,7 +18,8 @@ import { getStateLegislator } from "@/lib/civic/state";
 import { stateByKey } from "@/lib/civic/states";
 import { comparedVotesFor } from "@/lib/civic/users";
 import { alignmentByPolicyArea, computeAlignment } from "@/lib/civic/alignment";
-import { billPath, stateRoutes } from "@/lib/routes";
+import { billPath, memberPath, stateRoutes } from "@/lib/routes";
+import { PulseCheckStart } from "@/components/people/pulse-check-page";
 
 type PageProps = { params: Promise<{ state: string; id: string }> };
 
@@ -79,6 +80,7 @@ async function LegislatorBody({ params }: PageProps) {
       <WithRail
         rail={
           <>
+            {key && stats.totalVotes > 0 ? <PulseCheckStart pulseHref={`${memberPath(key)}/pulse-check`} firstName={member.fullName.split(" ")[0]} /> : null}
             <OuterBlock className="space-y-2" data-testid="legislator-contact">
               <h2 className="text-lg font-extrabold">Reach them</h2>
               {member.phone ? (

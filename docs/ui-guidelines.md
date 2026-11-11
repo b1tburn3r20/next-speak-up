@@ -2,6 +2,16 @@
 
 **Target:** every screen is fun, obvious, and fast on a phone. **Goal:** anyone can build a new page at scale from the same blocks, and it looks right without thinking about spacing.
 
+## One job per page
+
+Every page has one job and leads somewhere, listed in `docs/clarity-benchmark.md`. A section that doesn't serve a page's job belongs on the page whose job it is, and the first page links there. Score a page against that sheet's eight questions before calling it done: **could a 13-year-old use it without asking anyone?**
+
+- **Home** is three things, in order: your next vote (one card, voted on right there), who represents you (`MyPeople`: every face from Congress to City Hall, with whether they match you), and `ThisWeek` (one row per government, each leading to its page). It never holds a whole schedule, chart, or list.
+- **Depth goes in tabs.** When a page has more than one deep section, the first screen holds the point and the action, and the rest sit in `SectionTabs` (bills, members, cities, Upcoming's House and Senate, Home's lists). A `Disclosure` is for one thing someone might want, like the rank ladder or changing where you live.
+- **A directory is rows, not cards.** Long lists of people use `MemberList`, one short row each, with the person's own first when there are any.
+- **Say why.** A bill in a vote session says why it's there. A number says what it counts. A gap says what to do instead.
+- **Nothing twice.** If a page shows something, no other block on it repeats it.
+
 ## The test for every component and page
 
 Ask each of these. If an answer is no, make it better before moving on.
@@ -37,7 +47,9 @@ Build pages only from `components/blocks`. Don't hand-write spacing, card styles
 
 We cover federal and Iowa. Every screen and model must leave room for more states.
 
-- **States are data.** A state and its cities come from `lib/civic/states.ts`, and components take one as a prop. Don't write a state's or city's name, chambers, or URL into a component. The nav has one "My State" link to `/state`, which sends people to theirs.
+- **States are data.** A state and its cities come from `lib/civic/states.ts`, and components take one as a prop. Don't write a state's or city's name, chambers, or URL into a component. The nav has one "My State" link to `/state`, which sends people to theirs, and one "My City" link to `/city`, which does the same for their city or asks which it is. A state's city pages light up "My City", through `navPathname` in `lib/nav.ts`.
+- **Depth, not length:** `/states` lists every state, a state's page leads to its cities, and a city's page leads to its meetings and officials. Each page's first phone screen holds what's yours and the ways in (`DepthTile`, `CityGlanceCard`, or Des Moines's `NextMeetingCard`). Deeper sections go behind `SectionTabs` (`CityTabs` on a city) or a `Disclosure`, rather than stacking. Lists you search, like states and cities, come with the page and narrow as you type (`PlaceFinder`).
+- **Notifications** are offered where they help, never on page load: "Remind me" on a city, "Tell me how it turns out" on a bill, and Settings. iPhones need the site added to the Home Screen first, and the controls say so.
 - **State pages:** `/state/{state}` is the hub. It says when the Legislature is out rather than showing empty lists, shows who's sitting rather than who just won, and names empty seats. One "Iowa" nav link appears for people located there.
 - **Words:** `lib/civic/government.ts` has what differs, like Governor and President. Never write "Congress" in something a state bill can reach.
 
@@ -49,6 +61,12 @@ We cover federal and Iowa. Every screen and model must leave room for more state
 ## Navigation
 
 - **Nav items live in `app/data/navbar-data.ts`.** An item can have `children`, shown indented beneath it. Core features are root links. Secondary ones, like Topics under Bills, are children.
+- **Groups answer three questions.** What do I do now (Home, Vote, no heading), how am I doing (You), and which government am I looking at (Congress, Where you live). Everything else is More. Every item has a `group`, and `NAV_GROUPS` sets the order and headings.
+- **Your places go by name.** "My State" and "My City" show as the person's own, like "Iowa" and "Des Moines" (`getNavPlacesSafe`). Everyone has States. A state or city page that isn't the person's lights States (`activeVisibleHref`).
+- **One top bar, at every size,** like most sites: the menu button, then the logo, which goes to the front page (`/`), then search in the middle, then your progress, the bell, and the theme. Signed out, Log in takes the bell's place. Home is in the menu, so the front page is always one tap away and Home is too.
+- **The bell is where news goes.** It lists what we've sent you (`notification_delivery`) and the votes your reps cast that you haven't. Its count only covers what's new since you last opened it, so it doesn't nag. No menu item carries a count: a red number on a tab doesn't say what it's counting.
+- **Phones:** five tabs: Home, Vote, Congress, the person's state (or States), and More. More opens a bottom sheet with every other page as tiles, in the same groups, and lights up for a page only it holds, like My Reps.
+- **The sidebar** narrows to icons with the menu button at the far left of the top bar, remembered on the device. Clicking the page never changes it.
 - **One link is active.** Always use `activeNavHref` from `lib/nav.ts`, where the longest matching link wins. Never use `pathname.startsWith` on its own: it lights up both `/bills` and `/bills/upcoming`.
 - **Who sees an item** is set by `permission`, never by role name.
 
@@ -63,7 +81,7 @@ People relate to relative times. Show every date with `RelativeDate` from `compo
 
 ## Loading bar
 
-`TopProgressBar` is on every page, like YouTube's. It jumps forward when a request starts, creeps while waiting, and races to the end when the last one finishes. `fetch` is wrapped, so new requests show up without doing anything. Prefetches and session checks don't count, because nobody's waiting on them.
+`TopProgressBar` is on every page, like YouTube's. It jumps forward when a request starts, creeps while waiting, and races to the end when the last one finishes. It's for moving between pages and for saving. Loading part of a page, which is any GET to `/api/*` (`isPartialLoad`), shows a skeleton where the answer goes instead, so typing in search doesn't flash the bar. `fetch` is wrapped, so new requests follow these rules without doing anything. Prefetches and session checks don't count, because nobody's waiting on them.
 
 ## Editing in place
 
@@ -75,7 +93,9 @@ Every page and API route has one, listed in `docs/loading-states.md`. A request 
 
 ## Floor board
 
-The dashboard leads with what's happening now: each chamber's next meeting, then this week and next week for the House and Senate side by side. An empty week stays on the board and says why it's empty. Show a bill's plain title, and keep the Senate's legal text behind a disclosure. A bill's status stays hidden until the person has voted.
+Upcoming votes (`/federal/upcoming`) is the schedule's one home, and Home only counts it. It leads with each chamber's next meeting, then a House tab and a Senate tab, each with this week and next week. An empty week stays on the board and says why it's empty. Show a bill's plain title, and keep the Senate's legal text behind a disclosure. A bill's status stays hidden until the person has voted.
+
+Signed in, the House tab is a game: a bar for how many of the bills Congress hasn't voted on yet you've beaten it to, then an accordion of three groups, each with a live count. You've voted (closed), Up soon and waiting on your vote (open), and Congress already voted (closed, at the bottom). The last group says Congress acted, but not how, until you vote. Signed out, it's the weeks in order.
 
 ## Onboarding
 
@@ -88,6 +108,7 @@ The dashboard leads with what's happening now: each chamber's next meeting, then
 - **To search something new:** write a provider, and add it to the list. Nothing else changes.
 - **Independent:** each group has its own request, skeleton, and error, so a slow one never holds up the others.
 - **Ranked by us:** use `commandScore` or `scoreFields` from `lib/search/score.ts`, so typos and initials work, and ranking stays the same everywhere.
+- **Words for your own places:** "mayor", "city hall", "town hall", "council", "state senator", and the like are intents in `lib/search/intents.ts`. The Yours group comes first and answers with the person's own mayor, City Hall, or next meeting, or says how to find them.
 - **Permissions:** a provider's `access` is checked on the server for every request. Someone without permission gets the same 404 as for a provider that doesn't exist.
 
 ## Admin panel
@@ -104,6 +125,35 @@ Someone signed in who hasn't voted on a bill sees `VoteGateCard`: what it is, wh
 
 Any card that asks for a vote keeps status inside `AfterVote`. After a vote, `BillOutlookCard` says what the status means for them. An already-passed bill still matters, because it shows whether their reps represent them. Lists for browsing, like `/federal/bills`, keep status, because people filter by it.
 
+## Where words come from
+
+The sparkle icon means XP, and nothing else, because people read it as "made by AI" everywhere else. Never put it next to a summary, a digest, or anything we didn't write. "In short" is the opening of the official summary, word for word, and its heading opens an explanation saying so (`InShortHeading`). If AI-written text is ever added, it gets its own plain label ("Written by AI, check the summary"), not an icon.
+
+## Legislative words
+
+Summaries underline the words people trip on, like "cloture" or "CBO", in the primary color with a faint primary background, and each opens its plain meaning. Only a word's first use in a block is marked, so a summary never turns into a wall of underlines. A word with several meanings, like an acronym, lists them numbered. Admins edit the list at `/admin/glossary`. Use `LegiText` for plain text and `LegiHtml` for a summary's HTML. Don't put either inside a link, because a button can't sit inside one.
+
+## Opening more in place
+
+**Anything that explains, qualifies, or adds detail goes in a `DialogPopover`, not on the page.** That's where a source goes ("where this comes from"), what a word or number means, the list behind a count, and the fine print behind a label. The page keeps the fact, and a tap shows the why. A 13-year-old reads the short version, and anyone curious is one tap from the rest.
+
+`DialogPopover` (`components/ui/dialog-popover.tsx`) takes a trigger and content. It opens the content beside the trigger on a computer with a mouse, and as a dialog on a phone, decided when it opens, so the server's HTML is the same for everyone. Its content mounts only while open, so it can load then and show a skeleton. Pass `inline` for a trigger inside a sentence or a heading.
+
+- **The trigger shows that it opens.** An underlined word, a small info or chevron icon, or a card that lifts on hover. Never hide a tap on plain text that looks like any other.
+- **Examples:** "In short" (where the words come from), a glossary word, a member's topic chart and Became law card (the bills behind each number).
+- **Which to use:**
+
+| Hidden content | Use |
+| --- | --- |
+| An explanation, a definition, a source, or a short list behind a number | `DialogPopover` |
+| More of the same content, in place, like older summaries | `Disclosure` |
+| A whole section someone chooses to read, like a bill's history or votes | `SectionTabs` |
+| A whole job, like editing | Edit in place (see "Editing in place") |
+
+## Pulse check
+
+On a member's page, "Pulse check" sits inside "Do they represent you?" (`PulseCheckStart embedded`), because it's the fastest way to answer it. It offers 3, 5, or 10 bills: 5 as `primary_outline`, the others as `accent`. A state legislator's page has it in its own card, under the same question. It's a voting session over the earliest bills they cast a final vote on that you haven't, each saying "{Name} voted on this", never how. At the end, their votes are fetched for only the bills you voted on in the run, and the summary says how you lined up on just those, bill by bill, with your full match left to their page. The Vote page itself carries no count of what's waiting: that's the bell's job, and on the voting screen it only distracts.
+
 ## XP
 
 The bar on every page, `Hud`, is the one place progress lives. Read it with `useProgress`, which takes the server's value for the first paint. The `XpEvent` ledger is the truth, and every action has one fixed reward in `XP_AMOUNTS`. Support and Oppose always earn the same: the app never rewards a side. Never reward voting in a real election.
@@ -119,6 +169,7 @@ The bar on every page, `Hud`, is the one place progress lives. Read it with `use
 - **The leaderboard** is opt-in, by state, and shows only a username and XP. It never shows how anyone voted. Moderators with `forum.moderate` can take a name off.
 - **Self-reported actions**, like contacting a rep, are labelled as what someone said they did. Only offer contacting a rep when `billOutlook` says it could still change something.
 - **Never reward voting in a real election**, or how anyone voted.
+- **Rewards move.** +XP bursts out of its chip and flies to the top bar, where the number counts up (`useCountUp`) and the level glows. Today's goal ring pops into a check the moment it's met, not when a page loads already met. A new rank, level, badge, or goal gets a card in its own color with a bouncing icon, a ring burst, and confetti from both sides in the theme's colors (`celebrationKind` in `lib/civic/celebration.ts`). A tap dismisses it. All of it is off for anyone who asks for less motion.
 
 ## Profiles
 
@@ -183,6 +234,7 @@ Keep lines under about 70 characters. Headings use sentence case. Buttons start 
 ## Representation alignment
 
 - **Keep the rep's vote hidden until the user votes.** Rep positions must not be in the page's HTML before that. They come from `/api/civic/bills/reveal`, after a vote or a tap on "Show me anyway".
+- **Push notifications count as asking.** A vote result names the person's own legislators' votes, because they only get it for a bill they followed, voted on, or asked about through their topics.
 - **Show the reveal as an event:** the picture, how they voted, and whether you match.
 - **Say what the score means in words.** Never show a bare percentage: use `alignmentVerdict`. With fewer than 3 shared votes, say how many more are needed instead of showing a shaky number.
 - **Judge jobs by comparison:** "shows up more than 72% of the House" means more than "96%".

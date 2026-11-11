@@ -3,7 +3,8 @@ import { cache } from "react";
 import { Prisma } from "@prisma/client";
 import prisma from "@/prisma/client";
 import { MEMBER_SELECT, type MemberCard } from "./people";
-import { cityByGeoid, eventJurisdictions, stateByRegion, STATES, type ChamberKind, type CityConfig, type StateConfig } from "./states";
+import { eventJurisdictions, stateByRegion, STATES, type ChamberKind, type StateConfig } from "./states";
+import { getCityByGeoid, type CityContext } from "./city-registry";
 import { getUserLocation } from "./users";
 
 export type StateLocation = {
@@ -11,7 +12,8 @@ export type StateLocation = {
   upperCode: string | null;
   lowerCode: string | null;
   placeGeoid: string | null;
-  city: CityConfig | null;
+  /** Any city in the state, found from the place ID a location lookup gave. */
+  city: CityContext | null;
 };
 
 /** The state someone lives in, if it's one we cover. Their federal location is what says where they are. */
@@ -34,7 +36,7 @@ export const getStateLocation = cache(async (userId: string, state: StateConfig)
     lowerCode: row.district?.code ?? null,
     upperCode: row.upperDistrict?.code ?? null,
     placeGeoid: row.placeGeoid,
-    city: cityByGeoid(state, row.placeGeoid),
+    city: await getCityByGeoid(state, row.placeGeoid),
   };
 });
 
@@ -78,6 +80,18 @@ export async function saveStateLocation(
     where: { userId_jurisdictionId: { userId, jurisdictionId: jurisdiction.id } },
     update: values,
     create: { userId, jurisdictionId: jurisdiction.id, ...values },
+  });
+  return true;
+}
+
+/** Someone says which city they live in, or that they don't live in one. Their districts stay as they are. */
+export async function saveHomeCity(userId: string, state: StateConfig, placeGeoid: string | null): Promise<boolean> {
+  const jurisdiction = await prisma.jurisdiction.findUnique({ where: { code: state.jurisdiction }, select: { id: true } });
+  if (!jurisdiction) return false;
+  await prisma.userLocation.upsert({
+    where: { userId_jurisdictionId: { userId, jurisdictionId: jurisdiction.id } },
+    update: { placeGeoid },
+    create: { userId, jurisdictionId: jurisdiction.id, regionCode: state.regionCode, placeGeoid, source: "MANUAL" },
   });
   return true;
 }
@@ -228,6 +242,14 @@ export async function getBillEvents(state: StateConfig, label: string, take = 5)
 /** Whether this person said they went, once per event. It's self-reported, and always shown that way. */
 export async function hasReportedAttending(userId: string, eventId: number): Promise<boolean> {
   return (await prisma.civicAction.count({ where: { userId, eventId, kind: "ATTENDED_EVENT" } })) > 0;
+}
+
+/** How many of the statehouse's own meetings fall in the next week. Out of session, these are its interim committees. */
+export async function countStateMeetingsThisWeek(state: StateConfig, now = new Date()): Promise<number> {
+  const weekOut = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  return prisma.civicEvent.count({
+    where: { jurisdiction: { code: state.jurisdiction }, startsAt: { gte: now, lt: weekOut }, status: "SCHEDULED" },
+  });
 }
 
 export async function getStateCounts(state: StateConfig) {

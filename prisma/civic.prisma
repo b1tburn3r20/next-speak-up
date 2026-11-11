@@ -82,14 +82,16 @@ model Jurisdiction {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
-  parent    Jurisdiction?        @relation("JurisdictionTree", fields: [parentId], references: [id])
-  children  Jurisdiction[]       @relation("JurisdictionTree")
-  chambers  LegislativeChamber[]
-  events    CivicEvent[]
-  sessions  LegislativeSession[]
-  bills     Bill[]
-  rollCalls RollCall[]
-  locations UserLocation[]
+  parent      Jurisdiction?        @relation("JurisdictionTree", fields: [parentId], references: [id])
+  children    Jurisdiction[]       @relation("JurisdictionTree")
+  chambers    LegislativeChamber[]
+  events      CivicEvent[]
+  // Only for a city: what we know about it, and where its information lives
+  cityProfile CityProfile?
+  sessions    LegislativeSession[]
+  bills       Bill[]
+  rollCalls   RollCall[]
+  locations   UserLocation[]
 
   @@index([level])
   @@index([parentId])
@@ -155,10 +157,10 @@ model District {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  chamber   LegislativeChamber @relation(fields: [chamberId], references: [id], onDelete: Restrict)
-  terms     OfficeTerm[]
-  locations UserLocation[]
-  upperLocations UserLocation[] @relation("UpperDistrictLocations")
+  chamber        LegislativeChamber @relation(fields: [chamberId], references: [id], onDelete: Restrict)
+  terms          OfficeTerm[]
+  locations      UserLocation[]
+  upperLocations UserLocation[]     @relation("UpperDistrictLocations")
 
   @@unique([chamberId, regionCode, code, vintage])
   @@index([regionCode])
@@ -186,15 +188,16 @@ model Person {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  identifiers  PersonIdentifier[]
-  terms        OfficeTerm[]
-  sponsorships BillSponsorship[]
-  positions    RollCallPosition[]
-  favoritedBy  UserPersonFavorite[]
-  alignments   UserRepAlignment[]
-  civicActions CivicAction[]
-  memberStat   MemberStat?
-  policyStats  MemberPolicyStat[]
+  identifiers      PersonIdentifier[]
+  terms            OfficeTerm[]
+  sponsorships     BillSponsorship[]
+  positions        RollCallPosition[]
+  favoritedBy      UserPersonFavorite[]
+  alignments       UserRepAlignment[]
+  civicActions     CivicAction[]
+  memberStat       MemberStat?
+  policyStats      MemberPolicyStat[]
+  sponsoredHistory MemberSponsoredBill[]
 
   @@index([lastName])
   @@index([sortName])
@@ -281,7 +284,6 @@ model Bill {
   civicActions  CivicAction[]
   follows       UserBillFollow[]
   floorItems    FloorScheduleItem[]
-  textContents  BillTextContent[]
 
   @@unique([sessionId, billType, number])
   // Keyset pagination for "recent bills" lists
@@ -393,22 +395,6 @@ model BillTextVersion {
 
   @@unique([billId, versionType])
   @@map("bill_text_version")
-}
-
-// A version's text. Separate so bill lists never load it, and keyed by version type because
-// bill_text_version rows are replaced on every reload.
-model BillTextContent {
-  billId      Int
-  versionType String   @db.VarChar(120)
-  text        String   @db.MediumText
-  contentHash String   @db.Char(64)
-  sourceUrl   String?  @db.VarChar(500)
-  fetchedAt   DateTime
-
-  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
-
-  @@id([billId, versionType])
-  @@map("bill_text_content")
 }
 
 // What a chamber says may come up for a vote. Only the House publishes a weekly list. Senate rows
@@ -531,22 +517,22 @@ model RollCallPosition {
 
 // One row per user per level of government, so state districts can be added later.
 model UserLocation {
-  userId         String
-  jurisdictionId Int
-  regionCode     String         @db.VarChar(8)
-  districtId     Int?
+  userId          String
+  jurisdictionId  Int
+  regionCode      String         @db.VarChar(8)
+  districtId      Int?
   // A state has two chambers: districtId is the lower one, and this is the upper.
   upperDistrictId Int?
   // The Census's ID for their city or town, which is how we know their local government
-  placeGeoid     String?        @db.VarChar(10)
-  source         LocationSource
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  placeGeoid      String?        @db.VarChar(10)
+  source          LocationSource
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jurisdiction Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
-  district     District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
-  upperDistrict District?   @relation("UpperDistrictLocations", fields: [upperDistrictId], references: [id], onDelete: SetNull)
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jurisdiction  Jurisdiction @relation(fields: [jurisdictionId], references: [id], onDelete: Restrict)
+  district      District?    @relation(fields: [districtId], references: [id], onDelete: SetNull)
+  upperDistrict District?    @relation("UpperDistrictLocations", fields: [upperDistrictId], references: [id], onDelete: SetNull)
 
   @@id([userId, jurisdictionId])
   @@index([districtId])
@@ -674,9 +660,9 @@ model CivicAction {
   eventId   Int?
   createdAt DateTime        @default(now())
 
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bill   Bill?   @relation(fields: [billId], references: [id], onDelete: SetNull)
-  person Person? @relation(fields: [personId], references: [id], onDelete: SetNull)
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bill   Bill?       @relation(fields: [billId], references: [id], onDelete: SetNull)
+  person Person?     @relation(fields: [personId], references: [id], onDelete: SetNull)
   event  CivicEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
@@ -776,6 +762,46 @@ model MemberPolicyStat {
   @@map("member_policy_stat")
 }
 
+// Every bill a member of Congress has sponsored, across their whole career, as Congress.gov lists it.
+// The member_stats pipeline writes it from the same pages it counts, so a chart and its list agree.
+// Older bills aren't in `bill`, so each row carries enough to show and link it.
+model MemberSponsoredBill {
+  id               Int       @id @default(autoincrement())
+  personId         Int
+  congress         Int
+  billType         String    @db.VarChar(12)
+  number           Int
+  title            String    @db.Text
+  policyArea       String?   @db.VarChar(120)
+  introducedDate   DateTime? @db.Date
+  latestActionDate DateTime? @db.Date
+  latestActionText String?   @db.Text
+  becameLaw        Boolean   @default(false)
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, congress, billType, number])
+  @@index([personId, policyArea, latestActionDate])
+  @@index([personId, becameLaw])
+  @@map("member_sponsored_bill")
+}
+
+// Words in legislation explained in plain English, edited by admins. One row per meaning, so a word
+// with two, like an acronym, has two rows. The app caches the whole list and underlines matches in
+// summaries and other text.
+model GlossaryTerm {
+  id          Int      @id @default(autoincrement())
+  // As people read it, like "cloture" or "CBO". Matching ignores case, except for acronyms.
+  keyword     String   @db.VarChar(80)
+  definition  String   @db.VarChar(500)
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([keyword])
+  @@map("glossary_term")
+}
+
 model UserRepAlignment {
   userId        String
   personId      Int
@@ -814,4 +840,86 @@ model UserPolicyTopic {
 
   @@id([userId, policyArea])
   @@map("user_policy_topic")
+}
+
+enum CityWebsiteStatus {
+  // Not looked for yet
+  UNCHECKED
+  // Found, and its homepage proved it's this city
+  FOUND
+  // Every likely address was tried, and none proved to be this city
+  NOT_FOUND
+  // Found, but its robots.txt doesn't allow reading it
+  BLOCKED
+}
+
+// One city in a state. Every city gets one, from the Census, before anything else is known about it.
+// The pipeline fills in the rest from the city's own site, and records where each piece came from.
+model CityProfile {
+  jurisdictionId  Int               @id
+  // The Census's place ID, like "1902305" for Ames. A location lookup returns the same ID.
+  placeGeoid      String            @unique @db.VarChar(10)
+  regionCode      String            @db.VarChar(8)
+  // In URLs: /state/ia/city/ames
+  slug            String            @db.VarChar(80)
+  name            String            @db.VarChar(120)
+  population      Int?
+  // The year of the Census estimate
+  populationYear  Int?
+  latitude        Float?
+  longitude       Float?
+  website         String?           @db.VarChar(300)
+  websiteStatus   CityWebsiteStatus @default(UNCHECKED)
+  // The page on its site that lists agendas, and any agenda system it hands off to
+  agendaUrl       String?           @db.VarChar(500)
+  agendaPlatform  String?           @db.VarChar(40)
+  officialsUrl    String?           @db.VarChar(500)
+  // A form or page for asking to speak, or for public comment, if the site has one
+  speakUrl        String?           @db.VarChar(500)
+  // Why something couldn't be read, in plain words, for the city's page
+  note            String?           @db.VarChar(500)
+  // Who may read the city's site: CLAUDE (robots.txt allows AI agents), OWNER (it blocks them, so only
+  // the pipeline's owner runs its readers), or NONE (it blocks all automation)
+  lane            String?           @db.VarChar(8)
+  // City Hall, from the state's municipal directory or the city's own site
+  phone           String?           @db.VarChar(40)
+  address         String?           @db.VarChar(300)
+  clerkName       String?           @db.VarChar(120)
+  // "Mayor-council", "Council-manager"
+  governmentType  String?           @db.VarChar(60)
+  // The council's regular meetings as the city states them: "1st & 3rd Mon 6:00 PM"
+  meetingSchedule String?           @db.VarChar(120)
+  // How someone gets to speak, when there's no form: "Sign in at the meeting", or the clerk's deadline
+  speakInfo       String?           @db.VarChar(500)
+  // Where the City Hall details and officials came from, and how current they are
+  directorySource String?           @db.VarChar(120)
+  directoryAsOf   DateTime?
+  checkedAt       DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  jurisdiction Jurisdiction   @relation(fields: [jurisdictionId], references: [id], onDelete: Cascade)
+  districts    CityDistrict[]
+
+  @@unique([regionCode, slug])
+  @@index([regionCode, population])
+  @@map("city_profile")
+}
+
+// A state legislative district that covers part of a city, from the Census's maps. A big city has
+// several. `share` is how much of the city's land is in it, so the page can list the main one first.
+model CityDistrict {
+  jurisdictionId Int
+  chamber        ChamberKind
+  // The district's number as the state's legislators are stored: "38"
+  code           String      @db.VarChar(16)
+  // The map's year: "2024"
+  vintage        String      @db.VarChar(16)
+  share          Float
+  updatedAt      DateTime    @updatedAt
+
+  city CityProfile @relation(fields: [jurisdictionId], references: [jurisdictionId], onDelete: Cascade)
+
+  @@id([jurisdictionId, chamber, code])
+  @@map("city_district")
 }

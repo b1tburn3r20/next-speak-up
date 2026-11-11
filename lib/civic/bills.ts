@@ -2,6 +2,7 @@ import { billLabel } from "./labels";
 import { cache } from "react";
 import { Prisma } from "@prisma/client";
 import prisma from "@/prisma/client";
+import { fetchBillText } from "./bill-text";
 import { PAGE_IDENTIFIERS } from "./people";
 import { pickLatestTextVersion } from "./bill-text-logic";
 import { majorityPosition } from "./alignment";
@@ -266,7 +267,7 @@ export async function getPositionsFor(rollCallIds: number[], personIds: number[]
   });
 }
 
-/** The newest stored text of a bill. Lists never load this, because a bill can run to megabytes. */
+/** The newest text of a bill, fetched from Congress.gov on request and cached. Lists never load this, because a bill can run to megabytes. */
 export const getBillText = cache(async (slug: string) => {
   const bill = await prisma.bill.findUnique({
     where: { slug },
@@ -283,13 +284,9 @@ export const getBillText = cache(async (slug: string) => {
   });
   if (!bill) return null;
   const latest = pickLatestTextVersion(bill.textVersions);
-  const content = latest
-    ? await prisma.billTextContent.findUnique({
-        where: { billId_versionType: { billId: bill.id, versionType: latest.versionType } },
-        select: { text: true, fetchedAt: true },
-      })
-    : null;
-  return { bill, latest, text: content?.text ?? null, fetchedAt: content?.fetchedAt ?? null };
+  // Fetched from Congress.gov now, and cached there for a month. We don't keep a copy.
+  const fetched = latest ? await fetchBillText(latest.htmlUrl) : null;
+  return { bill, latest, text: fetched && "text" in fetched ? fetched.text : null, tooLarge: fetched !== null && "error" in fetched && fetched.error === "too-large" };
 });
 
 export type RollCallMemberFilters = { party?: string; position?: string; state?: string };
@@ -347,11 +344,6 @@ export async function getRollCallDetail(
   return { rollCall, members };
 }
 
-export async function hasBillText(billId: number): Promise<boolean> {
-  const count = await prisma.billTextContent.count({ where: { billId } });
-  return count > 0;
-}
-
 /** Which of these bills we have, with a short name for each. A bill replaced by another isn't loaded. */
 export async function existingBills(slugs: string[]): Promise<Map<string, string>> {
   if (slugs.length === 0) return new Map();
@@ -379,4 +371,10 @@ export async function findStateBills(state: { jurisdiction: string }, labels: st
   });
   const slugs = new Map(rows.map((row) => [`${row.billType} ${row.number}`, row.slug]));
   return new Map(wanted.flatMap(({ label }) => (slugs.has(label) ? [[label, slugs.get(label) as string] as const] : [])));
+}
+
+/** A bill's label and title, to start a forum post about it. Null when there's no such bill. */
+export async function getBillHeadline(slug: string): Promise<{ slug: string; label: string; title: string } | null> {
+  const bill = await prisma.bill.findUnique({ where: { slug }, select: { slug: true, billType: true, number: true, title: true } });
+  return bill ? { slug: bill.slug, label: billLabel(bill.billType, bill.number), title: bill.title } : null;
 }

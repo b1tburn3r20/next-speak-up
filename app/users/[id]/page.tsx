@@ -15,6 +15,7 @@ import { can } from "@/lib/auth/permissions";
 import { userExists } from "@/lib/civic/exists";
 import { getProfilePage } from "@/lib/civic/profile";
 import { cn } from "@/lib/utils";
+import { FORUM_OPEN } from "@/lib/features";
 
 type PageProps = { params: Promise<{ id: string }>; searchParams: Promise<{ edit?: string }> };
 
@@ -62,13 +63,22 @@ async function ProfileContent({ params, searchParams }: PageProps) {
         postCount={activity.postCount}
         startEditing={(await searchParams).edit === "1"}
       >
-        <Tabs defaultValue="activity" className="min-w-0" data-testid="profile-tabs">
+        {/* Opens on whichever has something in it, so the first thing seen isn't an empty box. */}
+        {/* With the forum shelved (lib/features.ts), there are no posts to show, so it opens on badges. */}
+        <Tabs
+          defaultValue={!FORUM_OPEN || (activity.items.length === 0 && profile.stats.badgesEarned > 0) ? "badges" : "activity"}
+          className="min-w-0"
+          data-testid="profile-tabs"
+        >
           <TabsList className="w-full sm:w-fit">
-            <TabsTrigger value="activity" data-testid="tab-activity">Activity</TabsTrigger>
-            <TabsTrigger value="badges" data-testid="tab-badges">Badges</TabsTrigger>
+            {FORUM_OPEN ? <TabsTrigger value="activity" data-testid="tab-activity">Forum posts</TabsTrigger> : null}
+            <TabsTrigger value="badges" data-testid="tab-badges">
+              Badges ({profile.stats.badgesEarned})
+            </TabsTrigger>
             {showTopics ? <TabsTrigger value="topics" data-testid="tab-topics">Voting topics</TabsTrigger> : null}
           </TabsList>
 
+          {FORUM_OPEN ? (
           <TabsContent value="activity" className="mt-3">
             {activity.items.length > 0 ? (
               <ul className="space-y-3" data-testid="profile-activity">
@@ -97,6 +107,7 @@ async function ProfileContent({ params, searchParams }: PageProps) {
               </OuterBlock>
             )}
           </TabsContent>
+          ) : null}
 
           <TabsContent value="badges" className="mt-3">
             <OuterBlock>

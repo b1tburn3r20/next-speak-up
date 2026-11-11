@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { FORUM_OPEN } from "../../lib/features";
 import { blockPaidServices, chooseOption, expectNoHorizontalOverflow, loginAs, readOnPastGate } from "./helpers";
 
 // A real bill with votes, text, and a summary, once the pipeline has run.
@@ -53,9 +54,9 @@ test.describe("upcoming votes", () => {
 
   test("the dashboard and bills list point to it", async ({ page }) => {
     await page.goto("/dashboard");
-    await expect(page.getByRole("main").getByTestId("dashboard-floor")).toBeVisible();
+    await expect(page.getByRole("main").getByTestId("this-week-congress")).toHaveAttribute("href", "/federal/upcoming");
     await page.goto("/federal/bills");
-    await page.getByTestId("upcoming-link").click();
+    await page.getByRole("main").getByTestId("upcoming-link").click();
     await expect(page).toHaveURL(/\/federal\/upcoming/);
   });
 });
@@ -63,6 +64,7 @@ test.describe("upcoming votes", () => {
 test.describe("bill details", () => {
   test("every member's vote can be listed and filtered", async ({ page }) => {
     await page.goto(LAW);
+    await page.getByRole("main").getByTestId("bill-tab-votes").click();
     await page.getByTestId("roll-call-members-link").first().click();
     await expect(page).toHaveURL(/\/votes\/\d+/);
     const members = page.getByTestId("roll-call-members").locator("li");
@@ -128,6 +130,7 @@ test.describe("AI and read-aloud, with the paid services stubbed", () => {
     });
     await page.goto(LAW);
     await page.waitForLoadState("networkidle");
+    await page.getByRole("main").getByTestId("bill-tab-ask").click();
     await page.getByTestId("bill-ask-ai").getByRole("button").first().click();
     await expect(page.getByText("Log in or sign up")).toBeVisible();
     expect(called).toBe(false);
@@ -141,6 +144,7 @@ test.describe("AI and read-aloud, with the paid services stubbed", () => {
     await page.goto(LAW);
     await page.waitForLoadState("networkidle");
     await readOnPastGate(page);
+    await page.getByRole("main").getByTestId("bill-tab-ask").click();
     await page.getByRole("textbox", { name: "Ask about this bill" }).fill("What does it do?");
     await page.getByRole("button", { name: "Send question" }).click();
     await expect(page.getByTestId("chat-user")).toHaveText("What does it do?");
@@ -156,6 +160,7 @@ test.describe("AI and read-aloud, with the paid services stubbed", () => {
     await page.goto(LAW);
     await page.waitForLoadState("networkidle");
     await readOnPastGate(page);
+    await page.getByRole("main").getByTestId("bill-tab-ask").click();
     await page.getByRole("textbox", { name: "Ask about this bill" }).fill("Anything?");
     await page.getByRole("button", { name: "Send question" }).click();
     await expect(page.getByRole("alert").filter({ hasText: "aren't available" })).toBeVisible();
@@ -206,6 +211,7 @@ test.describe("members", () => {
     await expect(button).toHaveAttribute("aria-pressed", "true");
     expect((await saved).ok()).toBe(true);
     await page.goto("/dashboard");
+    await page.getByRole("main").getByTestId("list-tab-saved").click();
     await expect(page.getByRole("main").getByTestId("saved-members")).toBeVisible();
     await page.goto(MEMBER);
     await page.waitForLoadState("networkidle");
@@ -217,6 +223,7 @@ test.describe("members", () => {
 
   test("have pages of votes", async ({ page }) => {
     await page.goto(MEMBER);
+    await page.getByRole("main").getByTestId("member-tab-votes").click();
     await page.getByTestId("member-votes-reveal-trigger").click();
     await page.getByRole("link", { name: "Older votes" }).click();
     await expect(page).toHaveURL(/page=2/);
@@ -246,7 +253,7 @@ test.describe("site-wide", () => {
       "/federal/legislators/T000193",
       "/feedback",
       "/settings",
-      "/forum",
+      ...(FORUM_OPEN ? ["/forum"] : []),
     ]) {
       current = path;
       await page.goto(path);

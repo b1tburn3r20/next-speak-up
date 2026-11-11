@@ -11,7 +11,8 @@ import {
 } from "@/lib/civic/location";
 import { saveStateLocation } from "@/lib/civic/state";
 import { stateByRegion } from "@/lib/civic/states";
-import { refreshUserAlignment, saveUserLocation, type LocationSource } from "@/lib/civic/users";
+import { DataNotLoadedError, refreshUserAlignment, saveUserLocation, type LocationSource } from "@/lib/civic/users";
+import { describeError } from "@/lib/describe-error";
 
 // Coordinates and addresses are used for the lookup and then discarded. Only the state and
 // district are saved, and that's only for signed-in users.
@@ -22,6 +23,17 @@ const lookupSchema = z.union([
     regionCode: z.string().length(2).toUpperCase(),
     // Someone who doesn't know their district still gets their senators.
     districtCode: z.string().min(1).max(4).nullable(),
+    // Sent when the browser asked the Census itself (components/onboarding/census-lookup.ts),
+    // because Railway's servers can't reach it. Trusted no more than choosing by hand: the district
+    // still has to exist, and the seats are only ever the person's own.
+    source: z.enum(["BROWSER", "ADDRESS"]).optional(),
+    stateSeats: z
+      .object({
+        upper: z.string().regex(/^\d{1,3}$/).nullable(),
+        lower: z.string().regex(/^\d{1,3}$/).nullable(),
+        placeGeoid: z.string().regex(/^\d{7}$/).nullable(),
+      })
+      .optional(),
   }),
 ]);
 
@@ -56,16 +68,22 @@ export async function POST(request: NextRequest) {
       resolved = await districtFromAddress(input.address);
       source = "ADDRESS";
     } else if ("regionCode" in input) {
-      resolved = { regionCode: input.regionCode, districtCode: input.districtCode };
-      source = "MANUAL";
+      resolved = {
+        regionCode: input.regionCode,
+        districtCode: input.districtCode,
+        ...(input.stateSeats ? { stateSeats: input.stateSeats as StateSeats } : {}),
+      };
+      source = input.source ?? "MANUAL";
     } else {
       return NextResponse.json({ error: "Invalid location." }, { status: 400 });
     }
   } catch (error) {
-    console.error("Location lookup failed:", error instanceof Error ? error.message : "unknown");
+    console.error("Location lookup failed:", describeError(error));
+    // 503, not 502: Cloudflare swaps a 502 for its own "Bad gateway" page, which hides this message
+    // and the way to choose a state and district by hand.
     return NextResponse.json(
       { error: "The location service isn't responding. Choose your state and district instead." },
-      { status: 502 },
+      { status: 503 },
     );
   }
 
@@ -77,12 +95,16 @@ export async function POST(request: NextRequest) {
   }
 
   if (session?.user?.id) {
-    const saved = await saveUserLocation(
-      session.user.id,
-      resolved.regionCode,
-      resolved.districtCode,
-      source,
-    );
+    let saved: boolean;
+    try {
+      saved = await saveUserLocation(session.user.id, resolved.regionCode, resolved.districtCode, source);
+    } catch (error) {
+      if (!(error instanceof DataNotLoadedError)) throw error;
+      return NextResponse.json(
+        { error: "We're still loading Congress's members and districts. Try again in a little while." },
+        { status: 503 },
+      );
+    }
     if (!saved) {
       return NextResponse.json({ error: "That district doesn't exist." }, { status: 400 });
     }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { agendaPostsAt, cityPositionLabel, groupTopics, seatName, speakWindow, summarizeOfficialRecord, validWard } from "@/lib/civic/city-logic";
+import { ADOPTED_SECTION, agendaPostsAt, cityPositionLabel, groupTopics, seatName, speakWindow, summarizeOfficialRecord, validWard } from "@/lib/civic/city-logic";
 import { cityByKey, stateByKey, type CityConfig, type StateConfig } from "@/lib/civic/states";
 
 const IOWA = stateByKey("ia") as StateConfig;
@@ -50,6 +50,14 @@ describe("topics", () => {
       ["Decisions", ["B"]],
       ["On the agenda", ["D"]],
     ]);
+  });
+
+  it("leave out what the minutes say passed, which isn't on an agenda", () => {
+    const groups = groupTopics([
+      { section: "On the agenda", title: "Budget hearing" },
+      { section: ADOPTED_SECTION, title: "Resolution No. 7137: Approving a plat" },
+    ]);
+    expect(groups).toEqual([{ section: "On the agenda", items: [{ section: "On the agenda", title: "Budget hearing" }] }]);
   });
 });
 

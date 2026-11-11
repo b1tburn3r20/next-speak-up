@@ -44,10 +44,12 @@ export function AlignmentRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="var(--muted)"
+          // The border color, so the track shows on a muted panel as well as a white card.
+          stroke="var(--border)"
           strokeWidth={stroke}
         />
-        <circle
+        {/* With nothing filled yet, a round line cap would still draw a dot. */}
+        {filled > 0 ? <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -56,7 +58,7 @@ export function AlignmentRing({
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={`${circumference * filled} ${circumference}`}
-        />
+        /> : null}
       </svg>
       <span className="absolute inset-0 flex items-center justify-center font-extrabold leading-none">
         {percent === null ? "?" : `${percent}%`}
@@ -75,6 +77,7 @@ export function PolicyBars({
   testId,
   suffix = "",
   scale,
+  rowAction,
 }: {
   rows: PolicyBarRow[];
   label: string;
@@ -84,36 +87,41 @@ export function PolicyBars({
   suffix?: string;
   /** What a full bar means. By default, the largest value. */
   scale?: number;
+  /** Makes each row open something, like that topic's bills. Given the row and what it looks like. */
+  rowAction?: (row: PolicyBarRow, content: React.ReactNode) => React.ReactNode;
 }) {
   // A percentage of zero still means something, so only counts drop their empty rows.
   const shown = (scale ? rows : rows.filter((row) => row.value > 0)).slice(0, max);
   const highest = scale ?? Math.max(1, ...shown.map((row) => row.value));
+  // Spans, not divs, so a row can sit inside a button when it opens something.
+  const bar = (row: PolicyBarRow) => {
+    const { color } = policyStyle(row.policyArea);
+    return (
+      <>
+        <span className="mb-0.5 flex items-baseline justify-between gap-2 text-sm">
+          <span className="flex min-w-0 items-center gap-1.5 font-semibold">
+            <PolicyIcon name={row.policyArea} className="size-3.5 shrink-0" style={{ color }} aria-hidden />
+            <span className="min-w-0 truncate">{row.policyArea}</span>
+          </span>
+          <span className="shrink-0 font-bold tabular-nums">
+            {row.value}
+            {suffix}
+          </span>
+        </span>
+        <span className="block h-2 overflow-hidden rounded-full bg-muted">
+          <span className="block h-full rounded-full" style={{ width: `${(row.value / highest) * 100}%`, backgroundColor: color }} />
+        </span>
+        {row.detail ? <span className="mt-0.5 block text-xs text-muted-foreground">{row.detail}</span> : null}
+      </>
+    );
+  };
   return (
     <ul className="space-y-2.5" aria-label={label} data-testid={testId}>
-      {shown.map((row) => {
-        const { color } = policyStyle(row.policyArea);
-        return (
-          <li key={row.policyArea} title={row.detail}>
-            <div className="mb-0.5 flex items-baseline justify-between gap-2 text-sm">
-              <span className="flex min-w-0 items-center gap-1.5 font-semibold">
-                <PolicyIcon name={row.policyArea} className="size-3.5 shrink-0" style={{ color }} aria-hidden />
-                <span className="min-w-0 truncate">{row.policyArea}</span>
-              </span>
-              <span className="shrink-0 font-bold tabular-nums">
-                {row.value}
-                {suffix}
-              </span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full"
-                style={{ width: `${(row.value / highest) * 100}%`, backgroundColor: color }}
-              />
-            </div>
-            {row.detail ? <p className="mt-0.5 text-xs text-muted-foreground">{row.detail}</p> : null}
-          </li>
-        );
-      })}
+      {shown.map((row) => (
+        <li key={row.policyArea} title={row.detail}>
+          {rowAction ? rowAction(row, bar(row)) : bar(row)}
+        </li>
+      ))}
     </ul>
   );
 }

@@ -86,17 +86,22 @@ describe("applyVote", () => {
 
 describe("celebrate", () => {
   it("names a new level first", () => {
-    expect(celebrate(base({ xp: 95, votesCast: 9 }), base({ xp: 105, votesCast: 10 }))).toBe("Level 2!");
+    expect(celebrate(base({ xp: 95, votesCast: 9 }), base({ xp: 105, votesCast: 10 }))[0]).toBe("Level 2!");
   });
 
   it("notices the daily goal and badges", () => {
-    expect(celebrate(base({ votedToday: 2, votesCast: 5 }), base({ votedToday: 3, votesCast: 6 }))).toBe("Daily goal met!");
-    expect(celebrate(base(), base({ votesCast: 1, votedToday: 1 }))).toBe("Badge earned: First vote");
-    expect(celebrate(base({ streak: 6, votesCast: 20 }), base({ streak: 7, votesCast: 21 }))).toBe("Badge earned: Full week");
+    expect(celebrate(base({ votedToday: 2, votesCast: 5 }), base({ votedToday: 3, votesCast: 6 }))).toEqual(["Daily goal met!"]);
+    expect(celebrate(base(), base({ votesCast: 1, votedToday: 1 }))).toEqual(["Badge earned: First vote"]);
+    expect(celebrate(base({ streak: 6, votesCast: 20 }), base({ streak: 7, votesCast: 21 }))).toEqual(["Badge earned: Full week"]);
+  });
+
+  it("queues everything one vote earned, biggest first, without repeating a level under a new rank", () => {
+    const found = celebrate(base({ xp: 95, votesCast: 9, votedToday: 2 }), base({ xp: 105, votesCast: 10, votedToday: 3 }));
+    expect(found).toEqual(["Level 2!", "Daily goal met!", "Badge earned: Regular"]);
   });
 
   it("stays quiet for an ordinary vote", () => {
-    expect(celebrate(base({ votesCast: 3, votedToday: 1 }), base({ votesCast: 4, votedToday: 2 }))).toBeNull();
+    expect(celebrate(base({ votesCast: 3, votedToday: 1 }), base({ votesCast: 4, votedToday: 2 }))).toEqual([]);
   });
 });
 

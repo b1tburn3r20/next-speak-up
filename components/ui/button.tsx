@@ -11,13 +11,22 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-primary text-primary-foreground border-b-4 border-primary-edge hover:brightness-110 active:translate-y-0.5 active:border-b-2",
+        // A side in a vote: its color in the text, icon, and border, never a solid fill, so neither
+        // side shouts before you've chosen. aria-pressed marks the chosen one with a tint.
         support:
-          "bg-support text-support-foreground border-b-4 border-support-edge hover:brightness-110 active:translate-y-0.5 active:border-b-2",
+          "bg-card text-support border-2 border-b-4 border-support hover:bg-support-tint active:translate-y-0.5 active:border-b-2 aria-pressed:bg-support-tint",
         oppose:
-          "bg-oppose text-oppose-foreground border-b-4 border-oppose-edge hover:brightness-110 active:translate-y-0.5 active:border-b-2",
+          "bg-card text-oppose border-2 border-b-4 border-oppose hover:bg-oppose-tint active:translate-y-0.5 active:border-b-2 aria-pressed:bg-oppose-tint",
         streak:
           "bg-streak text-streak-foreground border-b-4 border-amber-600 hover:brightness-105 active:translate-y-0.5 active:border-b-2",
         xp: "bg-xp text-xp-foreground border-b-4 border-violet-800 hover:brightness-110 active:translate-y-0.5 active:border-b-2",
+
+        // Outlined in the theme's color: a clear choice that isn't the page's one filled button.
+        primary_outline:
+          "bg-card text-primary border-2 border-b-4 border-primary hover:bg-primary-tint active:translate-y-0.5 active:border-b-2",
+        // The quieter sibling of primary_outline, on the theme's soft accent.
+        accent:
+          "bg-accent text-accent-foreground border-2 border-b-4 border-primary/25 hover:border-primary/50 active:translate-y-0.5 active:border-b-2",
 
         // A tile you choose, like an answer in a lesson. aria-pressed marks the chosen one.
         choice:

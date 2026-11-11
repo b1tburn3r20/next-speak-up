@@ -27,22 +27,41 @@ export default async function VotePage() {
   const topics = userId ? await getUserTopics(userId) : [];
   const userState = stateByRegion(location?.regionCode);
   const stateRepIds = userId && userState ? await getStateRepIds(userId) : [];
+  const repIds = [...reps.map((rep) => rep.id), ...stateRepIds];
   const queue = await getVoteQueue(
     userId,
-    [...reps.map((rep) => rep.id), ...stateRepIds],
+    repIds,
     SESSION_LENGTH,
     new Date(),
     topics,
     { state: userState },
   );
 
+  // Why each bill is here, so it never feels random.
+  const why = (item: (typeof queue)[number]) =>
+    item.reason === "REP_VOTED"
+      ? "Your reps voted on this"
+      : item.reason === "FLOOR"
+        ? "Congress may vote on this soon"
+        : item.bill.policyArea && topics.includes(item.bill.policyArea)
+          ? `In a topic you track: ${item.bill.policyArea}`
+          : "A bill you haven't weighed in on";
+
   return (
     <PageSpacer width="narrow">
       <Stack gap="lg">
-        <h1 className="sr-only">Vote on bills</h1>
+        <header className="space-y-1">
+          <h1 className="text-2xl font-extrabold">Vote</h1>
+          <p className="text-muted-foreground">
+            {queue.length > 0
+              ? `${queue.length} real bills, one at a time. Support or oppose each one, then see how your reps voted.`
+              : "Support or oppose real bills, then see how your reps voted."}
+          </p>
+        </header>
         {queue.length > 0 ? (
           <VoteSession
             signedIn={Boolean(userId)}
+            reasons={queue.map(why)}
             slugs={queue.map((item) => item.bill.slug)}
             cards={queue.map((item) => (
               <BlindVoteCard key={item.bill.id} item={item} signedIn={Boolean(userId)} />

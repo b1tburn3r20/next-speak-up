@@ -14,6 +14,7 @@ export const PERMISSIONS = {
   "pipelines.view": "See data pipelines, their logs, and metrics",
   "pipelines.manage": "Run and stop data pipelines, and turn the nightly run on or off",
   "audit.view": "See the record of who changed what",
+  "glossary.manage": "Add, change, and remove the plain-English explanations of legislative words",
 } as const;
 
 export type PermissionName = keyof typeof PERMISSIONS;

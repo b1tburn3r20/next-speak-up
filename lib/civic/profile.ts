@@ -1,4 +1,5 @@
 // Queries behind public profiles. What may be shown is decided in profile-logic.ts, not here.
+import { FORUM_OPEN } from "@/lib/features";
 import { getStateBadgeFacts } from "@/lib/civic/state";
 import { AgeRange, IncomeRange } from "@prisma/client";
 import prisma from "@/prisma/client";
@@ -66,6 +67,8 @@ function plainSnippet(text: string): string | null {
 
 /** What they've said in the forum, which is public anyway. How they've voted is never in here. */
 async function getActivity(userId: string, take = 15) {
+  // The forum is shelved (lib/features.ts), so there's nothing to show and nothing to ask the database.
+  if (!FORUM_OPEN) return { items: [] as ActivityItem[], postCount: 0 };
   const [posts, comments, postCount] = await Promise.all([
     prisma.forumPost.findMany({
       where: { authorId: userId, isDeleted: false },

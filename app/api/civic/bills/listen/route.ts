@@ -49,6 +49,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Listening isn't available right now." }, { status: 503 });
     }
     console.error("Read-aloud failed:", error instanceof Error ? error.message : "unknown");
-    return NextResponse.json({ error: "We couldn't read this. Please try again." }, { status: 502 });
+    return NextResponse.json({ error: "We couldn't read this. Please try again." }, { status: 503 });
   }
 }

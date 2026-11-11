@@ -52,6 +52,7 @@ test("shows your rank, the XP goal for the next one, and the whole ladder", asyn
   await page.goto("/progress");
   await expect(page.getByTestId("rank-name")).toHaveText("Newcomer");
   await expect(page.getByTestId("rank-next")).toContainText("50 XP to Listener");
+  await page.getByTestId("rank-ladder-toggle-trigger").click();
   await expect(page.getByTestId("rank-ladder").locator("li")).toHaveCount(9);
   await expect(page.locator('[data-testid="rank-ladder"] [data-reached="true"]')).toHaveCount(1);
 
@@ -79,7 +80,7 @@ test("reaching a new rank gets celebrated, live", async ({ page }) => {
 test("the bar at the top leads here", async ({ page }) => {
   await newUser(page);
   await page.goto("/federal/bills");
-  await page.locator('a[data-testid="hud-link"]:visible').first().click();
+  await page.locator('a[data-testid="hud"]:visible').first().click();
   await expect(page).toHaveURL(/\/progress$/);
   await expect(page.getByTestId("level-card")).toBeVisible();
 });

@@ -2,7 +2,7 @@
 // Local only. All generated accounts use @coolbills.test emails.
 import { PrismaClient, VotePosition } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { ensureRbac } from "./rbac";
+import { BASE_ROLES, ensureRbac } from "./rbac";
 import { backfillXp } from "./xp-backfill";
 
 const STATE_NAMES: Record<string, string> = {
@@ -21,14 +21,6 @@ export function assertLocalDatabase(databaseUrl: string | undefined) {
     throw new Error(`Refusing to seed database host ${host}. Seeding is local only.`);
   }
 }
-
-// IDs are fixed because User.roleId defaults to 2, so new signups need that row to be Member.
-const ROLES = [
-  { id: 1, name: "Super Admin", description: "Full access" },
-  { id: 2, name: "Member", description: "Default role for new accounts" },
-  { id: 3, name: "Supporter", description: "Higher usage limits" },
-  { id: 4, name: "Admin", description: "Manages users and content" },
-];
 
 const TEST_USERS = [
   { username: "test_superadmin", roleId: 1, state: "TX", district: 2, needsOnboarding: false },
@@ -51,7 +43,7 @@ async function main() {
   }
   const prisma = new PrismaClient();
   try {
-    for (const role of ROLES) {
+    for (const role of BASE_ROLES) {
       await prisma.role.upsert({ where: { id: role.id }, update: role, create: role });
     }
     await ensureRbac(prisma);
@@ -183,7 +175,7 @@ async function main() {
     await backfillXp(prisma);
 
     console.log(
-      `Seeded ${ROLES.length} roles, ${users.length} users, votes on ${bills.length} bills.`,
+      `Seeded ${BASE_ROLES.length} roles, ${users.length} users, votes on ${bills.length} bills.`,
     );
   } finally {
     await prisma.$disconnect();

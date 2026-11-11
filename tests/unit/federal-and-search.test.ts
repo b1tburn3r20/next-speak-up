@@ -4,7 +4,7 @@ import { billMoment, floorMoment } from "@/lib/civic/bill-moment";
 import { AGE_OPTIONS, suggestTopics } from "@/lib/civic/onboarding-logic";
 import { policyAreaByName } from "@/lib/civic/policy-areas";
 import { lawSuccess } from "@/lib/civic/verdict";
-import { activeNavHref } from "@/lib/nav";
+import { activeNavHref, activeVisibleHref } from "@/lib/nav";
 import { fullDate, relativeTime } from "@/lib/relative-time";
 import { isPrefetch, nextTrickle } from "@/lib/request-progress";
 import { billPath, jurisdictionBase, memberPath, rollCallPath, routes, topicPath } from "@/lib/routes";
@@ -126,7 +126,30 @@ describe("floorMoment", () => {
   });
 });
 
+describe("activeVisibleHref", () => {
+  it("lights States for a state or city that isn't yours, and your own links when it is", () => {
+    const outsider = [routes.dashboard, routes.states];
+    expect(activeVisibleHref("/state/ia/city/pella", outsider)).toBe(routes.states);
+    expect(activeVisibleHref("/state/ia/bills", outsider)).toBe(routes.states);
+    expect(activeVisibleHref("/states", outsider)).toBe(routes.states);
+    expect(activeVisibleHref("/federal/bills", outsider)).toBeNull();
+    const iowan = [routes.dashboard, routes.myState, routes.myCity, routes.states];
+    expect(activeVisibleHref("/state/ia/city/pella", iowan)).toBe(routes.myCity);
+    expect(activeVisibleHref("/state/ia", iowan)).toBe(routes.myState);
+    expect(activeVisibleHref("/states", iowan)).toBe(routes.states);
+  });
+});
+
 describe("activeNavHref", () => {
+  it("puts a state's city pages under My City, and the rest of the state under My State", () => {
+    const hrefs = [routes.myState, routes.myCity, routes.dashboard];
+    expect(activeNavHref("/state/ia/city/pella", hrefs)).toBe(routes.myCity);
+    expect(activeNavHref("/state/ia/city/pella/meetings/12", hrefs)).toBe(routes.myCity);
+    expect(activeNavHref("/state/ia/cities", hrefs)).toBe(routes.myCity);
+    expect(activeNavHref("/state/ia/bills", hrefs)).toBe(routes.myState);
+    expect(activeNavHref("/state/ia/citizens", hrefs)).toBe(routes.myState);
+  });
+
   const hrefs = [
     "/dashboard",
     routes.federal.upcoming,

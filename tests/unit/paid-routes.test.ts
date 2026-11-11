@@ -71,7 +71,7 @@ describe("asking about a bill", () => {
     expect(mocks.answer).not.toHaveBeenCalled();
   });
 
-  it("answers from stored text, ignoring any text the browser sends", async () => {
+  it("answers from the official text, ignoring any text the browser sends", async () => {
     const response = await ask(request("/ask", { ...question, billText: "Attacker's text" }));
     expect(await response.json()).toEqual({ content: "It does this." });
     expect(mocks.answer.mock.calls[0][0].billText).toBe(storedBill.text);
@@ -88,13 +88,13 @@ describe("asking about a bill", () => {
     expect((await ask(request("/ask", question))).status).toBe(404);
   });
 
-  it("gives a clean 503 without a key, and a 502 if the service fails", async () => {
+  it("gives a clean 503 without a key, and a 503 if the service fails (never a 502, which Cloudflare hides)", async () => {
     mocks.answer.mockRejectedValueOnce(new AiUnavailableError("no key"));
     expect((await ask(request("/ask", question))).status).toBe(503);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     mocks.answer.mockRejectedValueOnce(new Error("secret detail"));
     const failed = await ask(request("/ask", question));
-    expect(failed.status).toBe(502);
+    expect(failed.status).toBe(503);
     expect(JSON.stringify(await failed.json())).not.toContain("secret detail");
   });
 });

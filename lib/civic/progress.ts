@@ -144,16 +144,22 @@ export function applyVote(progress: HudProgress, change: number): HudProgress {
 }
 
 /** What just happened that's worth celebrating, comparing before and after. */
-export function celebrate(before: HudProgress, after: HudProgress): string | null {
+/**
+ * Everything a vote just earned that deserves more than "+10 XP", biggest first. One vote can earn
+ * several, like a new rank and today's goal, and each gets its turn on screen.
+ */
+export function celebrate(before: HudProgress, after: HudProgress): string[] {
+  const found: string[] = [];
   const rank = newRank(before.xp, after.xp);
-  if (rank) return `New rank: ${rank.name}!`;
-  if (after.level > before.level) return `Level ${after.level}!`;
-  if (before.votedToday < before.dailyGoal && after.votedToday >= after.dailyGoal) return "Daily goal met!";
+  if (rank) found.push(`New rank: ${rank.name}!`);
+  // A new rank already says you moved up, so a level on the same vote would repeat it.
+  else if (after.level > before.level) found.push(`Level ${after.level}!`);
+  if (before.votedToday < before.dailyGoal && after.votedToday >= after.dailyGoal) found.push("Daily goal met!");
   for (const [votes, label] of [[1, "First vote"], [10, "Regular"], [50, "Civic regular"]] as const) {
-    if (before.votesCast < votes && after.votesCast >= votes) return `Badge earned: ${label}`;
+    if (before.votesCast < votes && after.votesCast >= votes) found.push(`Badge earned: ${label}`);
   }
-  if (before.streak < 7 && after.streak >= 7) return "Badge earned: Full week";
-  return null;
+  if (before.streak < 7 && after.streak >= 7) found.push("Badge earned: Full week");
+  return found;
 }
 
 export function computeProgress(input: {

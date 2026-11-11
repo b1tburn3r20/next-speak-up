@@ -4,7 +4,7 @@ import { nextSessionText, sessionHasStarted, type StateConfig } from "@/lib/civi
 import { stateRoutes } from "@/lib/routes";
 
 /** Why a state's lists are quiet, so an empty calendar doesn't look like something's broken. */
-export function StateSessionNote({ state, detail = false }: { state: StateConfig; detail?: boolean }) {
+export function StateSessionNote({ state, detail = false, link = !detail }: { state: StateConfig; detail?: boolean; link?: boolean }) {
   const started = sessionHasStarted(state);
   const legislature = state.legislature.charAt(0).toUpperCase() + state.legislature.slice(1);
   return (
@@ -13,7 +13,7 @@ export function StateSessionNote({ state, detail = false }: { state: StateConfig
       <div className="min-w-0 space-y-1">
         <p className="font-extrabold">
           {started ? `${legislature} has started a new session` : `${legislature} is out until ${nextSessionText(state)}`}{" "}
-          {!detail ? (
+          {link ? (
             <Link href={stateRoutes(state.key).home} className="whitespace-nowrap font-bold text-primary hover:underline">
               See {state.name}
             </Link>

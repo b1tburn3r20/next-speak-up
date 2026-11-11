@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { OptionSelect } from "@/components/ui/option-select";
 import { chamberName, type ChamberKind, type ClientState } from "@/lib/civic/states";
+import { CitySearch, type CityChoice } from "./city-search";
 
 function districtOptions(count: number) {
   return [
@@ -23,12 +24,12 @@ export function StateSeatPicker({
   state: ClientState;
   initialLower: string | null;
   initialUpper: string | null;
-  /** The key of the city they live in, if it's one we cover. */
-  initialCity: string | null;
+  /** The city they live in, if we know it. */
+  initialCity: CityChoice | null;
 }) {
   const router = useRouter();
   const [seats, setSeats] = useState<Record<ChamberKind, string>>({ LOWER: initialLower ?? "", UPPER: initialUpper ?? "" });
-  const [city, setCity] = useState(initialCity ?? "");
+  const [city, setCity] = useState<CityChoice | null>(initialCity);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +40,7 @@ export function StateSeatPicker({
       const response = await fetch("/api/civic/location/state", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lower: seats.LOWER || null, upper: seats.UPPER || null, city: city || null }),
+        body: JSON.stringify({ lower: seats.LOWER || null, upper: seats.UPPER || null, city: city?.key ?? null }),
       });
       if (!response.ok) throw new Error((await response.json()).error ?? "That didn't save. Please try again.");
       router.refresh();
@@ -67,19 +68,11 @@ export function StateSeatPicker({
           </div>
         ))}
       </div>
-      {state.cities.length > 0 ? (
-        <div className="space-y-1">
-          <p className="text-sm font-extrabold">Your city</p>
-          <OptionSelect
-            aria-label="Your city"
-            value={city}
-            onValueChange={setCity}
-            options={[{ value: "", label: "Somewhere else" }, ...state.cities.map((option) => ({ value: option.key, label: option.name }))]}
-            placeholder="Somewhere else"
-            data-testid="seat-city"
-          />
-        </div>
-      ) : null}
+      <div className="space-y-1">
+        <p className="text-sm font-extrabold">Your city</p>
+        <CitySearch stateKey={state.key} value={city} onChange={setCity} />
+        <p className="text-xs text-muted-foreground">Leave it as &ldquo;Somewhere else&rdquo; if you live outside a city.</p>
+      </div>
       {error ? (
         <p role="alert" className="rounded-xl bg-oppose-tint p-2.5 text-sm font-bold">
           {error}

@@ -1,4 +1,5 @@
 import { after } from "next/server";
+import { US_STATES } from "@/lib/civic/us-states";
 import prisma from "@/prisma/client";
 import { awardVoteXp, removeVoteXp } from "./xp";
 import {
@@ -28,11 +29,17 @@ export function toStateCode(value: string | null | undefined): string | null {
   return match ? match[0] : null;
 }
 
+/** Thrown when Congress's data hasn't been loaded yet, as on a brand-new database before the pipelines run. */
+export class DataNotLoadedError extends Error {
+  constructor() {
+    super("Congress's data isn't loaded yet.");
+    this.name = "DataNotLoadedError";
+  }
+}
+
 async function federalJurisdictionId(): Promise<number> {
-  const us = await prisma.jurisdiction.findUniqueOrThrow({
-    where: { code: FEDERAL_CODE },
-    select: { id: true },
-  });
+  const us = await prisma.jurisdiction.findUnique({ where: { code: FEDERAL_CODE }, select: { id: true } });
+  if (!us) throw new DataNotLoadedError();
   return us.id;
 }
 
@@ -63,6 +70,27 @@ export async function getUserLocationSafe(userId: string) {
   }
 }
 
+/** The names the nav shows for someone's own state and city, like "Iowa" and "Ankeny". */
+export async function getNavPlacesSafe(userId: string, regionCode: string | null | undefined): Promise<{ state: string | null; city: string | null }> {
+  try {
+    const home = await prisma.userLocation.findFirst({
+      where: { userId, placeGeoid: { not: null } },
+      orderBy: { updatedAt: "desc" },
+      select: { placeGeoid: true },
+    });
+    const city = home?.placeGeoid
+      ? await prisma.cityProfile.findUnique({ where: { placeGeoid: home.placeGeoid }, select: { name: true, regionCode: true } })
+      : null;
+    return {
+      state: US_STATES.find((state) => state.code === regionCode?.toUpperCase())?.name ?? null,
+      // A city from another state than the one on file would be a confusing label.
+      city: city && city.regionCode === regionCode?.toUpperCase() ? city.name : null,
+    };
+  } catch {
+    return { state: null, city: null };
+  }
+}
+
 export type LocationSource = "BROWSER" | "ADDRESS" | "MANUAL";
 
 /** Saves a user's state and district. Returns false if that district doesn't exist. */
@@ -72,6 +100,8 @@ export async function saveUserLocation(
   districtCode: string | null,
   source: LocationSource,
 ): Promise<boolean> {
+  // First, so an empty database says so, rather than calling every district missing.
+  const jurisdictionId = await federalJurisdictionId();
   const district = districtCode
     ? await prisma.district.findFirst({
         where: { regionCode, code: districtCode, chamber: { kind: "LOWER", jurisdiction: { code: FEDERAL_CODE } } },
@@ -79,7 +109,6 @@ export async function saveUserLocation(
       })
     : null;
   if (districtCode && !district) return false;
-  const jurisdictionId = await federalJurisdictionId();
   const values = { regionCode, districtId: district?.id ?? null, source };
   await prisma.$transaction([
     prisma.userLocation.upsert({

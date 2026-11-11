@@ -41,12 +41,13 @@ function ServerProblem({ reason, message }: { reason: string | null; message: st
       <p className="text-sm text-muted-foreground">{message}</p>
       {reason === "NOT_CONFIGURED" ? (
         <p className="text-sm">
-          Set <code className="font-bold">PIPELINE_SERVER_URL</code> and <code className="font-bold">PIPELINE_SERVER_TOKEN</code> in the app&apos;s <code className="font-bold">.env</code>, then restart it.
+          Set <code className="font-bold">PIPELINE_SERVER_URL</code> and <code className="font-bold">PIPELINE_SERVER_TOKEN</code>{" "}in the app&apos;s <code className="font-bold">.env</code>, then restart it.
         </p>
       ) : (
         <p className="text-sm">
-          It runs in Docker. Check that Docker is running, then from <code className="font-bold">civic-pipeline</code> run{" "}
-          <code className="font-bold">docker compose up -d</code>.
+          On Railway, check the pipeline service is running, and that <code className="font-bold">PIPELINE_SERVER_URL</code> is{" "}
+          <code className="font-bold">http://</code> plus its private name and <code className="font-bold">:8787</code>. On this computer, start Docker,
+          then run <code className="font-bold">docker compose up -d</code> in <code className="font-bold">civic-pipeline</code>.
         </p>
       )}
     </OuterBlock>

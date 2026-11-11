@@ -62,6 +62,7 @@ const PasswordLoginForm = ({ initialMode = "login" }: { initialMode?: Mode }) =>
               maxLength={30}
               value={username}
               onChange={(event) => setUsername(event.target.value)}
+              placeholder="Pick a name people will see, like civic_sam"
             />
           </div>
           <div className="space-y-1">
@@ -73,6 +74,7 @@ const PasswordLoginForm = ({ initialMode = "login" }: { initialMode?: Mode }) =>
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
             />
           </div>
         </>
@@ -85,6 +87,7 @@ const PasswordLoginForm = ({ initialMode = "login" }: { initialMode?: Mode }) =>
             required
             value={identifier}
             onChange={(event) => setIdentifier(event.target.value)}
+            placeholder="Your username or email"
           />
         </div>
       )}
@@ -98,6 +101,7 @@ const PasswordLoginForm = ({ initialMode = "login" }: { initialMode?: Mode }) =>
           minLength={isSignup ? 8 : undefined}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
+          placeholder={isSignup ? "At least 8 characters" : "Your password"}
         />
       </div>
       {error ? (

@@ -122,7 +122,7 @@ test.describe("the panels", () => {
     await page.goto("/admin");
     await expect(page.getByTestId("admin-overview")).toBeVisible();
     await expect(page.getByTestId("admin-tile").first()).toContainText(/\d/);
-    await expect(page.getByTestId("admin-nav").getByRole("link")).toHaveCount(7);
+    await expect(page.getByTestId("admin-nav").getByRole("link")).toHaveCount(8);
     await expectNoHorizontalOverflow(page);
   });
 
@@ -224,7 +224,7 @@ test.describe("pipelines, against the real server", () => {
     await expect(link).toBeVisible({ timeout: 20_000 });
     await link.click();
     await expect(page).toHaveURL(/\/admin\/pipelines\/runs\/\d+$/);
-    await expect(page.getByTestId("run-log")).toContainText("Iowa votes (stub)", { timeout: 15_000 });
+    await expect(page.getByTestId("run-log")).toContainText("Iowa debate calendar (stub)", { timeout: 15_000 });
     await expect(page.getByTestId("run-detail").getByTestId("run-status").first()).toHaveAttribute("data-status", "success", { timeout: 15_000 });
   });
 

@@ -59,7 +59,7 @@ export function RollCallCard(props: RollCallCardProps) {
       <ResultBar yea={totals.yea} nay={totals.nay} />
       <p className="text-sm">
         <strong>{totals.yea}</strong> yes · <strong>{totals.nay}</strong> no ·{" "}
-        {totals.present} present · {totals.notVoting} didn&apos;t vote
+        {totals.present} present · {totals.notVoting}{" "}didn&apos;t vote
       </p>
       {props.parties.length > 0 ? (
         <div className="overflow-x-auto">

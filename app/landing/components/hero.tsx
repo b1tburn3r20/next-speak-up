@@ -30,29 +30,30 @@ function HowItFeels() {
   );
 }
 
-const Hero = () => {
+/** The first screen: the one question this app answers, and one way to start. */
+const Hero = ({ signedIn }: { signedIn: boolean }) => {
   return (
-    <div className="grid items-center gap-8 lg:grid-cols-2">
+    <section className="grid items-center gap-8 pt-2 sm:pt-8 lg:grid-cols-2" data-testid="front-hero">
       <div className="space-y-5 text-center lg:text-left">
         <h1 className="text-4xl font-extrabold leading-tight sm:text-5xl">
           Does your representative <span className="text-primary">represent you?</span>
         </h1>
         <p className="mx-auto max-w-prose text-lg text-muted-foreground lg:mx-0">
-          Vote on the same bills Congress does. Then find out if your representative and senators
-          agree with you. No jargon, and no party telling you what to think.
+          Vote on the same bills they do, explained in plain words. Then find out if the people you elected, from Congress to City
+          Hall, vote like you.
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center lg:justify-start">
-          <Link href="/vote" className={buttonVariants({ size: "lg" })} data-testid="hero-cta">
-            Try it now
+          <Link href={signedIn ? routes.dashboard : routes.vote} className={buttonVariants({ size: "lg" })} data-testid="hero-cta">
+            {signedIn ? "Go to your Home" : "Try it: vote on a bill"}
             <ArrowRight className="size-4" aria-hidden />
           </Link>
-          <Link href={routes.federal.upcoming} className={buttonVariants({ variant: "outline", size: "lg" })}>
-            See upcoming votes
+          <Link href={routes.reps} className={buttonVariants({ variant: "outline", size: "lg" })}>
+            See who represents you
           </Link>
         </div>
       </div>
       <HowItFeels />
-    </div>
+    </section>
   );
 };
 

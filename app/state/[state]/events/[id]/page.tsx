@@ -7,12 +7,13 @@ import { CalendarPlus, ExternalLink, FileText, MapPin, Video } from "lucide-reac
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { DetailEventSkeleton } from "@/components/app/skeletons";
 import { OuterBlock, PageSpacer, Section, WithRail } from "@/components/blocks";
+import { RemindMeButton } from "@/components/notifications/remind-me-button";
 import { AttendButton } from "@/components/state/attend-button";
 import { eventWhen } from "@/components/state/event-card";
 import { buttonVariants } from "@/components/ui/button";
 import { findStateBills } from "@/lib/civic/bills";
 import { canReportAttendance, EVENT_KIND_LABELS, howToTakePart, type EventKind } from "@/lib/civic/state-logic";
-import { getEvent, hasReportedAttending } from "@/lib/civic/state";
+import { getEvent, getStateLocation, hasReportedAttending } from "@/lib/civic/state";
 import { stateByKey } from "@/lib/civic/states";
 import { billPath, stateRoutes } from "@/lib/routes";
 
@@ -43,9 +44,12 @@ async function EventBody({ params }: PageProps) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
   const now = new Date();
-  const [known, reported] = await Promise.all([
+  // A council meeting belongs to one of the state's cities, whose reminders this page can turn on.
+  const city = event.kind === "COUNCIL_MEETING" ? (state.cities.find((entry) => entry.jurisdiction === event.jurisdiction.code) ?? null) : null;
+  const [known, reported, location] = await Promise.all([
     findStateBills(state, event.items.map((item) => item.title)),
     userId ? hasReportedAttending(userId, event.id) : Promise.resolve(false),
+    userId && city ? getStateLocation(userId, state) : Promise.resolve(null),
   ]);
   const canceled = event.status === "CANCELED";
   const isPast = event.startsAt.getTime() < now.getTime();
@@ -88,6 +92,9 @@ async function EventBody({ params }: PageProps) {
                 <Video className="size-4" aria-hidden />
                 Join online
               </a>
+            ) : null}
+            {city && !isPast && !canceled ? (
+              <RemindMeButton cityKey={city.key} cityName={city.name} livesHere={location?.city?.key === city.key} signedIn={Boolean(userId)} className="w-full" />
             ) : null}
             {!isPast && !canceled ? (
               <a href={`/api/civic/events/${event.id}/ics`} className={buttonVariants({ variant: "outline" })} data-testid="event-calendar">

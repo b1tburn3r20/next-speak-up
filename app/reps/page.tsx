@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Grid, PageHeader, PageSpacer, Section } from "@/components/blocks";
 import { FindReps } from "@/components/civic/find-reps";
+import { Disclosure } from "@/components/ui/disclosure";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { RepReportCard } from "@/components/civic/rep-report-card";
 import { getMemberStats, getRepRecaps } from "@/lib/civic/engage";
@@ -56,6 +57,15 @@ export default async function RepsPage() {
         title="Your reps' report cards"
         description="Two questions for each one: do they represent you, and are they doing the job? Only your votes decide the first."
       />
+      {metrics.reps.length > 0 ? (
+        <div id="where-you-live" className="scroll-mt-20">
+          <Disclosure title="Moved, or not where you live? Change it" data-testid="change-location">
+            <div className="pt-2">
+              <FindReps />
+            </div>
+          </Disclosure>
+        </div>
+      ) : null}
       {metrics.reps.length > 0 ? (
         <Grid cols="people" data-testid="report-cards">
           {metrics.reps.map(({ rep, compared, matched, byPolicyArea }) => (

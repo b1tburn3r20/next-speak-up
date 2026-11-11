@@ -181,3 +181,37 @@ export function buildChamberBoard<T extends { weekOf: Date; category: string; le
     waiting,
   };
 }
+
+export type FloorSplit<T> = {
+  /** Bills you've already supported or opposed. */
+  voted: T[];
+  /** Bills Congress hasn't voted on yet, and you haven't either: the ones to beat it to. */
+  waiting: T[];
+  /** Bills Congress already voted on, which you haven't. How it went stays hidden until you vote. */
+  missed: T[];
+};
+
+/**
+ * Splits the schedule three ways, for Upcoming votes. A bill listed more than once (in two weeks) counts
+ * once, at its newest listing. Items without a bill, like a meeting notice, are left out.
+ */
+export function splitFloorItems<T extends { weekOf: Date; bill: { id: number; actions: { actionCode: string | null; actionDate: Date }[] } | null }>(
+  items: T[],
+  positionOf: (billId: number) => string | null | undefined,
+): FloorSplit<T> {
+  const newest = new Map<number, T>();
+  for (const item of items) {
+    if (!item.bill) continue;
+    const held = newest.get(item.bill.id);
+    if (!held || held.weekOf.getTime() < item.weekOf.getTime()) newest.set(item.bill.id, item);
+  }
+  const split: FloorSplit<T> = { voted: [], waiting: [], missed: [] };
+  for (const item of [...newest.values()].sort((a, b) => a.weekOf.getTime() - b.weekOf.getTime())) {
+    const bill = item.bill as NonNullable<T["bill"]>;
+    const position = positionOf(bill.id);
+    if (position === "YEA" || position === "NAY") split.voted.push(item);
+    else if (floorOutcome(bill.actions, item.weekOf)) split.missed.push(item);
+    else split.waiting.push(item);
+  }
+  return split;
+}

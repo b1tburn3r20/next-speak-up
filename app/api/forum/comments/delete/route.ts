@@ -1,3 +1,5 @@
+import { FORUM_OPEN } from "@/lib/features";
+import { forumClosed } from "@/lib/api/forum-closed";
 // app/api/forum/comments/delete/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -5,6 +7,7 @@ import { authOptions } from "../../../auth/[...nextauth]/route";
 import { softDeleteComment } from "@/lib/services/forum-service";
 
 export async function POST(request) {
+  if (!FORUM_OPEN) return forumClosed();
   try {
     const session = await getServerSession(authOptions);
 

@@ -32,12 +32,13 @@ export type QueueItem = {
 
 const VOTED = { position: { in: ["YEA", "NAY"] } } satisfies Prisma.RollCallPositionWhereInput;
 
-/** Bills your reps have cast a final vote on, and you haven't weighed in on. Newest first. */
+/** Bills your reps have cast a final vote on, and you haven't weighed in on. Newest first, or oldest. */
 export async function getPulseItems(
   userId: string,
   repIds: number[],
   take = 5,
   billWhere: Prisma.BillWhereInput = {},
+  order: "newest" | "oldest" = "newest",
 ): Promise<QueueItem[]> {
   if (repIds.length === 0) return [];
   // Over-fetches because a bill can have several final votes, like the House and the Senate.
@@ -47,7 +48,7 @@ export async function getPulseItems(
       bill: { ...billWhere, userVotes: { none: { userId } } },
       positions: { some: { personId: { in: repIds }, ...VOTED } },
     },
-    orderBy: { occurredAt: { sort: "desc", nulls: "last" } },
+    orderBy: { occurredAt: { sort: order === "newest" ? "desc" : "asc", nulls: "last" } },
     take: take * 4,
     select: {
       occurredAt: true,
@@ -510,4 +511,42 @@ export async function getEngagementFacts(userId: string, repIds: number[]) {
     fewestComparedWithRep: compared.length > 0 ? Math.min(...compared) : 0,
     mostComparedWithRep: compared.length > 0 ? Math.max(...compared) : 0,
   };
+}
+
+/**
+ * A pulse check on one member: the earliest bills they cast a final vote on that you haven't weighed in
+ * on, in the order they voted. Like every queue, it never says how they voted.
+ */
+export async function getPulseCheckItems(userId: string, personId: number, take: number): Promise<QueueItem[]> {
+  return getPulseItems(userId, [personId], take, {}, "oldest");
+}
+
+/**
+ * For a pulse check's summary: your vote and the member's latest final vote, on the bills you voted on
+ * from this run. Bills you haven't voted on are left out, so this can't reveal a vote early.
+ */
+export async function getPulseCheckVotes(userId: string, personId: number, slugs: string[]) {
+  const votes = await prisma.userBillVote.findMany({
+    where: { userId, position: { in: ["YEA", "NAY"] }, bill: { slug: { in: slugs } } },
+    select: { position: true, bill: { select: { id: true, slug: true, title: true, billType: true, number: true } } },
+  });
+  if (votes.length === 0) return [];
+  const finals = await prisma.rollCallPosition.findMany({
+    where: { personId, rollCall: { isFinalVote: true, billId: { in: votes.map((vote) => vote.bill.id) } } },
+    orderBy: { rollCall: { occurredAt: "desc" } },
+    select: { position: true, rollCall: { select: { billId: true } } },
+  });
+  const latest = new Map<number, string>();
+  for (const row of finals) if (row.rollCall.billId !== null && !latest.has(row.rollCall.billId)) latest.set(row.rollCall.billId, row.position);
+  // In the order of the run, which is the order they were asked.
+  const order = new Map(slugs.map((slug, index) => [slug, index]));
+  return votes
+    .map((vote) => ({
+      slug: vote.bill.slug,
+      label: billLabel(vote.bill.billType, vote.bill.number),
+      title: vote.bill.title,
+      you: vote.position,
+      them: latest.get(vote.bill.id) ?? null,
+    }))
+    .sort((a, b) => (order.get(a.slug) ?? 0) - (order.get(b.slug) ?? 0));
 }

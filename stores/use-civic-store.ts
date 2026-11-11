@@ -38,8 +38,8 @@ export type Reward = {
   id: number;
   xp: number;
   message: string;
-  /** Something bigger than XP, like a new level. It gets confetti. */
-  celebration: string | null;
+  /** Bigger than XP, like a new level or today's goal, biggest first. Each gets its turn, with confetti. */
+  celebrations: string[];
 };
 
 type CivicState = {
@@ -143,7 +143,7 @@ export const useCivicStore = create<CivicState>((set, get) => ({
               id: ++rewardId,
               xp: after && before ? after.xp - before.xp : XP_AMOUNTS.VOTE,
               message: `+${after && before ? after.xp - before.xp : XP_AMOUNTS.VOTE} XP`,
-              celebration: before && after ? celebrate(before, after) : null,
+              celebrations: before && after ? celebrate(before, after) : [],
             }
           : state.reward,
     }));
@@ -169,7 +169,7 @@ export const useCivicStore = create<CivicState>((set, get) => ({
     if (data?.progress) set({ progress: data.progress as HudProgress });
     const earned = Number(data?.earned ?? 0);
     if (earned > 0) {
-      set({ reward: { id: ++rewardId, xp: earned, message: `+${earned} XP`, celebration: "Thanks for speaking up!" } });
+      set({ reward: { id: ++rewardId, xp: earned, message: `+${earned} XP`, celebrations: ["Thanks for speaking up!"] } });
     }
   },
 

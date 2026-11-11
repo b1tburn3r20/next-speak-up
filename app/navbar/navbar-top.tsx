@@ -1,38 +1,48 @@
-"use client"
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
 import { Hud } from "@/components/civic/hud";
+import { NotificationBell } from "@/components/notifications/notification-bell";
+import { SearchButton } from "@/components/search/search-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { HudProgress } from "@/lib/civic/progress";
-import { SearchButton } from "@/components/search/search-dialog";
-import Image from "next/image";
-import { useNavbarStore } from "./use-navbar-store";
-import SideBlock from "@/components/cb/side-block";
-import Link from "next/link";
+import NavToggle from "./nav-toggle";
+import { useLoginStore } from "./use-login-store";
+import { Button } from "@/components/ui/button";
 
-const NavbarTop = ({ hud }: { hud: HudProgress | null }) => {
-
-  const navCollapsed = useNavbarStore((f) => f.navCollapsed);
-
+function SignInButton() {
+  const open = useLoginStore((store) => store.setIsLoginDialogOpen);
   return (
-    <div className="bg-background justify-between z-10 p-1 px-4 flex min-w-0 gap-2 items-center shadow-sm h-13.5">
-      <div className="p-2">
-        {
-          !navCollapsed ? "" : (
-            <Link href={"/"}>
-              <SideBlock>
-                <Image height={25} width={25} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/icon.png"} />
-                <Image height={29} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} style={{ width: 100, height: "auto" }} loading="eager" />
-              </SideBlock>
-            </Link>
-          )
-        }
-      </div>
-      <div className="flex gap-2 items-center lg:gap-3">
-        {hud ? <Hud initial={hud} /> : null}
-        <SearchButton />
-        <ThemeToggle />
-      </div>
-    </div>
+    <Button size="sm" onClick={() => open(true)} className="whitespace-nowrap" data-testid="top-sign-in">
+      Log in
+    </Button>
   );
-};
+}
+
+/**
+ * The bar across the top of every page, at every size: the menu button and logo on the left, search
+ * in the middle, and what's yours (progress and notifications) on the right. The logo goes to the
+ * front page, which says what Coolbills is. Home is in the menu.
+ */
+const NavbarTop = ({ hud, signedIn }: { hud: HudProgress | null; signedIn: boolean }) => (
+  <header className="z-20 grid h-14 shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b-2 bg-background px-2 sm:px-3 md:gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,34rem)_minmax(0,1fr)]" data-testid="top-bar">
+    <div className="flex min-w-0 items-center gap-1">
+      <NavToggle />
+      <Link href="/" aria-label="Coolbills, the front page" className="flex shrink-0 items-center gap-2 rounded-xl px-1 py-1" data-testid="logo-link">
+        <Image height={28} width={28} alt="" src="/images/assets/icon.png" className="hidden sm:block" />
+        <Image height={29} width={100} alt="Coolbills" src="/images/assets/logo.png" className="h-6 sm:h-7" style={{ width: "auto" }} loading="eager" />
+      </Link>
+    </div>
+    <div className="flex min-w-0 justify-end md:justify-center md:px-2">
+      <SearchButton />
+    </div>
+    <div className="flex min-w-0 items-center justify-end gap-0.5 sm:gap-1.5">
+      {hud ? <Hud initial={hud} /> : null}
+      {signedIn ? <NotificationBell /> : <SignInButton />}
+      <ThemeToggle />
+    </div>
+  </header>
+);
 
 export default NavbarTop;

@@ -4,7 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import type { CityMeeting } from "@/lib/civic/city";
 import { agendaPostsAt, speakWindow } from "@/lib/civic/city-logic";
 import type { CityConfig } from "@/lib/civic/states";
-import { eventPath } from "@/lib/routes";
+import { cityMeetingPath } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 function when(date: Date, timeZone: string, withTime = true): string {
@@ -82,8 +82,8 @@ export function NextMeetingCard({
           <CalendarPlus className="size-4" aria-hidden />
           Add to my calendar
         </a>
-        <Link href={eventPath(stateKey, meeting.id)} className="tap text-sm font-bold text-primary hover:underline">
-          Details, and say you went
+        <Link href={cityMeetingPath(stateKey, city.key, meeting.id)} className="tap text-sm font-bold text-primary hover:underline" data-testid="next-meeting-details">
+          What&apos;s on it, and say you went
         </Link>
       </div>
       <p className="flex items-start gap-1.5 text-sm" data-testid="agenda-note">

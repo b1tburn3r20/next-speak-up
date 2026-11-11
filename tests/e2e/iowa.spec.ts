@@ -224,6 +224,7 @@ test.describe("Des Moines", () => {
   test("shows agendas, and is honest about what's missing", async ({ page }) => {
     await page.goto("/state/ia/city/des-moines");
     await expect(main(page).getByTestId("city-gaps")).toContainText("How each member voted isn't here yet");
+    await main(page).getByTestId("city-tab-meetings").click();
     await expect(main(page).getByTestId("city-past").getByTestId("city-past-meeting").first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
@@ -233,8 +234,9 @@ test.describe("across the app", () => {
   test("an Iowan's dashboard and report cards keep Washington and the statehouse apart", async ({ page }) => {
     await newIowan(page);
     await page.goto("/dashboard");
-    await expect(main(page).getByTestId("dashboard-reps")).toContainText("members of Congress");
-    await expect(main(page).getByTestId("dashboard-statehouse").getByTestId("rep-report-card")).toHaveCount(2);
+    const groups = main(page).getByTestId("dashboard-reps").getByTestId("my-people-group");
+    await expect(groups.filter({ hasText: "In Congress" }).getByTestId("my-person")).toHaveCount(3);
+    await expect(groups.filter({ hasText: "Iowa statehouse" }).getByTestId("my-person")).toHaveCount(2);
     await page.goto("/reps");
     await expect(main(page).getByTestId("reps-statehouse")).toBeVisible();
     await expectNoHorizontalOverflow(page);

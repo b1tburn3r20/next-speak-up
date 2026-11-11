@@ -4,6 +4,8 @@ import prisma from "@/prisma/client";
 import { computeMemberStats, isFinalVote, majorityPosition, type Position } from "./alignment";
 import { summarizeSponsoredBills } from "./member-record";
 import { STATES, stateOfScheme } from "./states";
+import { billLabel, billSlug, congressGovBillUrl } from "./labels";
+import { billPath } from "@/lib/routes";
 
 const CURRENT_TERM = {
   where: { isCurrent: true },
@@ -231,6 +233,67 @@ export async function getMemberSponsoredBills(personId: number, take = 10) {
     prisma.billSponsorship.count({ where: { personId, kind: "COSPONSOR" } }),
   ]);
   return { items: items.map((item) => item.bill), sponsored, cosponsored };
+}
+
+export type SponsoredListItem = {
+  key: string;
+  label: string;
+  title: string;
+  congress: number;
+  /** Ours when we have the bill, otherwise Congress.gov's. */
+  href: string | null;
+  external: boolean;
+  becameLaw: boolean;
+  latestActionDate: string | null;
+  latestActionText: string | null;
+};
+
+const SPONSORED_PAGE = 20;
+
+/**
+ * Bills a member sponsored across their career, newest action first, for a topic or only those that
+ * became law. The same rows their charts count, so a list never disagrees with its number.
+ */
+export async function getMemberSponsoredList(
+  personId: number,
+  filter: { policyArea?: string; becameLaw?: boolean; page?: number },
+): Promise<{ items: SponsoredListItem[]; total: number; hasMore: boolean }> {
+  const where = {
+    personId,
+    ...(filter.policyArea ? { policyArea: filter.policyArea } : {}),
+    ...(filter.becameLaw ? { becameLaw: true } : {}),
+  } satisfies Prisma.MemberSponsoredBillWhereInput;
+  const page = Math.max(1, filter.page ?? 1);
+  const [rows, total] = await Promise.all([
+    prisma.memberSponsoredBill.findMany({
+      where,
+      orderBy: [{ latestActionDate: { sort: "desc", nulls: "last" } }, { introducedDate: { sort: "desc", nulls: "last" } }, { id: "desc" }],
+      skip: (page - 1) * SPONSORED_PAGE,
+      take: SPONSORED_PAGE,
+    }),
+    prisma.memberSponsoredBill.count({ where }),
+  ]);
+  const slugs = rows.map((row) => billSlug(row.congress, row.billType, row.number));
+  const ours = new Set((await prisma.bill.findMany({ where: { slug: { in: slugs } }, select: { slug: true } })).map((bill) => bill.slug));
+  return {
+    items: rows.map((row, index) => {
+      const slug = slugs[index];
+      const local = ours.has(slug);
+      return {
+        key: slug,
+        label: billLabel(row.billType, row.number),
+        title: row.title,
+        congress: row.congress,
+        href: local ? billPath(slug) : congressGovBillUrl(row.congress, row.billType, row.number),
+        external: !local,
+        becameLaw: row.becameLaw,
+        latestActionDate: row.latestActionDate?.toISOString() ?? null,
+        latestActionText: row.latestActionText,
+      };
+    }),
+    total,
+    hasMore: page * SPONSORED_PAGE < total,
+  };
 }
 
 const VOTES_PER_PAGE = 25;

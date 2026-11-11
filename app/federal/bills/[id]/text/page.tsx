@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 async function BillTextBody({ params }: PageProps) {
   const found = await getBillText((await params).id);
   if (!found) notFound();
-  const { bill, latest, text, fetchedAt } = found;
+  const { bill, latest, text, tooLarge } = found;
   const label = billLabel(bill.billType, bill.number);
 
   return (
@@ -39,7 +39,7 @@ async function BillTextBody({ params }: PageProps) {
           <p className="text-sm text-muted-foreground">
             {latest.versionType}
             {latest.issuedOn ? `, ${formatDate(latest.issuedOn)}` : ""}
-            {fetchedAt ? ` · Fetched ${formatDate(fetchedAt)}` : ""}
+            {text ? " · From Congress.gov" : ""}
           </p>
         ) : null}
       </header>
@@ -54,13 +54,21 @@ async function BillTextBody({ params }: PageProps) {
           </pre>
         </Panel>
       ) : (
-        <EmptyState title="We don't have this text stored yet">
+        <EmptyState
+          title={
+            !latest?.htmlUrl
+              ? "Congress hasn't published text for this bill yet"
+              : tooLarge
+                ? "This bill is too long to show here"
+                : "Congress.gov didn't answer just now"
+          }
+        >
           {latest?.htmlUrl ? (
             <a href={latest.htmlUrl} target="_blank" rel="noreferrer" className="underline">
               Read it on Congress.gov
             </a>
           ) : (
-            "Congress hasn't published text for this bill yet."
+            "Its text appears once it's printed."
           )}
         </EmptyState>
       )}

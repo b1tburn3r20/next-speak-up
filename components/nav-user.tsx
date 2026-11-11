@@ -21,21 +21,13 @@ import Link from "next/link";
 import { useLoginStore } from "@/app/navbar/use-login-store";
 import LoadingCatch from "@/app/GeneralComponents/Onboarding/components/loading-catch";
 import ShinyButton from "./ui/shiny-button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
-import LoginForm from "./login-form";
 import { useNavbarStore } from "@/app/navbar/use-navbar-store";
 import { navItems } from "@/app/data/navbar-data";
 
 export function NavUser() {
   const { data: session, status } = useSession();
   const { navCollapsed } = useNavbarStore();
-  const { isLoginDialogOpen, setIsLoginDialogOpen } = useLoginStore();
+  const setIsLoginDialogOpen = useLoginStore((store) => store.setIsLoginDialogOpen);
 
 
   const handleSignOut = () => {
@@ -74,21 +66,12 @@ export function NavUser() {
   if (!session?.user || status === "unauthenticated") {
     return (
       <div className="w-full flex justify-center items-center">
-        <Dialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen}>
-          <DialogTrigger asChild>
-            <div className={navCollapsed ? "w-fit m-2" : "w-full m-2"}>
-              <ShinyButton className={navCollapsed ? "w-fit px-2" : "w-full"}>
-                {navCollapsed ? <User /> : "Login / Sign up"}
-              </ShinyButton>
-            </div>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Choose a signin option</DialogTitle>
-            </DialogHeader>
-            <LoginForm />
-          </DialogContent>
-        </Dialog>
+        {/* The one login dialog is LoginSignupModal, in the layout. Two bound to the same flag opened twice. */}
+        <div className={navCollapsed ? "w-fit m-2" : "w-full m-2"}>
+          <ShinyButton className={navCollapsed ? "w-fit px-2" : "w-full"} onClick={() => setIsLoginDialogOpen(true)} aria-label="Log in or sign up">
+            {navCollapsed ? <User /> : "Log in / Sign up"}
+          </ShinyButton>
+        </div>
       </div>
     );
   }

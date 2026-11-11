@@ -20,6 +20,7 @@ import { LocationPicker, type ResolvedLocation } from "./location-picker";
 const TOTAL_STEPS = 3;
 
 type Rep = { id: number; name: string; imageUrl: string | null; party: string | null; role: string; seat: string };
+type FoundCity = { key: string; name: string; href: string; mayor: { name: string; imageUrl: string | null } | null };
 
 async function save(body: Record<string, unknown>) {
   const response = await fetch("/api/civic/onboarding", {
@@ -125,11 +126,13 @@ function RepsFound({
   reps,
   stateReps,
   stateName,
+  city,
   onContinue,
 }: {
   reps: Rep[];
   stateReps: Rep[];
   stateName: string | null;
+  city: FoundCity | null;
   onContinue: () => void;
 }) {
   return (
@@ -149,6 +152,24 @@ function RepsFound({
         <div className="space-y-2" data-testid="onboarding-state-reps">
           <h2 className="font-extrabold">You also have these at the {stateName} statehouse</h2>
           <RepList reps={stateReps} />
+        </div>
+      ) : null}
+      {city ? (
+        <div className="space-y-2" data-testid="onboarding-city">
+          <h2 className="font-extrabold">And City Hall, in {city.name}</h2>
+          <div className="flex items-center gap-3 rounded-xl bg-muted p-2.5">
+            {city.mayor ? (
+              <>
+                <MemberPhoto name={city.mayor.name} url={city.mayor.imageUrl} party={null} size={48} />
+                <div className="min-w-0">
+                  <p className="break-words font-extrabold leading-snug">{city.mayor.name}</p>
+                  <p className="text-sm text-muted-foreground">Mayor of {city.name}</p>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm">We&apos;ll show you when the council meets, and how to speak at it.</p>
+            )}
+          </div>
         </div>
       ) : null}
       <Button size="lg" className="w-full" onClick={onContinue} data-testid="onboarding-next">
@@ -237,6 +258,7 @@ export function OnboardingFlow({
   const [findingReps, setFindingReps] = useState(false);
   const [stateReps, setStateReps] = useState<Rep[]>([]);
   const [stateName, setStateName] = useState<string | null>(null);
+  const [city, setCity] = useState<FoundCity | null>(null);
   // Null until they choose for themselves. Until then, it follows their first two answers.
   const [picked, setPicked] = useState<Set<string> | null>(initialTopics.length > 0 ? new Set(initialTopics) : null);
   const [saving, setSaving] = useState(false);
@@ -263,6 +285,7 @@ export function OnboardingFlow({
       setReps(data.reps);
       setStateReps(data.stateReps ?? []);
       setStateName(data.stateName ?? null);
+      setCity(data.city ?? null);
     } catch {
       setReps([]);
     } finally {
@@ -301,7 +324,7 @@ export function OnboardingFlow({
           {findingReps ? (
             <RepsRowSkeleton />
           ) : reps ? (
-            <RepsFound reps={reps} stateReps={stateReps} stateName={stateName} onContinue={() => setStep(2)} />
+            <RepsFound reps={reps} stateReps={stateReps} stateName={stateName} city={city} onContinue={() => setStep(2)} />
           ) : (
             <div className="space-y-4">
               <div>

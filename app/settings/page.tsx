@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { ArrowRight, Compass, UserRound } from "lucide-react";
+import { ArrowRight, Compass, MapPin, UserRound } from "lucide-react";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { OuterBlock, PageHeader, PageSpacer } from "@/components/blocks";
+import { PushSettings } from "@/components/notifications/push-settings";
 import { ThemeChoice } from "@/components/theme-toggle";
+import { getNotifyManager } from "@/lib/notifications/subscriptions";
 import { profilePath, routes } from "@/lib/routes";
 
 export const metadata: Metadata = {
@@ -30,9 +32,21 @@ function SettingLink({ href, icon: Icon, title, description, testId }: { href: s
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/");
+  const notify = await getNotifyManager(session.user.id);
   return (
     <PageSpacer width="narrow">
-      <PageHeader title="Settings" />
+      <PageHeader title="Settings" description="How Coolbills works for you: what it tells you about, where you live, and how it looks." />
+      <OuterBlock className="space-y-3" data-testid="settings-notifications" id="notifications">
+        <h2 className="text-lg font-extrabold">Notifications</h2>
+        <PushSettings initial={notify} />
+      </OuterBlock>
+      <SettingLink
+        href={`${routes.reps}#where-you-live`}
+        icon={MapPin}
+        title="Where you live"
+        description="Moved? Change your address, and your reps change with it."
+        testId="settings-location"
+      />
       <OuterBlock className="space-y-3" data-testid="settings-theme">
         <h2 className="text-lg font-extrabold">Appearance</h2>
         <ThemeChoice />

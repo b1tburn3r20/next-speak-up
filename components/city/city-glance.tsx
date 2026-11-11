@@ -4,22 +4,24 @@ import { OuterBlock, Section } from "@/components/blocks";
 import { MemberPhoto } from "@/components/people/member-photo";
 import { getCityOfficials, getNextRegularMeeting, getUserWard } from "@/lib/civic/city";
 import { seatName, speakWindow } from "@/lib/civic/city-logic";
-import type { CityConfig, StateConfig } from "@/lib/civic/states";
+import type { CityContext } from "@/lib/civic/city-registry";
+import type { StateConfig } from "@/lib/civic/states";
 import { stateRoutes } from "@/lib/routes";
 
 /** City Hall in a few lines, for the dashboard and the state's page: who's yours, and when they meet. */
-export async function CityGlance({ state, city, userId }: { state: StateConfig; city: CityConfig; userId: string | null }) {
+export async function CityGlance({ state, city, userId }: { state: StateConfig; city: CityContext; userId: string | null }) {
+  const config = city.config;
   const now = new Date();
   const [officials, next, ward] = await Promise.all([
     getCityOfficials(city),
-    getNextRegularMeeting(city, now),
-    userId ? getUserWard(userId, city) : Promise.resolve(null),
+    getNextRegularMeeting(city, now, Boolean(config)),
+    userId && config ? getUserWard(userId, config) : Promise.resolve(null),
   ]);
   const people = officials.filter((official) => {
     const term = official.terms[0];
     return term?.role === "MAYOR" || (ward !== null && term?.district?.code === ward);
   });
-  const window = next ? speakWindow(next.startsAt, city, state.timeZone, now) : null;
+  const window = next && config ? speakWindow(next.startsAt, config, state.timeZone, now) : null;
   const href = stateRoutes(state.key).city(city.key);
   return (
     <Section title={`City Hall: ${city.name}`} action={{ href, label: "All of City Hall" }} data-testid="city-glance">
@@ -37,7 +39,10 @@ export async function CityGlance({ state, city, userId }: { state: StateConfig; 
             </li>
           ))}
         </ul>
-        {ward === null ? (
+        {people.length === 0 ? (
+          <p className="text-sm text-muted-foreground" data-testid="glance-no-mayor">We couldn&apos;t read who the mayor is from the city&apos;s site.</p>
+        ) : null}
+        {config && config.council.wards > 0 && ward === null ? (
           <p className="text-sm text-muted-foreground">
             <Link href={href} className="font-bold text-primary hover:underline">
               Choose your ward
@@ -49,7 +54,7 @@ export async function CityGlance({ state, city, userId }: { state: StateConfig; 
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden />
             <span className="font-bold">
-              {city.council.name} meets{" "}
+              {config?.council.name ?? "City Council"} meets{" "}
               {next.startsAt.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: state.timeZone })}
             </span>
             {window?.status === "OPEN" ? (

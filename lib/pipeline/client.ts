@@ -1,5 +1,7 @@
 // Talks to the pipeline server. Server-only: the token must never reach a browser.
 import "server-only";
+import { describeError } from "@/lib/describe-error";
+import { unreachableMessage } from "./unreachable";
 
 export type PipelineFailure = { ok: false; reason: "NOT_CONFIGURED" | "UNREACHABLE" | "ERROR"; status: number; message: string };
 export type PipelineResult<T> = { ok: true; status: number; data: T } | PipelineFailure;
@@ -9,6 +11,7 @@ export function pipelineFailed<T>(result: PipelineResult<T>): result is Pipeline
   return !result.ok;
 }
 
+// lib/pipeline/unreachable.ts says this in its message, so change both together.
 const DEFAULT_TIMEOUT_MS = 5_000;
 
 export async function pipelineFetch<T = unknown>(
@@ -41,8 +44,10 @@ export async function pipelineFetch<T = unknown>(
       };
     }
     return { ok: true, status: response.status, data: data as T };
-  } catch {
-    // Never pass the underlying error on: it could include the address.
-    return { ok: false, reason: "UNREACHABLE", status: 503, message: "The pipeline server isn't responding." };
+  } catch (error) {
+    // The full reason, with the address, goes to the server's log only. The page gets the kind of
+    // failure, which is enough to know what to fix.
+    console.error("Pipeline server unreachable:", describeError(error));
+    return { ok: false, reason: "UNREACHABLE", status: 503, message: unreachableMessage(error) };
   }
 }

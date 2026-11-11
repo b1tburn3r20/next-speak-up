@@ -1,75 +1,51 @@
 "use client";
 
 import { useEffect } from "react";
-import { ArrowLeft, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavbarStore } from "./use-navbar-store";
-import Image from "next/image";
-import SideBlock from "@/components/cb/side-block";
-import Link from "next/link";
 
+const STORAGE_KEY = "isNavbarExpanded";
+
+/**
+ * The menu button at the far left of the top bar, which narrows the sidebar to icons and back, like
+ * most sites put it. The choice is remembered on this device. Computers and tablets only.
+ */
 const NavToggle = () => {
-  const navCollapsed = useNavbarStore((f) => f.navCollapsed);
-  const setNavCollapsed = useNavbarStore((d) => d.setNavCollapsed);
+  const collapsed = useNavbarStore((store) => store.navCollapsed);
+  const setCollapsed = useNavbarStore((store) => store.setNavCollapsed);
 
   useEffect(() => {
-    const isLocalStorageNavExpanded = localStorage.getItem("isNavbarExpanded");
-
-    if (isLocalStorageNavExpanded && isLocalStorageNavExpanded === "true") {
-      setNavCollapsed(true);
+    try {
+      // The stored value has meant "collapsed" since before it was renamed.
+      if (localStorage.getItem(STORAGE_KEY) === "true") setCollapsed(true);
+    } catch {
+      // Storage can be blocked. The sidebar just starts open.
     }
-  }, []);
-  useEffect(() => {
-    const navContainer = document.querySelector(".nav-container");
-    const navLogo = document.querySelector(".nav-logo");
-    const navLabels = document.querySelectorAll(".nav-label");
+  }, [setCollapsed]);
 
-    if (navContainer) {
-      if (navCollapsed) {
-        navContainer.classList.remove("w-64");
-        navContainer.classList.add("w-16");
-        navLogo?.classList.add("hidden");
-        navLabels.forEach((label) => label.classList.add("hidden"));
-      } else {
-        navContainer.classList.remove("w-16");
-        navContainer.classList.add("w-64");
-        navLogo?.classList.remove("hidden");
-        navLabels.forEach((label) => label.classList.remove("hidden"));
-      }
+  const toggle = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, String(!collapsed));
+    } catch {
+      // Not remembered, but it still toggles.
     }
-  }, [navCollapsed]);
-
-  const toggleNav = () => {
-    localStorage.setItem("isNavbarExpanded", String(!navCollapsed));
-    setNavCollapsed(!navCollapsed);
+    setCollapsed(!collapsed);
   };
 
   return (
-    <div className="flex group items-start justify-between p-2 shrink-0">
-      <div className={navCollapsed ? "" : "p-2"}>
-        {
-          navCollapsed ? "" : (
-            <Link href={"/"}>
-              <SideBlock>
-                <Image height={25} width={25} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/icon.png"} />
-                <Image height={25} width={100} alt="The logo for the company coolbills, it is the word coolbills in blue with a red l signifying the mix of partisanship" src={"/images/assets/logo.png"} style={{ width: 100, height: "auto" }} loading="eager" />
-              </SideBlock>
-            </Link>
-
-          )
-        }
-      </div>
-      <div
-      >
-        <Button
-          onClick={toggleNav}
-          variant="default"
-          className="p-2 rounded-lg transition-colors"
-        >
-          {navCollapsed ? <Menu size={20} /> : <ArrowLeft size={20} />}
-        </Button>
-      </div>
-    </div>
+    <Button
+      onClick={toggle}
+      variant="ghost"
+      size="icon"
+      aria-label={collapsed ? "Show the menu's names" : "Shrink the menu to icons"}
+      title={collapsed ? "Show the menu's names" : "Shrink the menu to icons"}
+      aria-expanded={!collapsed}
+      data-testid="nav-toggle"
+      className="hidden shrink-0 text-muted-foreground md:inline-flex"
+    >
+      <Menu className="size-5" aria-hidden />
+    </Button>
   );
 };
 

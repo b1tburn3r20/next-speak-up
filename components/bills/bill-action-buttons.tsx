@@ -64,7 +64,7 @@ export const BillActionButtons = memo(function BillActionButtons({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button
-        variant={position === "YEA" ? "support" : "outline"}
+        variant="support"
         size={size}
         aria-pressed={position === "YEA"}
         disabled={saving}
@@ -72,10 +72,10 @@ export const BillActionButtons = memo(function BillActionButtons({
         data-testid="vote-support"
         className="flex-1 sm:flex-none"
       >
-        <ThumbsUp className="size-4" aria-hidden /> Support
+        <ThumbsUp className="size-4" fill={position === "YEA" ? "currentColor" : "none"} aria-hidden /> Support
       </Button>
       <Button
-        variant={position === "NAY" ? "oppose" : "outline"}
+        variant="oppose"
         size={size}
         aria-pressed={position === "NAY"}
         disabled={saving}
@@ -83,7 +83,7 @@ export const BillActionButtons = memo(function BillActionButtons({
         data-testid="vote-oppose"
         className="flex-1 sm:flex-none"
       >
-        <ThumbsDown className="size-4" aria-hidden /> Oppose
+        <ThumbsDown className="size-4" fill={position === "NAY" ? "currentColor" : "none"} aria-hidden /> Oppose
       </Button>
       {showFollow ? (
         <Button

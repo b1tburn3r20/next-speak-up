@@ -22,7 +22,7 @@ const askSchema = z.object({
 });
 
 /**
- * Answers come only from the stored text of the bill, never from text the browser sends. This
+ * Answers come only from the bill's official text, fetched from Congress.gov, never from text the browser sends. This
  * calls a paid service, so it needs a signed-in user, and tests must stub it.
  */
 export async function POST(request: NextRequest) {
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   }
   if (!found.text) {
     return NextResponse.json(
-      { error: "We don't have this bill's text yet, so we can't answer questions about it." },
+      { error: "We couldn't get this bill's text right now, so we can't answer questions about it." },
       { status: 409 },
     );
   }
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     console.error("Bill question failed:", error instanceof Error ? error.message : "unknown");
     return NextResponse.json(
       { error: "We couldn't get an answer. Please try again." },
-      { status: 502 },
+      { status: 503 },
     );
   }
 }

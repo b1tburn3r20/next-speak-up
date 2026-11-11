@@ -14,6 +14,7 @@ export const ADMIN_SECTIONS: AdminSection[] = [
   { href: "/admin/pipelines", label: "Pipelines", permission: "pipelines.view" },
   { href: "/admin/feedback", label: "Feedback", permission: "feedback.view" },
   { href: "/admin/moderation", label: "Moderation", permission: "forum.moderate" },
+  { href: "/admin/glossary", label: "Glossary", permission: "glossary.manage" },
   { href: "/admin/audit", label: "Audit log", permission: "audit.view" },
 ];
 

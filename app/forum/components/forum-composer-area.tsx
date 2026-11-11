@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { OuterBlock, PageHeader } from "@/components/blocks";
 import { Button } from "@/components/ui/button";
@@ -16,14 +16,26 @@ export function ForumComposerArea({
   userId,
   username,
   startOpen = false,
+  bill = null,
 }: {
   userId?: string;
   username?: string;
   startOpen?: boolean;
+  /** A bill someone came from to talk about it. Its post starts with the bill's name and the right type. */
+  bill?: { label: string; title: string } | null;
 }) {
   const [name, setName] = useState(username);
   const [open, setOpen] = useState(Boolean(startOpen && userId && username));
   const resetStore = useNewForumPostStore((store) => store.resetStore);
+  const setTitle = useNewForumPostStore((store) => store.setTitle);
+  const setType = useNewForumPostStore((store) => store.setType);
+
+  // The form clears itself when it opens, and a child's effect runs before this one, so this wins.
+  useEffect(() => {
+    if (!open || !bill) return;
+    setType("Bill Discussion");
+    setTitle(`${bill.label}: ${bill.title}`.slice(0, 180));
+  }, [open, bill, setTitle, setType]);
 
   const close = () => {
     resetStore();

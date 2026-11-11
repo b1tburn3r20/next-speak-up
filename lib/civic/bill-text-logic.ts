@@ -37,6 +37,47 @@ export function htmlToPlainText(html: string): string {
     .trim();
 }
 
+// Where a bill's text may be fetched from. Anything else is refused, so a bad URL in the data can't
+// make the server request some other site.
+const TEXT_HOSTS = new Set(["www.congress.gov", "congress.gov", "www.govinfo.gov", "govinfo.gov"]);
+
+/** Whether the app may fetch this text address on someone's behalf. */
+export function isFetchableTextUrl(url: string | null | undefined): url is string {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" && TEXT_HOSTS.has(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A bill's text page as plain text. Those pages are one <pre> block, and its line breaks carry
+ * meaning (sections, indents), so they're kept, unlike `htmlToPlainText`, which is for summaries.
+ */
+export function billHtmlToText(html: string): string {
+  const body = html
+    .replace(/<(script|style|title)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
+    .replace(/&amp;/g, "&");
+  return body
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 /** Cuts at a sentence or word, so speech doesn't stop mid-word. */
 export function clampText(text: string, max: number): { text: string; truncated: boolean } {
   if (text.length <= max) return { text, truncated: false };

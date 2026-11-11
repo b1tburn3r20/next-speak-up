@@ -204,7 +204,7 @@ export function SearchDialog() {
             autoFocus
             value={query}
             onValueChange={setQuery}
-            placeholder="Search bills, reps, senators, topics…"
+            placeholder="Try a bill, a name, your city, or “mayor”…"
             className="text-base"
             data-testid="site-search-input"
           />
@@ -223,7 +223,7 @@ export function SearchDialog() {
                   {group.status === "loading" ? <ResultSkeleton /> : null}
                   {group.status === "error" ? (
                     <p className="px-2 py-1.5 text-sm text-muted-foreground" data-testid="search-group-error">
-                      {provider.label} isn&apos;t working right now. Everything else still is.
+                      {provider.label}{" "}isn&apos;t working right now. Everything else still is.
                     </p>
                   ) : null}
                   {group.status === "done"
@@ -263,36 +263,37 @@ export function SearchDialog() {
   );
 }
 
-/** The button that opens search. Sized for wherever it's put. */
-export function SearchButton({ compact = false }: { compact?: boolean }) {
+/**
+ * The button that opens search: a wide bar in the middle of the top bar on a computer, and a
+ * magnifying glass on a phone. Both are rendered, and CSS picks one, so nothing waits on JavaScript.
+ */
+export function SearchButton() {
   const setOpen = useSearchStore((state) => state.setOpen);
-  if (compact) {
-    return (
+  return (
+    <>
       <Button
         type="button"
         variant="ghost"
         size="icon"
         aria-label="Search"
         onClick={() => setOpen(true)}
+        className="md:hidden"
         data-testid="site-search-mobile"
       >
         <Search className="size-5" aria-hidden />
       </Button>
-    );
-  }
-  return (
-    <Button
-      type="button"
-      variant="secondary"
-      size="sm"
-      className="w-11 min-w-0 justify-center px-0 font-bold lg:w-44 lg:justify-start lg:px-3 xl:w-72"
-      onClick={() => setOpen(true)}
-      aria-label="Search anything"
-      data-testid="site-search"
-    >
-      <Search className="size-4 shrink-0" aria-hidden />
-      <span className="hidden flex-1 text-left lg:inline">Search anything…</span>
-      <Kbd className="hidden h-5 border-b-2 xl:inline-flex">Ctrl K</Kbd>
-    </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        className="hidden h-10 w-full min-w-0 justify-start gap-2 rounded-full px-4 font-bold text-muted-foreground md:flex"
+        onClick={() => setOpen(true)}
+        aria-label="Search anything"
+        data-testid="site-search"
+      >
+        <Search className="size-4 shrink-0" aria-hidden />
+        <span className="min-w-0 flex-1 truncate text-left">Search bills, people, or your city…</span>
+        <Kbd className="hidden h-5 border-b-2 lg:inline-flex">Ctrl K</Kbd>
+      </Button>
+    </>
   );
 }

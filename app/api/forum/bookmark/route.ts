@@ -1,3 +1,5 @@
+import { FORUM_OPEN } from "@/lib/features";
+import { forumClosed } from "@/lib/api/forum-closed";
 // app/api/forum/bookmark/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { unbookmarkPost, bookmarkPost } from "@/lib/services/forum-service";
@@ -5,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
 export async function POST(request: NextRequest) {
+  if (!FORUM_OPEN) return forumClosed();
   try {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;

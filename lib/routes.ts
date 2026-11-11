@@ -21,6 +21,8 @@ export const routes = {
   settings: "/settings",
   /** Sends someone to their own state, or lists the states we cover. */
   myState: "/state",
+  states: "/states",
+  myCity: "/city",
   federal: {
     home: FEDERAL_BASE,
     bills: `${FEDERAL_BASE}/bills`,
@@ -38,6 +40,7 @@ export function stateRoutes(stateKey: string) {
     bills: `${base}/bills`,
     legislators: `${base}/legislators`,
     events: `${base}/events`,
+    cities: `${base}/cities`,
     city: (cityKey: string) => `${base}/city/${cityKey}`,
   };
 }
@@ -70,6 +73,11 @@ export function memberPath(memberKey: string): string {
   const state = memberKey.match(/^([a-z]{2}):(.+)$/);
   if (state) return `${stateRoutes(state[1]).legislators}/${encodeURIComponent(state[2])}`;
   return `${routes.federal.legislators}/${memberKey}`;
+}
+
+/** One of a city's meetings. */
+export function cityMeetingPath(stateKey: string, cityKey: string, meetingId: number): string {
+  return `${stateRoutes(stateKey).city(cityKey)}/meetings/${meetingId}`;
 }
 
 /** A city official's page, by the ID their city's pipeline gives them. */

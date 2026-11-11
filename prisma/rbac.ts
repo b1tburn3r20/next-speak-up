@@ -5,12 +5,27 @@
 import type { PrismaClient } from "@prisma/client";
 import { DEFAULT_ROLE_PERMISSIONS, PERMISSIONS } from "../lib/auth/permissions";
 
+/**
+ * The built-in roles, with fixed ids, because `User.roleId` defaults to 2, so every new account needs
+ * that row to be Member. A fresh production database gets these from here, with no test accounts.
+ */
+export const BASE_ROLES = [
+  { id: 1, name: "Super Admin", description: "Full access" },
+  { id: 2, name: "Member", description: "Default role for new accounts" },
+  { id: 3, name: "Supporter", description: "Higher usage limits" },
+  { id: 4, name: "Admin", description: "Manages users and content" },
+];
+
 /** Roles added after launch. They need to exist everywhere, not only on a freshly seeded database. */
 const ADDED_ROLES: Record<string, string> = {
   Moderator: "Keeps the community healthy",
 };
 
 export async function ensureRbac(prisma: PrismaClient) {
+  // Created if missing, never renamed, so a role someone has edited stays as they left it.
+  for (const role of BASE_ROLES) {
+    await prisma.role.upsert({ where: { id: role.id }, update: {}, create: role });
+  }
   for (const [name, description] of Object.entries(ADDED_ROLES)) {
     await prisma.role.upsert({ where: { name }, update: {}, create: { name, description } });
   }

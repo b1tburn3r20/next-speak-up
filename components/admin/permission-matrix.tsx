@@ -73,7 +73,7 @@ function CreateDialog({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="create-description">What it&apos;s for</Label>
-            <Textarea id="create-description" className="min-h-20" value={description} maxLength={200} onChange={(event) => setDescription(event.target.value)} />
+            <Textarea id="create-description" className="min-h-20" value={description} maxLength={200} onChange={(event) => setDescription(event.target.value)} placeholder="One sentence on what this lets someone do" />
           </div>
           <DialogFooter>
             <Button type="button" variant="secondary" onClick={onClose}>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  splitFloorItems,
   buildChamberBoard,
   easternToday,
   floorOutcome,
@@ -148,5 +149,36 @@ describe("buildChamberBoard", () => {
   it("doesn't count a meeting notice as a bill", () => {
     const board = buildChamberBoard([row("2026-11-09", "NEXT_MEETING", "noon Monday")], NOW);
     expect(board.nextWeek).toEqual([]);
+  });
+});
+
+describe("splitFloorItems", () => {
+  const week = (iso: string) => new Date(`${iso}T00:00:00Z`);
+  const passed = (iso: string) => [{ actionCode: "8000", actionDate: new Date(`${iso}T18:00:00Z`) }];
+  const item = (id: number, weekOf: string, actions: { actionCode: string | null; actionDate: Date }[] = []) => ({ id, weekOf: week(weekOf), bill: { id, actions } });
+
+  it("puts each bill in one group: voted by you, waiting on you, or already voted on by Congress", () => {
+    const positions: Record<number, string> = { 1: "YEA", 4: "NAY" };
+    const split = splitFloorItems(
+      [item(1, "2026-11-09"), item(2, "2026-11-09"), item(3, "2026-11-09", passed("2026-11-10")), item(4, "2026-11-09", passed("2026-11-10"))],
+      (id) => positions[id],
+    );
+    expect(split.voted.map((entry) => entry.id)).toEqual([1, 4]);
+    expect(split.waiting.map((entry) => entry.id)).toEqual([2]);
+    expect(split.missed.map((entry) => entry.id)).toEqual([3]);
+  });
+
+  it("counts a bill listed in two weeks once, at its newest week, and skips rows without a bill", () => {
+    const split = splitFloorItems(
+      [item(7, "2026-11-02", passed("2026-11-03")), { id: 99, weekOf: week("2026-11-09"), bill: null }, { ...item(7, "2026-11-09"), id: 8 }],
+      () => null,
+    );
+    // The House passed it in an earlier week, but it's listed again, and the newest listing decides.
+    expect(split.waiting.map((entry) => entry.id)).toEqual([8]);
+    expect(split.missed).toEqual([]);
+  });
+
+  it("treats a skip as not voted", () => {
+    expect(splitFloorItems([item(5, "2026-11-09")], () => "SKIP").waiting).toHaveLength(1);
   });
 });

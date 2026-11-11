@@ -39,3 +39,7 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 .next-test/
+
+# City audits, from npm run audit:cities
+/reports/
+_audit/

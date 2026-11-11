@@ -43,6 +43,20 @@ export function isBackgroundRequest(url: string): boolean {
   return BACKGROUND_REQUESTS.test(url);
 }
 
+/**
+ * A request that only fills in part of a page, like search results, the bell, or a list's next page.
+ * Those show their own skeleton where the answer goes, so the bar stays for moving between pages and
+ * for saving something.
+ */
+export function isPartialLoad(url: string, method: string | undefined, origin = "http://localhost"): boolean {
+  if ((method ?? "GET").toUpperCase() !== "GET") return false;
+  try {
+    return new URL(url, origin).pathname.startsWith("/api/");
+  } catch {
+    return false;
+  }
+}
+
 /** Next.js fetches linked pages ahead of time, and nobody's waiting on those either. */
 export function isPrefetch(init?: RequestInit): boolean {
   const headers = init?.headers;
@@ -57,12 +71,14 @@ export function nextTrickle(percent: number): number {
   return percent >= ceiling ? percent : percent + (ceiling - percent) * 0.08;
 }
 
-/** Wraps fetch so every request a page makes shows in the bar, without changing any caller. */
+/** Wraps fetch so moving between pages and saving show in the bar, without changing any caller. */
 export function trackFetch(original: typeof fetch, tracker: ProgressTracker): typeof fetch {
   return async (input, init) => {
     const url =
       typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-    if (isBackgroundRequest(url) || isPrefetch(init)) return original(input, init);
+    const method = init?.method ?? (typeof input === "object" && "method" in input ? input.method : undefined);
+    const origin = typeof window === "undefined" ? undefined : window.location.origin;
+    if (isBackgroundRequest(url) || isPrefetch(init) || isPartialLoad(url, method, origin)) return original(input, init);
     tracker.start();
     try {
       return await original(input, init);

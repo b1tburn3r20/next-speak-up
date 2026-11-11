@@ -70,11 +70,15 @@ test.describe("vote first", () => {
 
   test("the next bill card doesn't give away where a bill stands", async ({ page }) => {
     await newAccount(page);
+    // Home asks someone with no location to find their reps first, so this one has a place.
+    await page.request.post("/api/civic/location", { headers: ORIGIN, data: { regionCode: "WY", districtCode: "AL" } });
     await page.goto("/dashboard");
-    const card = page.getByTestId("next-bill");
+    const card = page.getByRole("main").locator('[data-testid="next-bill"], [data-testid="blind-vote-card"]').first();
     await expect(card).toBeVisible();
-    await expect(card.getByTestId("bill-status")).toHaveCount(0);
-    await expect(card.getByTestId("relative-date")).toHaveCount(0);
+    // Where the bill stands is never shown before you vote.
+    await expect(card.locator('[data-testid="bill-status"]:visible')).toHaveCount(0);
+    // A card about your rep's vote says when they voted, which is the point of it. Any other doesn't date the bill.
+    if ((await card.getAttribute("data-testid")) === "next-bill") await expect(card.getByTestId("relative-date")).toHaveCount(0);
   });
 });
 
@@ -103,7 +107,7 @@ test.describe("XP", () => {
     // While a page streams, its content also sits in a hidden holding element outside main.
     const strip = page.getByRole("main").getByTestId("progress-strip");
     await expect(strip).toContainText("10 XP");
-    await expect(page.getByTestId("daily-goal")).toHaveText("1/3");
+    await expect(page.getByRole("main").getByTestId("daily-goal")).toHaveText("1/3");
     await page.reload();
     await expect(strip).toContainText("10 XP");
   });

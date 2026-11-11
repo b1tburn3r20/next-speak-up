@@ -25,6 +25,12 @@ const nextConfig = {
         hostname: "www.congress.gov",
         pathname: "/img/member/**",
       },
+      // Iowa's legislators, from their pages on the Legislature's site, which robots.txt allows.
+      {
+        protocol: "https",
+        hostname: "www.legis.iowa.gov",
+        pathname: "/photo",
+      },
       // Each city we cover serves its officials' photos. Add its host here with its entry in lib/civic/states.ts.
       {
         protocol: "https",
@@ -65,7 +71,23 @@ const nextConfig = {
     ];
   },
 
+  // The service worker must always be fetched fresh, or a fix to it could take a day to reach anyone.
+  async headers() {
+    return [
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Service-Worker-Allowed', value: '/' },
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+        ],
+      },
+    ];
+  },
+
   output: 'standalone',
+  // The dev-only badge sits on top of the phone's tabs or logo wherever it goes. Errors still show.
+  devIndicators: false,
   // Lets browser tests run a second dev server beside `npm run dev`.
   ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
 };

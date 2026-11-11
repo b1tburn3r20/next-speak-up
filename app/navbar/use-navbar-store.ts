@@ -5,7 +5,7 @@ export type NavbarStore = {
   setNavCollapsed: (data: boolean) => void;
 };
 
-export const useNavbarStore = create<NavbarStore>((set, get) => ({
+export const useNavbarStore = create<NavbarStore>((set) => ({
   navCollapsed: false,
   setNavCollapsed: (data: boolean) => set({ navCollapsed: data }),
 }));

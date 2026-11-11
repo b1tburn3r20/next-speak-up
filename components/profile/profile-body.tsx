@@ -17,6 +17,7 @@ import { ABOUT_MAX_LENGTH, type ProfileOwnerForm, type PublicProfile } from "@/l
 import { US_STATES } from "@/lib/constants/states";
 import { usStateToDistrictMap } from "@/lib/constants/state-to-distict-map";
 import { cn } from "@/lib/utils";
+import { FORUM_OPEN } from "@/lib/features";
 import { ClearAboutButton } from "@/app/users/[id]/clear-about-button";
 
 const STATUS_STYLE: Record<string, string> = {
@@ -214,14 +215,14 @@ export function ProfileBody({
           {open ? (
             <div className="mt-3 grid gap-4 sm:grid-cols-2" data-testid="profile-edit-identity">
               <EditDetail label="Your name" showId="showName" shown={draft.showName} onShow={(value) => set("showName", value)}>
-                <Input aria-label="Your name" value={draft.name} maxLength={80} onChange={(event) => set("name", event.target.value)} data-testid="edit-name-input" />
+                <Input aria-label="Your name" value={draft.name} maxLength={80} onChange={(event) => set("name", event.target.value)} placeholder="Your real name, if you want" data-testid="edit-name-input" />
               </EditDetail>
               <div className="space-y-1.5">
                 <Label htmlFor="edit-username" className="text-xs font-extrabold text-muted-foreground">
                   Username
                 </Label>
-                <Input id="edit-username" value={draft.username} maxLength={40} onChange={(event) => set("username", event.target.value)} data-testid="edit-username-input" />
-                <p className="text-xs text-muted-foreground">Always public. It&apos;s how you appear in the forum.</p>
+                <Input id="edit-username" value={draft.username} maxLength={40} onChange={(event) => set("username", event.target.value)} placeholder="Like civic_sam" data-testid="edit-username-input" />
+                <p className="text-xs text-muted-foreground">Always public. It&apos;s how other people see you, like on the leaderboard.</p>
               </div>
             </div>
           ) : (
@@ -249,19 +250,29 @@ export function ProfileBody({
               {error}
             </p>
           ) : null}
+          {isOwner && !open && !profile.username ? (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-streak-tint p-3" data-testid="profile-needs-username">
+              <p className="min-w-0 flex-1 text-sm font-bold">
+                You haven&apos;t picked a username, so everyone sees you as &ldquo;{profile.displayName}&rdquo;.
+              </p>
+              <Button size="sm" onClick={() => setEditing(true)} data-testid="profile-pick-username">
+                Pick a username
+              </Button>
+            </div>
+          ) : null}
           {isOwner && !open ? (
             <p className="mt-3 rounded-xl bg-primary-tint p-2.5 text-sm font-bold" data-testid="profile-owner-note">
               {isPrivateToOthers ? "Your profile is private. Only you can see this page." : "This is what other people see."}
             </p>
           ) : null}
 
-          <div className="mt-4 grid grid-cols-3 divide-x-2 border-t-2 sm:grid-cols-6" data-testid="profile-stats">
+          <div className={cn("mt-4 grid grid-cols-3 divide-x-2 border-t-2", FORUM_OPEN ? "sm:grid-cols-6" : "sm:grid-cols-5")} data-testid="profile-stats">
             <Stat icon={Medal} label="Rank" value={stats.rankName} />
-            <Stat icon={Sparkles} label={`${stats.xp.toLocaleString()} XP`} value={`Lv ${stats.level}`} />
+            <Stat icon={Sparkles} label={`${stats.xp.toLocaleString()} XP`} value={`Level ${stats.level}`} />
             <Stat icon={Flame} label="Day streak" value={String(stats.streak)} />
             <Stat icon={Vote} label="Votes" value={stats.votesCast.toLocaleString()} />
             <Stat icon={Award} label="Badges" value={`${stats.badgesEarned}/${stats.badgesTotal}`} />
-            <Stat icon={MessageSquare} label="Posts" value={postCount.toLocaleString()} />
+            {FORUM_OPEN ? <Stat icon={MessageSquare} label="Posts" value={postCount.toLocaleString()} /> : null}
           </div>
         </div>
       </section>

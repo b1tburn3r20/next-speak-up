@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { FORUM_OPEN } from "../../lib/features";
 import { blockPaidServices, expectNoHorizontalOverflow, loginAs, BASE_URL } from "./helpers";
 
 const SAMPLE_BILL = "/federal/bills/us-119-hr-2388";
@@ -8,7 +9,7 @@ test.beforeEach(async ({ page }) => {
   await blockPaidServices(page);
 });
 
-for (const path of ["/dashboard", "/federal/bills", SAMPLE_BILL, "/federal/legislators", SAMPLE_MEMBER, "/forum", "/"]) {
+for (const path of ["/dashboard", "/federal/bills", SAMPLE_BILL, "/federal/legislators", SAMPLE_MEMBER, ...(FORUM_OPEN ? ["/forum"] : []), "/"]) {
   test(`${path} loads and fits the screen`, async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -60,6 +61,7 @@ test("a member page shows attendance and party voting", async ({ page }) => {
   await page.goto("/federal/legislators/B001261");
   await expect(page.getByTestId("member-stats")).toContainText("Attendance");
   await expect(page.getByTestId("member-stats")).toContainText("%");
+  await page.getByRole("main").getByTestId("member-tab-votes").click();
   await page.getByTestId("member-votes-reveal-trigger").click();
   await expect(page.getByTestId("member-votes")).toBeVisible();
 });
@@ -68,7 +70,7 @@ test("signed-in users see their reps, including an at-large seat", async ({ page
   await loginAs(page, "test_member");
   await page.goto("/dashboard");
   const reps = page.getByRole("main").getByTestId("dashboard-reps");
-  await expect(reps.getByTestId("rep-report-card")).toHaveCount(3);
+  await expect(reps.getByTestId("my-person")).toHaveCount(3);
   await expect(reps).toContainText("Hageman");
   await expect(reps).toContainText("Barrasso");
   await page.goto("/progress");
@@ -123,7 +125,7 @@ test("voting while signed out asks you to sign in", async ({ page }) => {
   await expect(page.getByText("Log in or sign up")).toBeVisible();
 });
 
-for (const path of ["/settings", "/forum", "/mission", "/privacy", "/forum/create-forum-post"]) {
+for (const path of ["/settings", "/mission", "/privacy", ...(FORUM_OPEN ? ["/forum", "/forum/create-forum-post"] : [])]) {
   test(`${path} works when signed in`, async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -187,7 +189,7 @@ test("changing state in the older settings form updates your reps", async ({ pag
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("main").getByTestId("dashboard-reps")).toContainText("Barrasso");
   // With only a state, you see your senators, not somebody else's House member.
-  await expect(page.getByRole("main").getByTestId("dashboard-reps").getByTestId("rep-report-card")).toHaveCount(2);
+  await expect(page.getByRole("main").getByTestId("dashboard-reps").getByTestId("my-person")).toHaveCount(2);
 });
 
 
@@ -196,12 +198,12 @@ test("the progress bar shows during a slow navigation, then clears", async ({ pa
   await page.waitForLoadState("networkidle");
   const bar = page.getByTestId("top-progress-bar");
   await expect(bar).toHaveAttribute("data-active", "false");
-  await page.route("**/bills**", async (route) => {
+  await page.route("**/upcoming**", async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 800));
     await route.continue();
   });
-  await page.getByRole("link", { name: "All bills" }).click();
+  await page.getByRole("main").getByTestId("this-week-congress").click();
   await expect(bar).toHaveAttribute("data-active", "true");
-  await expect(page).toHaveURL(/\/bills/, { timeout: 20000 });
+  await expect(page).toHaveURL(/\/upcoming/, { timeout: 20000 });
   await expect(bar).toHaveAttribute("data-active", "false", { timeout: 20000 });
 });

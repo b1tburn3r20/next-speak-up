@@ -227,7 +227,32 @@ What "built out" means for the first state. Unchecked items say what's in the wa
 
 ## Cities
 
-Built from `CityConfig` in `lib/civic/states.ts`, so a new city is its pipeline plus an entry there.
+Every city in a state has a page, from `city_profile`, which the state's `cities_{state}_*` pipelines fill. A city with hand-checked settings in `lib/civic/states.ts`, like Des Moines, also gets its own pipeline and the fuller page below.
+
+### Every city
+
+- [x] Every incorporated city in the state is listed, from the Census, biggest first, with search (test)
+- [x] Each city's own site is found, and only kept when it stays on the address asked for, names the city with its state, and reads like a government (pipeline test)
+- [x] A site whose robots.txt disallows us is marked blocked and never read
+- [x] The mayor, only when the site names one beside the word "Mayor", and nobody when two names tie (pipeline test)
+- [x] Council meetings from the city's Agenda Center or its page of agenda links, with agenda and minutes (pipeline test)
+- [x] The next agenda's topics once it's posted, and the last one's until then
+- [x] What passed, from the newest minutes: only resolutions and ordinances with their own motion that carried, and no ordinance on an early reading (pipeline test)
+- [x] The city's own page for speaking at a meeting, when it has one, and an honest note when it doesn't
+- [x] Each city says what we have and what we don't, and when it was last checked
+- [x] A lookup that finds your city shows it and its mayor during onboarding, inside the location step
+- [x] "My City" in the nav goes straight to your city, or asks which one is yours (test)
+- [x] The dashboard and state page ask an Iowan whose city we don't know, with one search and a tap (test)
+- [x] "I live here" on any city's page, for someone in that state (test)
+- [x] Each meeting has its own page: when, where, the agenda's topics, what passed, how to speak, add to calendar, and "I went" (test)
+- [x] The cities list puts your own city first (test)
+- [ ] Cities on hosted agenda systems (CivicClerk, Granicus, CivicWeb, Municode, and others). Each needs its own reader, checked against its robots.txt, so for now the page links to them
+- [ ] Measures passed on a consent agenda. They have no motion of their own, so they're left out rather than assumed
+- [ ] Council members for cities without their own pipeline. Only the mayor is read so far
+
+### Cities with their own pipeline
+
+Built from `CityConfig` in `lib/civic/states.ts`, so a new one is its pipeline plus an entry there.
 
 - [x] The mayor, at-large members, and each ward's member, with phone, email, photo, and term (test)
 - [x] The next regular meeting, from the city's published schedule, with where and when (test)

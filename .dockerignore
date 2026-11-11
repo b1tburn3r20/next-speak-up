@@ -14,3 +14,11 @@ yarn-error.log
 coverage
 .cache
 dist
+
+# Not needed to build the image
+.next-test
+_audit
+tests
+test-results
+playwright-report
+dist

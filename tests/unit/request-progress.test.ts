@@ -4,6 +4,7 @@ import {
   isBackgroundRequest,
   isInternalNavigation,
   trackFetch,
+  isPartialLoad,
 } from "@/lib/request-progress";
 
 describe("createProgressTracker", () => {
@@ -50,7 +51,7 @@ describe("trackFetch", () => {
       }),
       tracker,
     );
-    await expect(wrapped("/api/x")).resolves.toBe(response);
+    await expect(wrapped("/api/x", { method: "POST" })).resolves.toBe(response);
     expect(duringRequest).toBe(true);
     expect(tracker.active).toBe(false);
   });
@@ -58,7 +59,7 @@ describe("trackFetch", () => {
   it("clears progress when a request fails, and still reports the failure", async () => {
     const tracker = createProgressTracker();
     const wrapped = trackFetch(vi.fn().mockRejectedValue(new Error("offline")), tracker);
-    await expect(wrapped("/api/x")).rejects.toThrow("offline");
+    await expect(wrapped("/api/x", { method: "POST" })).rejects.toThrow("offline");
     expect(tracker.active).toBe(false);
   });
 
@@ -70,6 +71,23 @@ describe("trackFetch", () => {
     await wrapped("/api/auth/session");
     expect(listener).not.toHaveBeenCalled();
     expect(isBackgroundRequest("/api/civic/location")).toBe(false);
+  });
+
+  it("leaves out loading part of a page, like search, which shows a skeleton instead", async () => {
+    const tracker = createProgressTracker();
+    const listener = vi.fn();
+    tracker.subscribe(listener);
+    const wrapped = trackFetch(vi.fn().mockResolvedValue(new Response()), tracker);
+    await wrapped("/api/search/bills?q=tax");
+    await wrapped(new Request("http://localhost/api/notifications/inbox"));
+    expect(listener).not.toHaveBeenCalled();
+    // Moving to another page still shows, and so does saving.
+    await wrapped("/federal/bills?_rsc=abc");
+    await wrapped("/api/civic/bills/vote", { method: "POST" });
+    expect(listener).toHaveBeenCalledTimes(4);
+    expect(isPartialLoad("/api/x", "get")).toBe(true);
+    expect(isPartialLoad("/api/x", "PATCH")).toBe(false);
+    expect(isPartialLoad("/dashboard", undefined)).toBe(false);
   });
 
   it("handles URL and Request inputs", async () => {

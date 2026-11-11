@@ -124,7 +124,7 @@ test.describe("a voting session", () => {
     await newUser(page, "repeat");
     await page.goto("/vote");
     await page.waitForLoadState("networkidle");
-    const first = await page.getByTestId("blind-vote-card").getAttribute("data-slug");
+    const first = await page.getByRole("main").getByTestId("blind-vote-card").getAttribute("data-slug");
     const vote = page.waitForResponse("**/api/civic/bills/vote");
     await page.getByTestId("vote-support").click();
     await vote;
@@ -134,17 +134,19 @@ test.describe("a voting session", () => {
 });
 
 test.describe("the dashboard", () => {
-  test("is tailored: progress, a next step, pulse checks, and reps with verdicts", async ({ page }) => {
+  test("is tailored: progress, one next vote, and who represents you", async ({ page }) => {
     await newUser(page, "dash");
     await page.goto("/dashboard");
     await expect(main(page).getByTestId("progress-strip")).toBeVisible();
-    await expect(main(page).getByTestId("next-bill")).toBeVisible();
     await expect(main(page).getByTestId("pulse-alert").first()).toBeVisible();
     await expect(main(page).getByTestId("pulse")).toContainText("Vote first");
-    await expect(main(page).getByTestId("rep-report-card")).toHaveCount(3);
-    await expect(main(page).getByTestId("verdict").first()).toHaveText("Not enough votes yet");
-    await expect(main(page).getByTestId("rep-recap").first()).toBeVisible();
+    await expect(main(page).getByTestId("pulse").getByTestId("blind-vote-card")).toHaveCount(1);
+    await expect(main(page).getByTestId("my-person")).toHaveCount(3);
+    await expect(main(page).getByTestId("verdict-pending").first()).toContainText("Vote on 3 more");
     await expectNoHorizontalOverflow(page);
+    // The full report cards, with what each rep did lately, are on My Reps.
+    await page.goto("/reps");
+    await expect(main(page).getByTestId("rep-recap").first()).toBeVisible();
     await page.goto("/progress");
     await expect(main(page).getByTestId("badges").locator('[data-earned="true"]')).toHaveCount(1);
   });
@@ -166,15 +168,19 @@ test.describe("the dashboard", () => {
     await expect(main(page).getByTestId("rep-report-card")).toHaveCount(3, { timeout: 15000 });
   });
 
-  test("the navigation alerts you to your reps' votes, and counts down", async ({ page }, testInfo) => {
-    test.skip(!testInfo.project.name.startsWith("phone"), "Checked on the phone navigation");
+  test("the bell says your reps voted on bills you haven't, and counts down", async ({ page }) => {
     await newUser(page, "alert");
     await page.goto("/federal/bills");
-    const dot = page.getByTestId("bottom-nav").getByTestId("pulse-dot");
-    await expect(dot).toBeVisible();
+    const bell = page.getByTestId("notification-bell");
+    await expect(bell.getByTestId("notification-count")).toBeVisible();
     const count = async () => (await (await page.request.get("/api/civic/pulse")).json()).count;
     const before = await count();
     expect(before).toBeGreaterThan(0);
+    await bell.click();
+    await expect(page.getByTestId("notification-waiting")).toContainText(`${before} bill`);
+    // Opening it counts as seen.
+    await page.keyboard.press("Escape");
+    await expect(bell.getByTestId("notification-count")).toHaveCount(0);
     // The queue leads with scheduled bills, so this picks one your reps actually voted on.
     await page.goto("/dashboard");
     await page.waitForLoadState("networkidle");
@@ -182,7 +188,6 @@ test.describe("the dashboard", () => {
     await page.getByTestId("pulse").getByTestId("vote-support").first().click();
     await saved;
     expect(await count()).toBe(before - 1);
-    await expect(dot).toBeVisible();
   });
 
   test("signed out, it explains the idea and offers a first step", async ({ page }) => {
@@ -284,6 +289,7 @@ test.describe("members", () => {
     await expect(main(page).getByTestId("member-stats")).toContainText("Attendance");
     await expect(main(page).getByTestId("member-stats")).toContainText("of the House");
     await expect(main(page).getByTestId("sponsored-chart").locator("li").first()).toBeVisible();
+    await main(page).getByTestId("member-tab-votes").click();
     await expect(main(page).getByTestId("vote-split").locator("li").first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
   });
@@ -309,6 +315,7 @@ test.describe("members", () => {
   test("hide how they voted until you open it", async ({ page }) => {
     await page.goto(MEMBER);
     await expect(main(page).getByTestId("member-votes")).toBeHidden();
+    await page.getByRole("main").getByTestId("member-tab-votes").click();
     await main(page).getByTestId("member-votes-reveal-trigger").click();
     await expect(main(page).getByTestId("member-votes")).toBeVisible();
   });

@@ -1,3 +1,4 @@
+import { LegiText } from "@/components/glossary/legi-text";
 import Link from "next/link";
 import { CalendarClock, FileText } from "lucide-react";
 import { BillActionButtons } from "@/components/bills/bill-action-buttons";
@@ -82,8 +83,8 @@ export function UpcomingBillCard({
           <span className="mr-1 font-extrabold">{item.legislationRef}</span>
           {bill ? <GatedStatus slug={bill.slug} signedIn={signedIn} position={state?.position ?? null}><BillStatusBadge status={bill.currentStatus} slug={bill.slug} endDate={bill.session?.endDate} /></GatedStatus> : null}
           <FloorCategoryPill category={item.category} />
+          {bill ? <PolicyChip name={bill.policyArea} link slug={bill.slug} /> : null}
         </Flex>
-        {bill ? <PolicyChip name={bill.policyArea} link slug={bill.slug} /> : null}
         <h3 className="break-words text-lg font-extrabold leading-snug">
           {bill ? (
             <Link href={billPath(bill.slug)} className="hover:underline">
@@ -94,8 +95,8 @@ export function UpcomingBillCard({
           )}
         </h3>
         {digest ? (
-          <p className="break-words leading-relaxed" data-testid="digest-lead">
-            {digest.lead}
+          <p className="line-clamp-2 break-words leading-relaxed" data-testid="digest-lead">
+            <LegiText text={digest.lead} />
           </p>
         ) : bill ? (
           <p className="text-sm text-muted-foreground" data-testid="no-digest">
@@ -120,6 +121,8 @@ export function UpcomingBillCard({
             signedIn={signedIn}
             initialPosition={state?.position ?? null}
             initialFollowing={state?.following ?? false}
+            // Following is on the bill's own page. Here it's one more button between you and the next bill.
+            showFollow={false}
           />
         ) : (
           <p className="text-sm text-muted-foreground">

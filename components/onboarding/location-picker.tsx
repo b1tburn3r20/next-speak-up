@@ -1,5 +1,7 @@
 "use client";
 
+import { CensusUnreachable, lookUpInBrowser } from "@/components/onboarding/census-lookup";
+import type { CensusQuery } from "@/lib/civic/location";
 import { useEffect, useRef, useState } from "react";
 import { LocateFixed } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,6 +64,37 @@ export function LocationPicker({
     }
   };
 
+  /**
+   * Finds the district from this browser first, because the live site's servers can't reach the
+   * Census. Only if the browser can't reach it either does the server try, which works locally.
+   */
+  const lookUp = async (query: CensusQuery) => {
+    setBusy(true);
+    setError(null);
+    try {
+      let found: Awaited<ReturnType<typeof lookUpInBrowser>>;
+      try {
+        found = await lookUpInBrowser(query);
+      } catch (failure) {
+        if (!(failure instanceof CensusUnreachable)) throw failure;
+        onResolved(await submit(query));
+        return;
+      }
+      if (!found) {
+        throw new Error(
+          "address" in query
+            ? "We couldn't find that address. Check it, or choose your state and district instead."
+            : "We couldn't find a district there. Choose your state and district instead.",
+        );
+      }
+      onResolved(await submit({ ...found, source: "address" in query ? "ADDRESS" : "BROWSER" }));
+    } catch (failure) {
+      setError((failure as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const locate = (quiet: boolean) => {
     if (!("geolocation" in navigator)) {
       if (!quiet) setError("Your browser can't share a location. Choose your state instead.");
@@ -72,7 +105,7 @@ export function LocationPicker({
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         setLocating(false);
-        if (!choseManually.current) run({ lat: coords.latitude, lng: coords.longitude });
+        if (!choseManually.current) lookUp({ lat: coords.latitude, lng: coords.longitude });
       },
       () => {
         setLocating(false);
@@ -177,7 +210,7 @@ export function LocationPicker({
         onSubmit={(event) => {
           event.preventDefault();
           choseManually.current = true;
-          run({ address });
+          lookUp({ address: address.trim() });
         }}
       >
         <Label htmlFor="location-address">Or enter your address</Label>

@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { EmptyState } from "@/components/app/page-states";
-import { Grid, PageHeader, PageSpacer } from "@/components/blocks";
-import { MemberCard } from "@/components/people/member-card";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { SectionTabs } from "@/components/app/section-tabs";
+import { PageHeader, PageSpacer, Section } from "@/components/blocks";
+import { MemberList } from "@/components/people/member-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { OptionSelect } from "@/components/ui/option-select";
 import { listCurrentMembers } from "@/lib/civic/people";
-import { getVacantSeats } from "@/lib/civic/state";
+import { getStateLocation, getStateSeats, getVacantSeats } from "@/lib/civic/state";
 import { chamberName, stateByKey } from "@/lib/civic/states";
 import { notFound } from "next/navigation";
 
@@ -30,16 +33,23 @@ export default async function StateLegislatorsPage({ params: route, searchParams
   const state = await stateFrom(route);
   const params = await searchParams;
   const chamber = params.chamber === "UPPER" || params.chamber === "LOWER" ? params.chamber : undefined;
-  const [members, vacant] = await Promise.all([
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id ?? null;
+  const filtering = Boolean(params.q || chamber || params.party || params.district?.trim());
+  const [members, vacant, location] = await Promise.all([
     listCurrentMembers({ jurisdiction: state.jurisdiction, chamber, party: params.party || undefined, q: params.q, district: params.district?.trim() || undefined }),
     getVacantSeats(state),
+    userId ? getStateLocation(userId, state) : Promise.resolve(null),
   ]);
+  const seats = await getStateSeats(location);
+  const mineIds = new Set(seats.flatMap((seat) => (seat.member ? [seat.member.id] : [])));
+  const mine = members.filter((member) => mineIds.has(member.id));
 
   return (
     <PageSpacer>
       <PageHeader
         title={`${state.name} legislators`}
-        description="Who's sitting now. Anyone just elected appears once they take their seat."
+        description={`Everyone in the ${state.chambers.LOWER.name} and ${state.chambers.UPPER.name} now. Tap anyone to see how they vote. Anyone just elected appears once they take their seat.`}
       />
       <form className="grid grid-cols-2 gap-2 lg:grid-cols-[1fr_auto_auto_auto_auto]" role="search">
         <Input className="col-span-2 lg:col-span-1" name="q" defaultValue={params.q} placeholder="Search by name" aria-label="Search by name" data-testid="state-member-search" />
@@ -68,14 +78,26 @@ export default async function StateLegislatorsPage({ params: route, searchParams
           {vacant.map((seat) => `${seat.chamber.shortName} ${seat.code}`).join(", ")}.
         </p>
       ) : null}
-      {members.length > 0 ? (
-        <Grid cols="people" data-testid="state-members">
-          {members.map((member) => (
-            <MemberCard key={member.id} member={member} />
-          ))}
-        </Grid>
-      ) : (
+      {members.length === 0 ? (
         <EmptyState title="Nobody matches that">Try fewer filters, or a different name.</EmptyState>
+      ) : filtering ? (
+        <MemberList members={members} testId="state-members" />
+      ) : (
+        <div className="space-y-6" data-testid="state-members">
+          {mine.length > 0 ? (
+            <Section title="Yours" description="The two who vote for you in the capitol.">
+              <MemberList members={mine} testId="state-members-yours" />
+            </Section>
+          ) : null}
+          <SectionTabs
+            testId="state-chamber-tabs"
+            tabTestId="state-chamber-tab"
+            tabs={(["LOWER", "UPPER"] as const).map((kind) => {
+              const inChamber = members.filter((member) => member.terms[0]?.chamber.kind === kind);
+              return { id: kind.toLowerCase(), label: `${state.chambers[kind].name} (${inChamber.length})`, content: <MemberList members={inChamber} /> };
+            })}
+          />
+        </div>
       )}
     </PageSpacer>
   );

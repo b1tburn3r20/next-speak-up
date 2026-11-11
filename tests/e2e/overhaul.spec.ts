@@ -89,6 +89,57 @@ test.describe("navigation", () => {
     test.skip(!testInfo.project.name.startsWith("phone"), "phones only");
     await page.goto("/federal/upcoming");
     await expect(page.getByTestId("bottom-nav").locator('[aria-current="page"]')).toHaveCount(1);
+    await expect(page.getByTestId("bottom-nav").locator('[aria-current="page"]')).toContainText("Congress");
+  });
+
+  test("the sidebar is grouped, and names your own state and city", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name.startsWith("phone"), "side nav is for larger screens");
+    const username = `e2e_nav_${Math.random().toString(36).slice(2, 10)}`;
+    await page.request.post("/api/account/signup", { headers: ORIGIN, data: { username, email: `${username}@coolbills.test`, password: "a good password" } });
+    await page.request.patch("/api/civic/onboarding", { headers: ORIGIN, data: { complete: true } });
+    await page.request.post("/api/civic/location", { headers: ORIGIN, data: { regionCode: "IA", districtCode: "3" } });
+    await page.request.patch("/api/civic/location/state", { headers: ORIGIN, data: { lower: "36", upper: "18", city: "des-moines" } });
+    await page.goto("/state/ia/city/des-moines");
+    const nav = page.getByRole("navigation", { name: "Main" });
+    for (const group of ["you", "congress", "local", "more"]) await expect(nav.getByTestId(`nav-group-${group}`)).toBeVisible();
+    const local = nav.getByTestId("nav-group-local");
+    await expect(local.getByRole("link", { name: "Iowa" })).toBeVisible();
+    await expect(local.getByRole("link", { name: "Des Moines" })).toHaveAttribute("aria-current", "page");
+    await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
+  });
+
+  test("a city that isn't yours lights up States", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name.startsWith("phone"), "side nav is for larger screens");
+    await page.goto("/state/ia/city/des-moines");
+    const nav = page.getByRole("navigation", { name: "Main" });
+    await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
+    await expect(nav.locator('[aria-current="page"]')).toContainText("States");
+  });
+
+  test("the sidebar narrows to icons, and stays that way", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "desktop only");
+    await page.goto("/federal/bills");
+    const nav = page.getByRole("navigation", { name: "Main" });
+    await page.getByTestId("nav-toggle").click();
+    await expect(nav.getByRole("link", { name: "Bills" })).toHaveAttribute("aria-label", "Bills");
+    await expect(nav.getByText("Congress", { exact: true })).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByTestId("nav-toggle")).toHaveAttribute("aria-expanded", "false");
+    await page.getByTestId("nav-toggle").click();
+    await expect(nav.getByText("Congress", { exact: true })).toBeVisible();
+  });
+
+  test("on a phone, More holds every other page, in groups", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.startsWith("phone"), "phones only");
+    await page.goto("/reps");
+    // My Reps is only in More, so More is what lights up.
+    await expect(page.getByTestId("bottom-nav").locator('[aria-current="page"]')).toHaveCount(0);
+    await page.getByTestId("mobile-menu-button").click();
+    const menu = page.getByRole("dialog", { name: "Menu" });
+    for (const name of ["My Reps", "Upcoming Votes", "Bills", "Topics", "Legislators", "States", "Learn the Lingo"]) {
+      await expect(menu.getByRole("link", { name, exact: true })).toBeVisible();
+    }
+    await expect(menu.getByRole("link", { name: "My Reps", exact: true })).toHaveAttribute("aria-current", "page");
   });
 });
 
@@ -251,7 +302,7 @@ test.describe("onboarding", () => {
     // A programmatic redirect mustn't leave the loading bar stuck.
     await expect(page.getByTestId("top-progress-bar")).toHaveAttribute("data-active", "false");
     // Their own House rep comes first.
-    await expect(main.getByTestId("dashboard-reps").getByTestId("rep-report-card").first()).toContainText("Hageman");
+    await expect(main.getByTestId("dashboard-reps").getByTestId("my-person").first()).toContainText("Hageman");
     await page.reload();
     await expect(page).toHaveURL(/\/dashboard$/);
   });
@@ -323,32 +374,26 @@ test.describe("onboarding", () => {
 });
 
 test.describe("dashboard", () => {
-  test("shows reps, the next bill, and what reps work on", async ({ page }) => {
+  test("shows reps, and one next vote", async ({ page }) => {
     await signUp(page, "db");
     await finishSetup(page);
     await page.goto("/dashboard");
     const main = page.getByRole("main");
-    await expect(main.getByTestId("dashboard-reps").getByTestId("rep-report-card")).toHaveCount(3);
-    const next = main.getByTestId("next-bill");
+    await expect(main.getByTestId("my-people-group").first().getByTestId("my-person")).toHaveCount(3);
+    // One vote leads: a bill your reps voted on, or the next in your queue.
+    const next = main.locator('[data-testid="pulse"], [data-testid="dashboard-next"]').first();
     await expect(next).toBeVisible();
-    await expect(next.getByRole("heading")).not.toBeEmpty();
+    await expect(next.getByRole("heading").first()).not.toBeEmpty();
     // Where a bill stands waits until after the vote.
-    await expect(next.getByTestId("relative-date")).toHaveCount(0);
-
-    const work = main.getByTestId("dashboard-rep-work").getByTestId("rep-work");
-    await expect(work).toHaveCount(3);
-    await expect(work.first().getByTestId("sponsored-areas")).toBeVisible();
-    await expect(work.first().getByTestId("success-rate")).toContainText(/\d+%/);
-    await expect(work.first().getByTestId("success-rate")).toContainText(/\d+ of \d+ bills? they sponsored became law/);
-    await next.getByRole("heading").getByRole("link").click();
-    await expect(page).toHaveURL(/\/federal\/bills\/us-/);
+    await expect(next.getByTestId("bill-status")).toHaveCount(0);
   });
 
-  test("the next bill doesn't reveal how a rep voted", async ({ page }) => {
+  test("the next vote doesn't reveal how a rep voted", async ({ page }) => {
     await signUp(page, "dr");
     await finishSetup(page);
     await page.goto("/dashboard");
-    const text = await page.getByTestId("next-bill").innerText();
+    const next = page.getByRole("main").locator('[data-testid="pulse"], [data-testid="dashboard-next"]').first();
+    const text = await next.innerText();
     expect(text).not.toMatch(/voted (yes|no|yea|nay)/i);
   });
 

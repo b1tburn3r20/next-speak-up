@@ -1,3 +1,5 @@
+import { FORUM_OPEN } from "@/lib/features";
+import { forumClosed } from "@/lib/api/forum-closed";
 // Updated API route for creating posts
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { createPost } from "@/lib/services/forum-service";
@@ -5,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
+  if (!FORUM_OPEN) return forumClosed();
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
   if (!userId) {

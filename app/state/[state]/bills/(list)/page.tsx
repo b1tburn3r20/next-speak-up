@@ -79,7 +79,7 @@ export default async function StateBillsPage({ params: route, searchParams }: St
         <Button type="submit" className="col-span-2 lg:col-span-1">Search</Button>
       </form>
       <p className="text-sm text-muted-foreground">
-        A bill&apos;s topic comes from the committee it went to, because {state.name} doesn&apos;t label bills by topic.
+        A bill&apos;s topic comes from the committee it went to, because {state.name}{" "}doesn&apos;t label bills by topic.
       </p>
       {bills.length > 0 ? (
         <Stack data-testid="state-bill-list">

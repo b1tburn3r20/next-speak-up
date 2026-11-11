@@ -1,3 +1,4 @@
+import { LegiText } from "@/components/glossary/legi-text";
 import Link from "next/link";
 import { BillActionButtons } from "@/components/bills/bill-action-buttons";
 import { BillStatusBadge, SponsorLine } from "@/components/bills/bill-card";
@@ -26,10 +27,13 @@ export function BlindVoteCard({
   item,
   signedIn,
   initialPosition = null,
+  compact = false,
 }: {
   item: QueueItem;
   signedIn: boolean;
   initialPosition?: string | null;
+  /** Shorter, so the vote buttons fit on a phone's first screen: three lines of summary, no sponsor. */
+  compact?: boolean;
 }) {
   const { bill, reps, occurredAt } = item;
   const digest = buildDigest(bill.summaries[0]?.text);
@@ -65,8 +69,8 @@ export function BlindVoteCard({
           </Link>
         </h3>
         {digest ? (
-          <p className="text-base leading-relaxed" data-testid="digest-lead">
-            {digest.lead}
+          <p className={compact ? "line-clamp-3 text-base leading-relaxed" : "text-base leading-relaxed"} data-testid="digest-lead">
+            <LegiText text={digest.lead} />
           </p>
         ) : (
           <p className="text-sm text-muted-foreground" data-testid="no-digest">
@@ -74,7 +78,7 @@ export function BlindVoteCard({
             the best description we have.
           </p>
         )}
-        <SponsorLine bill={bill} />
+        {compact ? null : <SponsorLine bill={bill} />}
         <BillActionButtons
           slug={bill.slug}
           signedIn={signedIn}

@@ -1,5 +1,7 @@
+import { LegiText } from "@/components/glossary/legi-text";
 import Link from "next/link";
-import { FileText, Sparkles, Vote } from "lucide-react";
+import { FileText, Vote } from "lucide-react";
+import { InShortHeading } from "@/components/bills/in-short-heading";
 import { VoteGateActions } from "@/components/bills/vote-gate-actions";
 import { PolicyChip } from "@/components/civic/policy-chip";
 import type { buildDigest } from "@/lib/civic/digest";
@@ -15,6 +17,7 @@ export function VoteGateCard({
   policyArea,
   explanation,
   digest,
+  summarySource = "CRS",
   textHref,
   floorNotice,
   sponsor,
@@ -25,6 +28,8 @@ export function VoteGateCard({
   policyArea: string | null;
   explanation: string | null;
   digest: ReturnType<typeof buildDigest>;
+  /** Whose words "In short" quotes. */
+  summarySource?: "CRS" | "BILL_EXPLANATION";
   textHref: string | null;
   /** When it may come up, which is a reason to weigh in now. */
   floorNotice: string | null;
@@ -54,17 +59,16 @@ export function VoteGateCard({
       ) : null}
       {digest ? (
         <div className="space-y-2">
-          <h2 className="flex items-center gap-1.5 text-sm font-extrabold uppercase tracking-wide text-muted-foreground">
-            <Sparkles className="size-4 text-primary" aria-hidden />
-            In short
-          </h2>
+          <InShortHeading source={summarySource} />
           <p className="text-lg font-semibold leading-relaxed" data-testid="digest-lead">
-            {digest.lead}
+            <LegiText text={digest.lead} />
           </p>
           {digest.points.length > 0 ? (
             <ul className="list-disc space-y-1 pl-5">
               {digest.points.map((point) => (
-                <li key={point}>{point}</li>
+                <li key={point}>
+                  <LegiText text={point} />
+                </li>
               ))}
             </ul>
           ) : null}

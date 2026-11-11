@@ -1,3 +1,5 @@
+import { FORUM_OPEN } from "@/lib/features";
+import { forumClosed } from "@/lib/api/forum-closed";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
   upvotePost,
@@ -10,6 +12,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/prisma/client";
 
 export async function POST(request: Request) {
+  if (!FORUM_OPEN) return forumClosed();
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
 

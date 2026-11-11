@@ -5,12 +5,13 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { checkRateLimit, getUserRole } from "@/lib/ratelimiter";
 import { refreshUserAlignment } from "@/lib/civic/users";
 import { getUserState, saveStateLocation } from "@/lib/civic/state";
-import { cityByKey, validDistrict } from "@/lib/civic/states";
+import { getCityContext } from "@/lib/civic/city-registry";
+import { validDistrict } from "@/lib/civic/states";
 
 const schema = z.object({
   lower: z.string().max(4).nullable(),
   upper: z.string().max(4).nullable(),
-  /** A city's key, like "des-moines", or null for anywhere else. */
+  /** A city's key, like "des-moines" or "pella", or null for anywhere else. */
   city: z.string().max(60).nullable(),
 });
 
@@ -27,7 +28,7 @@ export async function PATCH(request: NextRequest) {
   if (!state) return NextResponse.json({ error: "Set your location to a state we cover first." }, { status: 400 });
   const { lower, upper, city } = parsed.data;
   const seats = { lower: validDistrict(state, "LOWER", lower), upper: validDistrict(state, "UPPER", upper) };
-  const place = city ? cityByKey(state, city) : null;
+  const place = city ? await getCityContext(state, city) : null;
   if ((lower && !seats.lower) || (upper && !seats.upper) || (city && !place)) {
     return NextResponse.json({ error: "That district or city isn't one we know." }, { status: 400 });
   }

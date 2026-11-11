@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Disclosure } from "@/components/ui/disclosure";
+import { SectionTabs } from "@/components/app/section-tabs";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { Eye, Globe, Phone } from "lucide-react";
+import { ChevronRight, Eye, Globe, Phone } from "lucide-react";
+import { DialogPopover } from "@/components/ui/dialog-popover";
+import { MemberBillsList } from "@/components/people/member-bills-list";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { AsOfNote, EmptyState } from "@/components/app/page-states";
 import { BillStatusBadge } from "@/components/bills/bill-card";
@@ -33,7 +36,8 @@ import {
   comparedToChamber,
   MIN_VOTES_FOR_VERDICT,
 } from "@/lib/civic/verdict";
-import { billPath, topicPath } from "@/lib/routes";
+import { billPath, memberPath, topicPath } from "@/lib/routes";
+import { PulseCheckStart } from "@/components/people/pulse-check-page";
 import { RelativeDate } from "@/components/app/relative-date";
 import { Suspense } from "react";
 import { MemberDetailSkeleton } from "@/components/app/skeletons";
@@ -107,6 +111,7 @@ async function MemberBody({ params, searchParams }: PageProps) {
   }));
   const topArea = policyAreaByName(sponsoredRows[0]?.policyArea);
   const firstName = member.fullName.split(" ")[0];
+  const hasPulseCheck = Boolean(current?.isCurrent) || votePage.votes.length > 0;
 
   return (
     <PageSpacer>
@@ -137,7 +142,7 @@ async function MemberBody({ params, searchParams }: PageProps) {
         </div>
       </header>
 
-      <OuterBlock data-testid="member-alignment">
+      <OuterBlock className="space-y-4" data-testid="member-alignment">
         <Flex nowrap gap="lg" align="center">
           <AlignmentRing
             percent={verdict.percent}
@@ -162,11 +167,15 @@ async function MemberBody({ params, searchParams }: PageProps) {
             ) : (
               <p className="text-sm">Sign in and vote on bills to find out.</p>
             )}
-            <Link href="/vote" className="inline-block text-sm font-extrabold text-primary hover:underline">
-              {userId ? "Vote on more bills" : "Start voting"}
-            </Link>
+            {hasPulseCheck ? null : (
+              <Link href="/vote" className="inline-block text-sm font-extrabold text-primary hover:underline">
+                {userId ? "Vote on more bills" : "Start voting"}
+              </Link>
+            )}
           </div>
         </Flex>
+        {/* The quickest way to answer the question above: vote on a few of their bills now. */}
+        {hasPulseCheck ? <PulseCheckStart embedded pulseHref={`${memberPath(bioguideId)}/pulse-check`} firstName={firstName} /> : null}
       </OuterBlock>
 
       <Section title="Are they doing the job?" description="How they compare with the rest of their chamber.">
@@ -195,23 +204,68 @@ async function MemberBody({ params, searchParams }: PageProps) {
             hint={stat ? `${stat.sponsoredThisCongress} this Congress. Whole career.` : "In this Congress so far"}
             className="bg-card border-2 border-b-4"
           />
-          <StatTile
-            value={stat?.becameLawCount ?? "No data"}
-            label="Became law"
-            hint={comparedToChamber(stat?.lawPercentile, chamber)}
-            className="bg-card border-2 border-b-4"
-          />
+          {stat && stat.becameLawCount > 0 ? (
+            <DialogPopover
+              trigger={
+                <StatTile
+                  value={stat.becameLawCount}
+                  label={<span className="inline-flex items-center gap-1">Became law <ChevronRight className="size-4" aria-hidden /></span>}
+                  hint={comparedToChamber(stat.lawPercentile, chamber)}
+                  className="h-full bg-transparent"
+                />
+              }
+              label={`See the ${stat.becameLawCount} bills of ${firstName}'s that became law`}
+              title={`${firstName}'s bills that became law`}
+              description="Bills they sponsored that were signed, the most recent first."
+              className="h-full rounded-xl border-2 border-b-4 bg-card"
+              testId="law-bills"
+            >
+              <MemberBillsList personId={member.id} becameLaw />
+            </DialogPopover>
+          ) : (
+            <StatTile
+              value={stat?.becameLawCount ?? "No data"}
+              label="Became law"
+              hint={comparedToChamber(stat?.lawPercentile, chamber)}
+              className="bg-card border-2 border-b-4"
+            />
+          )}
         </Grid>
         {stat?.lastVoteAt ? (
           <p className="text-sm text-muted-foreground"><RelativeDate date={stat.lastVoteAt} label="Last recorded vote" /></p>
         ) : null}
       </Section>
 
-      <Grid cols="halves" gap="xl">
+      {/* Two questions people ask about a member, one tab each. Their votes come first when paging through them. */}
+      <SectionTabs
+        testId="member-tabs"
+        tabTestId="member-tab"
+        tabs={votesFirstWhenPaging(pageNumber > 1, [
+          { id: "work", label: "What they work on", content: (
+              <div className="space-y-6">
         <Section title="What they work on" description="Bills they've sponsored, by policy area.">
           <OuterBlock>
             {sponsoredRows.length > 0 ? (
-              <PolicyBars rows={sponsoredRows} label="Bills sponsored by policy area" testId="sponsored-chart" />
+              <>
+                <PolicyBars
+                  rows={sponsoredRows}
+                  label="Bills sponsored by policy area"
+                  testId="sponsored-chart"
+                  rowAction={(row, content) => (
+                    <DialogPopover
+                      trigger={content}
+                      label={`See ${firstName}'s ${row.value} ${row.policyArea} bills`}
+                      title={`${firstName}'s ${row.policyArea} bills`}
+                      description="Every one they sponsored, the most recent first."
+                      className="-mx-2 px-2 py-1.5"
+                      testId="topic-bills"
+                    >
+                      <MemberBillsList personId={member.id} area={row.policyArea} />
+                    </DialogPopover>
+                  )}
+                />
+                <p className="mt-3 text-xs text-muted-foreground">Tap a topic to see the bills.</p>
+              </>
             ) : (
               <p className="text-sm text-muted-foreground" data-testid="no-sponsored-chart">
                 We don&apos;t have policy areas for their sponsored bills yet.
@@ -219,6 +273,30 @@ async function MemberBody({ params, searchParams }: PageProps) {
             )}
           </OuterBlock>
         </Section>
+      <Section title="Sponsored bills">
+        <OuterBlock>
+          {sponsored.items.length > 0 ? (
+            <Stack gap="sm" data-testid="sponsored-bills">
+              {sponsored.items.map((bill) => (
+                <div key={bill.slug} className="border-b pb-2 last:border-b-0 last:pb-0">
+                  <Link href={billPath(bill.slug)} className="font-extrabold text-primary hover:underline">
+                    {billLabel(bill.billType, bill.number)}
+                  </Link>{" "}
+                  <BillStatusBadge status={bill.currentStatus} />
+                  <p className="line-clamp-2 break-words text-sm text-muted-foreground">{bill.title}</p>
+                </div>
+              ))}
+            </Stack>
+          ) : (
+            <p className="text-sm text-muted-foreground">We don&apos;t have any of their bills yet.</p>
+          )}
+        </OuterBlock>
+      </Section>
+
+              </div>
+            ) },
+          { id: "votes", label: "How they vote", content: (
+              <div className="space-y-6">
         <Section title="How they vote" description="Yes and no on final votes, by policy area.">
           <OuterBlock>
             {voteRows.some((row) => row.yea + row.nay > 0) ? (
@@ -230,8 +308,6 @@ async function MemberBody({ params, searchParams }: PageProps) {
             )}
           </OuterBlock>
         </Section>
-      </Grid>
-
       <Section title={`See how ${firstName} voted`}>
         <OuterBlock>
           <Disclosure
@@ -327,25 +403,10 @@ async function MemberBody({ params, searchParams }: PageProps) {
         </OuterBlock>
       </Section>
 
-      <Section title="Sponsored bills">
-        <OuterBlock>
-          {sponsored.items.length > 0 ? (
-            <Stack gap="sm" data-testid="sponsored-bills">
-              {sponsored.items.map((bill) => (
-                <div key={bill.slug} className="border-b pb-2 last:border-b-0 last:pb-0">
-                  <Link href={billPath(bill.slug)} className="font-extrabold text-primary hover:underline">
-                    {billLabel(bill.billType, bill.number)}
-                  </Link>{" "}
-                  <BillStatusBadge status={bill.currentStatus} />
-                  <p className="line-clamp-2 break-words text-sm text-muted-foreground">{bill.title}</p>
-                </div>
-              ))}
-            </Stack>
-          ) : (
-            <p className="text-sm text-muted-foreground">We don&apos;t have any of their bills yet.</p>
-          )}
-        </OuterBlock>
-      </Section>
+              </div>
+            ) },
+        ])}
+      />
 
       <NextStepCard
         label="Next up"
@@ -390,4 +451,9 @@ export default async function MemberPage(props: PageProps) {
       <MemberBody {...props} />
     </Suspense>
   );
+}
+
+/** Someone paging through a member's votes lands back on that tab. */
+function votesFirstWhenPaging<T extends { id: string }>(paging: boolean, tabs: T[]): T[] {
+  return paging ? [...tabs.filter((tab) => tab.id === "votes"), ...tabs.filter((tab) => tab.id !== "votes")] : tabs;
 }

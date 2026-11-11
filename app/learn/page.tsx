@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Grid, OuterBlock, PageHeader, PageSpacer, Section } from "@/components/blocks";
+import { OuterBlock, PageHeader, PageSpacer, Section } from "@/components/blocks";
 import { NextStepCard } from "@/components/civic/next-step-card";
 import { GLOSSARY } from "@/lib/civic/glossary";
 
@@ -51,14 +51,17 @@ export default function LearnPage() {
       </Section>
       {GROUPS.map((group) => (
         <Section key={group.title} title={group.title}>
-          <Grid cols="halves">
-            {group.keys.map((key) => (
-              <OuterBlock key={key} id={key} className="scroll-mt-16" data-testid="glossary-entry">
-                <h3 className="font-extrabold">{GLOSSARY[key].term}</h3>
-                <p className="text-sm">{GLOSSARY[key].short}</p>
-              </OuterBlock>
-            ))}
-          </Grid>
+          {/* One card per group, a word to a row, reads like a dictionary page rather than a wall of cards. */}
+          <OuterBlock className="p-0 sm:p-0">
+            <dl className="divide-y sm:grid sm:grid-cols-2 sm:divide-y-0">
+              {group.keys.map((key) => (
+                <div key={key} id={key} className="scroll-mt-16 px-4 py-3 sm:px-5" data-testid="glossary-entry">
+                  <dt className="font-extrabold">{GLOSSARY[key].term}</dt>
+                  <dd className="text-sm">{GLOSSARY[key].short}</dd>
+                </div>
+              ))}
+            </dl>
+          </OuterBlock>
         </Section>
       ))}
       <NextStepCard

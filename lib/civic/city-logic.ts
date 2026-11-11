@@ -4,13 +4,13 @@ import type { CityConfig } from "./states";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** A date's calendar day where the city is, as the UTC midnight of that day. */
-function localDay(date: Date, timeZone: string): Date {
+export function localDay(date: Date, timeZone: string): Date {
   const day = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
   return new Date(`${day}T00:00:00.000Z`);
 }
 
 /** The UTC instant of a local wall-clock time on a local day. Works across daylight saving. */
-function atLocalTime(day: Date, hour: number, minute: number, timeZone: string): Date {
+export function atLocalTime(day: Date, hour: number, minute: number, timeZone: string): Date {
   const guess = new Date(day.getTime() + (hour * 60 + minute) * 60 * 1000);
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,
@@ -52,10 +52,14 @@ export function agendaPostsAt(meetingStartsAt: Date, city: Pick<CityConfig, "age
   return atLocalTime(new Date(day.getTime() - rule.daysBefore * DAY_MS), rule.hour, rule.minute, timeZone);
 }
 
-/** Topics grouped by where they sit on the agenda, in the agenda's own order. */
+/** The section the cities pipeline gives what a meeting's minutes say passed. It isn't an agenda topic. */
+export const ADOPTED_SECTION = "Adopted";
+
+/** Topics grouped by where they sit on the agenda, in the agenda's own order. What passed is left out. */
 export function groupTopics<T extends { section: string | null; title: string }>(items: T[]): { section: string; items: T[] }[] {
   const groups: { section: string; items: T[] }[] = [];
   for (const item of items) {
+    if (item.section === ADOPTED_SECTION) continue;
     const section = item.section ?? "On the agenda";
     const group = groups.find((entry) => entry.section === section);
     if (group) group.items.push(item);
@@ -138,4 +142,152 @@ export function summarizeOfficialRecord(votes: OfficialVote[], lastName: string)
 /** What a position means, in plain words. */
 export function cityPositionLabel(position: string): string {
   return { YEA: "Yes", NAY: "No", PRESENT: "Stepped aside", NOT_VOTING: "Absent" }[position] ?? position;
+}
+
+const WEEKDAYS: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+const ORDINALS: Record<string, number> = { "1st": 1, first: 1, "2nd": 2, second: 2, "3rd": 3, third: 3, "4th": 4, fourth: 4, "5th": 5, fifth: 5, last: -1 };
+
+export type MeetingSchedule = {
+  /** Which of the month's weekdays: 1 for the first, -1 for the last. Empty means every week. */
+  weeks: number[];
+  weekday: number;
+  /** As the city wrote it, like "6:00 PM", when it gave one. */
+  time: { hour: number; minute: number } | null;
+};
+
+/**
+ * A council's regular schedule, as a city or a state's directory states it: "1st/3rd Wed",
+ * "2nd & 4th Mondays at 6:00 p.m.", "Every Tuesday 7 PM". Anything less clear gives null, so a guess is
+ * never shown as a date.
+ */
+export function parseMeetingSchedule(text: string | null | undefined): MeetingSchedule | null {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+  const days = [...lower.matchAll(/\b(sun|mon|tue|wed|thu|fri|sat)[a-z]*\b/g)].map((match) => WEEKDAYS[match[1]]);
+  if (new Set(days).size !== 1) return null;
+  const weeks = [...lower.matchAll(/\b(1st|2nd|3rd|4th|5th|first|second|third|fourth|fifth|last)\b/g)].map((match) => ORDINALS[match[1]]);
+  if (weeks.length === 0 && !/\bevery\b|\beach\b|\bweekly\b/.test(lower)) return null;
+  const clock = lower.match(/\b(\d{1,2})(?::(\d{2}))?\s*([ap])\.?\s*m\b/);
+  let time: MeetingSchedule["time"] = null;
+  if (clock) {
+    const hour = (Number(clock[1]) % 12) + (clock[3] === "p" ? 12 : 0);
+    time = { hour, minute: Number(clock[2] ?? 0) };
+  }
+  return { weeks: [...new Set(weeks)].sort(), weekday: days[0], time };
+}
+
+function occursOn(day: Date, schedule: MeetingSchedule): boolean {
+  if (day.getUTCDay() !== schedule.weekday) return false;
+  if (schedule.weeks.length === 0) return true;
+  const nth = Math.floor((day.getUTCDate() - 1) / 7) + 1;
+  const isLast = new Date(day.getTime() + 7 * DAY_MS).getUTCMonth() !== day.getUTCMonth();
+  return schedule.weeks.includes(nth) || (isLast && schedule.weeks.includes(-1));
+}
+
+export type ScheduledMeeting = {
+  /** The local day, as the UTC midnight of that day. */
+  day: Date;
+  /** The start, when the schedule gives a time. */
+  startsAt: Date | null;
+};
+
+/**
+ * The next regular meeting by the city's stated schedule, for a city whose agendas aren't online. It's
+ * only what the schedule says: a holiday or a cancellation can move it, and the page says so.
+ */
+export function nextScheduledMeeting(text: string | null | undefined, timeZone: string, now = new Date()): ScheduledMeeting | null {
+  const schedule = parseMeetingSchedule(text);
+  if (!schedule) return null;
+  const today = localDay(now, timeZone);
+  for (let offset = 0; offset < 70; offset += 1) {
+    const day = new Date(today.getTime() + offset * DAY_MS);
+    if (!occursOn(day, schedule)) continue;
+    const startsAt = schedule.time ? atLocalTime(day, schedule.time.hour, schedule.time.minute, timeZone) : null;
+    // Today's meeting counts until it starts, or all day when there's no time.
+    if (startsAt && startsAt <= now) continue;
+    return { day, startsAt };
+  }
+  return null;
+}
+
+/** What we know about one city, for the audit. */
+export type CityFacts = {
+  mayor: boolean;
+  upperDistricts: number;
+  lowerDistricts: number;
+  phone: string | null;
+  address: string | null;
+  upcomingMeeting: boolean;
+  meetingSchedule: string | null;
+  topics: boolean;
+  speakUrl: string | null;
+  speakInfo: string | null;
+};
+
+export const AUDIT_ITEMS = ["mayor", "legislators", "cityHall", "nextMeeting", "topics", "speak"] as const;
+export type AuditItem = (typeof AUDIT_ITEMS)[number];
+export type CityAudit = Record<AuditItem, boolean>;
+
+export function auditCity(facts: CityFacts): CityAudit {
+  return {
+    mayor: facts.mayor,
+    legislators: facts.upperDistricts > 0 && facts.lowerDistricts > 0,
+    cityHall: Boolean(facts.phone || facts.address),
+    nextMeeting: facts.upcomingMeeting || parseMeetingSchedule(facts.meetingSchedule) !== null,
+    topics: facts.topics,
+    // A city with City Hall's phone can always be asked, but that's not a way to sign up, so it's not counted.
+    speak: Boolean(facts.speakUrl || facts.speakInfo),
+  };
+}
+
+/** The items every state's cities must have, and how many of them must have each. */
+export const REQUIRED_ITEMS: AuditItem[] = ["mayor", "legislators", "cityHall"];
+export const REQUIRED_SHARE = 0.95;
+
+export type CoverageGate = {
+  passed: boolean;
+  cities: number;
+  items: { item: AuditItem; have: number; share: number; required: boolean; passed: boolean }[];
+};
+
+/** Whether a state's cities meet the bar. Meetings, topics, and speaking are counted but don't fail it. */
+export function coverageGate(audits: CityAudit[], share = REQUIRED_SHARE): CoverageGate {
+  const cities = audits.length;
+  const items = AUDIT_ITEMS.map((item) => {
+    const have = audits.filter((audit) => audit[item]).length;
+    const ratio = cities === 0 ? 0 : have / cities;
+    const required = REQUIRED_ITEMS.includes(item);
+    return { item, have, share: ratio, required, passed: !required || ratio >= share };
+  });
+  return { passed: cities > 0 && items.every((entry) => entry.passed), cities, items };
+}
+
+export type CityAction =
+  | { kind: "SPEAK"; href: string }
+  | { kind: "REMIND" }
+  | { kind: "CALL"; href: string; phone: string }
+  | { kind: "AGENDA"; href: string }
+  | { kind: "NONE" };
+
+/**
+ * The one main thing to do on a city's page, on its first screen. Signing up to speak is the most direct
+ * way to be heard, so it wins. With a meeting coming, a reminder keeps it from slipping by. Without one,
+ * City Hall's phone is the surest way to find out, and then wherever the city posts its agendas.
+ */
+export function primaryCityAction(facts: {
+  speakUrl: string | null | undefined;
+  meetingKnown: boolean;
+  phone: string | null | undefined;
+  agendaUrl: string | null | undefined;
+}): CityAction {
+  if (facts.speakUrl) return { kind: "SPEAK", href: facts.speakUrl };
+  if (facts.meetingKnown) return { kind: "REMIND" };
+  if (facts.phone) return { kind: "CALL", href: telHref(facts.phone), phone: facts.phone };
+  if (facts.agendaUrl) return { kind: "AGENDA", href: facts.agendaUrl };
+  return { kind: "NONE" };
+}
+
+/** A phone number as a link a phone can dial. */
+export function telHref(phone: string): string {
+  return `tel:${phone.replace(/[^\d+]/g, "")}`;
 }

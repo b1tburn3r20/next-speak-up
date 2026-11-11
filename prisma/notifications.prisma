@@ -1,0 +1,58 @@
+// Push notifications: the browsers someone turned them on in, and every notification sent to them.
+
+// One browser or installed app that agreed to get notifications. The endpoint is the push service's
+// address for it (Google's, Mozilla's, or Apple's), and the keys encrypt what we send.
+model PushSubscription {
+  id            Int       @id @default(autoincrement())
+  userId        String
+  endpoint      String    @unique @db.VarChar(700)
+  p256dh        String    @db.VarChar(200)
+  auth          String    @db.VarChar(100)
+  userAgent     String?   @db.VarChar(300)
+  createdAt     DateTime  @default(now())
+  lastSuccessAt DateTime?
+  // Failed sends in a row. A subscription the push service says is gone is removed at once.
+  failures      Int       @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscription")
+}
+
+enum NotificationKind {
+  // A city council meeting coming up in the person's home city
+  CITY_MEETING
+  // Bills in the person's topics that may come up for a vote this week
+  FLOOR_WEEK
+  // How a vote turned out, and how the person's own legislator voted
+  VOTE_RESULT
+  // A followed bill became law
+  BECAME_LAW
+  // Sent from settings, to check notifications work
+  TEST
+}
+
+// Every notification sent. The unique key is what keeps one from going out twice, even when two
+// senders run at once: the row is written first, and only the one that wrote it sends.
+model NotificationDelivery {
+  id      Int              @id @default(autoincrement())
+  userId  String
+  kind    NotificationKind
+  // What it's about, and which reminder: "meeting:123:7d", "rollcall:456", "floor:2026-11-09"
+  refKey  String           @db.VarChar(120)
+  title   String           @db.VarChar(200)
+  body    String           @db.VarChar(500)
+  url     String           @db.VarChar(500)
+  // Browsers it reached. Zero means none of them took it.
+  reached Int              @default(0)
+  sentAt  DateTime         @default(now())
+  readAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind, refKey])
+  @@index([userId, sentAt])
+  @@index([kind, refKey])
+  @@map("notification_delivery")
+}

@@ -73,6 +73,30 @@ export function billSlug(congress: number | string, billType: string, number: nu
   return `us-${congress}-${billType.toLowerCase()}-${number}`;
 }
 
+const CONGRESS_GOV_TYPES: Record<string, string> = {
+  hr: "house-bill",
+  s: "senate-bill",
+  hres: "house-resolution",
+  sres: "senate-resolution",
+  hjres: "house-joint-resolution",
+  sjres: "senate-joint-resolution",
+  hconres: "house-concurrent-resolution",
+  sconres: "senate-concurrent-resolution",
+};
+
+/** "119th", "101st", "102nd", "103rd", "111th". */
+export function ordinal(value: number): string {
+  const lastTwo = value % 100;
+  if (lastTwo >= 11 && lastTwo <= 13) return `${value}th`;
+  return `${value}${({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[value % 10] ?? "th"}`;
+}
+
+/** A bill's page on Congress.gov, for one we don't have ourselves, like one from an earlier Congress. */
+export function congressGovBillUrl(congress: number, billType: string, number: number): string | null {
+  const kind = CONGRESS_GOV_TYPES[billType.toLowerCase()];
+  return kind ? `https://www.congress.gov/bill/${ordinal(congress)}-congress/${kind}/${number}` : null;
+}
+
 const PARTY_LABELS: Record<string, string> = {
   D: "Democrat",
   R: "Republican",

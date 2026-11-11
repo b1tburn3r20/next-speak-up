@@ -48,7 +48,10 @@ export default async function StateEventsPage({ params: route, searchParams }: S
 
   return (
     <PageSpacer>
-      <PageHeader title={`${state.name} meetings`} description="Subcommittee meetings are usually the best place to be heard." />
+      <PageHeader
+        title={`${state.name} meetings`}
+        description={`Meetings you can go to: the Legislature's committees, and city councils. Most let the public speak, and a subcommittee is usually the best place to be heard on a bill.`}
+      />
       <div className="flex gap-2" role="tablist" aria-label="When">
         {(["upcoming", "past"] as const).map((value) => (
           <Link

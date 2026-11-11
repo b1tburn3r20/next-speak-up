@@ -10,6 +10,8 @@ import { TopProgressBar } from "@/components/app/top-progress-bar";
 import { OnboardingGate } from "@/components/onboarding/onboarding-gate";
 import { SiteFooter } from "@/components/app/site-footer";
 import { RewardToast } from "@/components/civic/progress-strip";
+import { GlossaryProvider } from "@/components/glossary/glossary-provider";
+import { getGlossaryRows } from "@/lib/glossary/glossary";
 
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito" });
 
@@ -29,6 +31,9 @@ export const metadata: Metadata = {
     "Senators",
   ],
   metadataBase: new URL("https://yoursite.com"),
+  // Added to an iPhone's home screen, it opens like an app, which is where iOS allows notifications.
+  appleWebApp: { capable: true, title: "Coolbills", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -53,7 +58,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -66,12 +71,15 @@ export default function RootLayout({
         <ThemeProvider>
         <AuthProvider>
                       <TopProgressBar />
+            {/* The glossary, cached for a week on the server, so summaries can explain their words. */}
+            <GlossaryProvider rows={await getGlossaryRows()}>
             <Navbar>
               <main className="">
                 {children}
               </main>
               <SiteFooter />
             </Navbar>
+            </GlossaryProvider>
             <Toaster />
             <RewardToast />
             <OnboardingGate />

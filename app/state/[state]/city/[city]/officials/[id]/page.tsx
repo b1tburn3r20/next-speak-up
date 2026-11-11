@@ -11,7 +11,8 @@ import { MemberPhoto } from "@/components/people/member-photo";
 import { buttonVariants } from "@/components/ui/button";
 import { getCityOfficial, getNextRegularMeeting, getOfficialVotes } from "@/lib/civic/city";
 import { cityPositionLabel, seatName, summarizeOfficialRecord } from "@/lib/civic/city-logic";
-import { cityByKey, stateByKey } from "@/lib/civic/states";
+import { getCityContext } from "@/lib/civic/city-registry";
+import { stateByKey } from "@/lib/civic/states";
 import { stateRoutes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +21,7 @@ type PageProps = { params: Promise<{ state: string; city: string; id: string }> 
 async function officialFrom(params: PageProps["params"]) {
   const { state: stateKey, city: cityKey, id } = await params;
   const state = stateByKey(stateKey);
-  const city = state ? cityByKey(state, cityKey) : null;
+  const city = state ? await getCityContext(state, cityKey) : null;
   if (!state || !city) return null;
   const official = await getCityOfficial(city, decodeURIComponent(id));
   return official ? { state, city, official } : null;
@@ -72,13 +73,24 @@ async function OfficialBody({ params }: PageProps) {
   const term = official.terms[0];
   const isMayor = term?.role === "MAYOR";
   const seat = seatName(term?.role ?? "", term?.district?.code);
-  const [votes, next] = await Promise.all([getOfficialVotes(city, official.id), getNextRegularMeeting(city)]);
+  const config = city.config;
+  const [votes, next] = await Promise.all([getOfficialVotes(city, official.id), getNextRegularMeeting(city, new Date(), Boolean(config))]);
   const lastName = official.fullName.split(" ").at(-1) ?? official.fullName;
   const record = summarizeOfficialRecord(votes, lastName);
   const noVotes = votes.filter((vote) => vote.position === "NAY");
   const stepped = votes.filter((vote) => vote.position === "PRESENT");
-  const role = isMayor ? city.roles.MAYOR : term?.district?.code === "AL" ? city.roles.AT_LARGE : city.roles.WARD;
-  const links = city.roleLinks[isMayor ? "MAYOR" : "COUNCIL_MEMBER"] ?? [];
+  const councilName = config?.council.name ?? "City Council";
+  // What the job is, in the city's own terms when we've checked them. Otherwise, what's true in any Iowa city.
+  const role = config
+    ? isMayor
+      ? config.roles.MAYOR
+      : term?.district?.code === "AL"
+        ? config.roles.AT_LARGE
+        : config.roles.WARD
+    : isMayor
+      ? `The mayor is ${city.name}'s top elected official and leads City Council meetings.`
+      : `A member of ${city.name}'s City Council, which passes the city's ordinances and budget.`;
+  const links = config?.roleLinks[isMayor ? "MAYOR" : "COUNCIL_MEMBER"] ?? [];
   const cityHref = stateRoutes(state.key).city(city.key);
 
   return (
@@ -94,7 +106,7 @@ async function OfficialBody({ params }: PageProps) {
               {official.fullName}
             </h1>
             <p className="font-bold text-muted-foreground" data-testid="official-seat">
-              {isMayor ? `Mayor of ${city.name}` : `${city.council.name} member, ${seat}`}
+              {isMayor ? `Mayor of ${city.name}` : `${councilName} member, ${seat}`}
             </p>
             <p className="text-sm text-muted-foreground">
               {term?.startYear ? `Since ${term.startYear}` : ""}
@@ -122,6 +134,12 @@ async function OfficialBody({ params }: PageProps) {
                   {official.email}
                 </a>
               ) : null}
+              {official.websiteUrl && !config ? (
+                <a href={official.websiteUrl} target="_blank" rel="noreferrer" className="tap flex items-center gap-2 font-bold text-primary hover:underline" data-testid="official-source">
+                  <ExternalLink className="size-4" aria-hidden />
+                  On the city&apos;s site
+                </a>
+              ) : null}
               {links.map((link) => (
                 <a key={link.url} href={link.url} target="_blank" rel="noreferrer" className="tap flex items-center gap-2 font-bold text-primary hover:underline" data-testid="official-role-link">
                   <ExternalLink className="size-4" aria-hidden />
@@ -133,7 +151,7 @@ async function OfficialBody({ params }: PageProps) {
               <OuterBlock className="space-y-2">
                 <h2 className="text-lg font-extrabold">Say it to them in person</h2>
                 <p className="text-sm">
-                  The {city.council.name} meets next on{" "}
+                  The {councilName} meets next on{" "}
                   {next.startsAt.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: state.timeZone })}.
                 </p>
                 <Link href={cityHref} className={buttonVariants({ variant: "outline" })}>
@@ -202,7 +220,7 @@ async function OfficialBody({ params }: PageProps) {
               </OuterBlock>
               <p className="flex items-start gap-1.5 text-sm text-muted-foreground">
                 <FileText className="mt-0.5 size-4 shrink-0" aria-hidden />
-                Rebuilt from the {city.name} City Clerk&apos;s minutes. A vote only appears when the names add up to the tally the clerk recorded, and one split
+                Rebuilt from the {city.name}{" "}City Clerk&apos;s minutes. A vote only appears when the names add up to the tally the clerk recorded, and one split
                 across sub-items is left out rather than guessed.
               </p>
             </Stack>

@@ -67,7 +67,7 @@ export default async function LeaderboardPage() {
         ) : (
           <>
             <p className="text-sm text-muted-foreground">
-              Joining shows your username and that you&apos;re in {stateName} to anyone signed in. It&apos;s off until you
+              Joining shows your username and that you&apos;re in {stateName}{" "}to anyone signed in. It&apos;s off until you
               choose it, and you can leave anytime.
             </p>
             <LeaderboardToggle joined={board.joined} />

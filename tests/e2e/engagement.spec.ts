@@ -49,13 +49,13 @@ test.describe("the dashboard", () => {
     for (const slug of ["us-119-hr-2388", "us-119-s-4465"]) expect((await vote(page, slug)).ok()).toBe(true);
     await page.reload();
     await expect(quests.first()).toContainText("2/3");
-    await expect(page.getByTestId("daily-goal")).toHaveText("2/3");
+    await expect(page.getByRole("main").getByTestId("daily-goal")).toHaveText("2/3");
     await expectNoHorizontalOverflow(page);
   });
 
-  test("charts how you've voted by topic, from real votes, with a table too", async ({ page }) => {
+  test("charts how you've voted by topic on Progress, from real votes, with a table too", async ({ page }) => {
     await newUser(page);
-    await page.goto("/dashboard");
+    await page.goto("/progress");
     await expect(page.getByTestId("lean-empty")).toBeVisible();
     await vote(page, "us-119-s-4465", "NAY");
     await page.reload();
@@ -70,7 +70,7 @@ test.describe("the dashboard", () => {
   test("shows what moved since your last visit", async ({ page }) => {
     await newUser(page);
     await vote(page, "us-119-s-4465", "NAY");
-    await page.goto("/dashboard");
+    await page.goto("/progress");
     await expect(page.getByTestId("lean-row").first()).toBeVisible();
     await expect(page.getByTestId("lean-change")).toHaveCount(0);
     // The page shows from the server first, so wait until the chart has remembered this visit.
@@ -162,10 +162,10 @@ test.describe("the leaderboard", () => {
     await page.goto("/leaderboard");
     await expect(page.getByTestId("leaderboard-me")).toContainText("You'd be #");
     await expect(page.getByTestId("leaderboard-me")).toContainText("10 XP");
-    await expect(page.getByTestId("leaderboard-row").filter({ hasText: username })).toHaveCount(0);
+    await expect(page.getByRole("main").getByTestId("leaderboard-row").filter({ hasText: username })).toHaveCount(0);
 
     await page.getByTestId("leaderboard-toggle").click();
-    const mine = page.getByTestId("leaderboard-row").filter({ hasText: username });
+    const mine = page.getByRole("main").getByTestId("leaderboard-row").filter({ hasText: username });
     await expect(mine).toContainText("10 XP");
     await expect(page.getByTestId("leaderboard-me")).toContainText("You're #");
     await expectNoHorizontalOverflow(page);
@@ -185,7 +185,7 @@ test.describe("the leaderboard", () => {
     await newUser(page, "TX");
     await page.goto("/leaderboard");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Texas");
-    await expect(page.getByTestId("leaderboard-row").filter({ hasText: username })).toHaveCount(0);
+    await expect(page.getByRole("main").getByTestId("leaderboard-row").filter({ hasText: username })).toHaveCount(0);
   });
 
   test("only a moderator can take a name off", async ({ page }) => {
@@ -205,7 +205,7 @@ test.describe("the leaderboard", () => {
     await vote(page, "us-119-s-4465");
     await page.request.patch("/api/civic/leaderboard", { headers: ORIGIN, data: { optIn: true } });
     await page.goto("/leaderboard");
-    const row = page.getByTestId("leaderboard-row").filter({ hasText: username });
+    const row = page.getByRole("main").getByTestId("leaderboard-row").filter({ hasText: username });
     await expect(row).toBeVisible();
     const rowUser = await page.evaluate(async () => (await (await fetch("/api/auth/session")).json()).user.id as string);
 
@@ -214,6 +214,6 @@ test.describe("the leaderboard", () => {
     const removed = await page.request.delete("/api/civic/leaderboard", { headers: ORIGIN, data: { userId: rowUser } });
     expect(removed.ok()).toBe(true);
     await page.goto("/leaderboard");
-    await expect(page.getByTestId("leaderboard-row").filter({ hasText: username })).toHaveCount(0);
+    await expect(page.getByRole("main").getByTestId("leaderboard-row").filter({ hasText: username })).toHaveCount(0);
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Lock, Medal } from "lucide-react";
+import { Disclosure } from "@/components/ui/disclosure";
 import { Progress } from "@/components/ui/progress";
 import type { HudProgress } from "@/lib/civic/progress";
 import { rankFor, RANKS } from "@/lib/civic/ranks";
@@ -49,7 +50,9 @@ export function RankCard({ initial }: { initial: HudProgress }) {
           You&apos;ve reached the top rank, with {xp} XP. Thank you for taking part.
         </p>
       )}
-      <ol className="grid grid-cols-1 gap-1 sm:grid-cols-3" aria-label="All ranks" data-testid="rank-ladder">
+      {/* The whole ladder is there for anyone curious, folded away so the next goal leads. */}
+      <Disclosure title={`All ${RANKS.length} ranks`} data-testid="rank-ladder-toggle">
+      <ol className="mt-2 grid grid-cols-1 gap-1 sm:grid-cols-3" aria-label="All ranks" data-testid="rank-ladder">
         {RANKS.map((step, index) => {
           const reached = xp >= step.xp;
           const current = index + 1 === position;
@@ -71,6 +74,7 @@ export function RankCard({ initial }: { initial: HudProgress }) {
           );
         })}
       </ol>
+      </Disclosure>
     </div>
   );
 }

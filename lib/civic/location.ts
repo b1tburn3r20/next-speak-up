@@ -2,6 +2,8 @@
 // Coordinates and addresses are only used for the lookup, and are never stored.
 
 const GEOCODER = "https://geocoding.geo.census.gov/geocoder/geographies";
+// Long enough for a slow day at the Census, short enough that the page offers choosing by hand instead.
+const CENSUS_TIMEOUT_MS = 15_000;
 
 export const AT_LARGE = "AL";
 
@@ -106,13 +108,41 @@ export function censusVintage(date: Date = new Date()): string {
   return VINTAGE_BY_CONGRESS[congressOn(date)] ?? "Current_Current";
 }
 
-function commonParams(): URLSearchParams {
-  return new URLSearchParams({
-    benchmark: "Public_AR_Current",
-    vintage: censusVintage(),
-    layers: "all",
-    format: "json",
-  });
+// Only the layers this file reads: incorporated places, congressional districts, and both state
+// legislative chambers. "all" asks the Census for dozens more, and takes 4 to 13 seconds instead of a
+// few. The numbers belong to each vintage's map, so a vintage not listed here falls back to "all".
+const LAYERS_BY_VINTAGE: Record<string, string> = {
+  ACS2024_Current: "28,54,56,58",
+};
+
+export function censusLayers(vintage: string): string {
+  return LAYERS_BY_VINTAGE[vintage] ?? "all";
+}
+
+export type CensusQuery = { lat: number; lng: number } | { address: string };
+
+/**
+ * The Census geocoder's address for a lookup. "jsonp" wraps the answer in a call to `callback`, which
+ * is how a browser can ask the Census directly: it sends no CORS headers, so a plain fetch from a page
+ * can't read the answer. See components/onboarding/census-lookup.ts.
+ */
+export function censusLookupUrl(query: CensusQuery, format: "json" | "jsonp" = "json", callback?: string): string {
+  const vintage = censusVintage();
+  const params = new URLSearchParams({ benchmark: "Public_AR_Current", vintage, layers: censusLayers(vintage), format });
+  if (format === "jsonp" && callback) params.set("callback", callback);
+  if ("address" in query) {
+    params.set("address", query.address);
+    return `${GEOCODER}/onelineaddress?${params}`;
+  }
+  params.set("x", String(query.lng));
+  params.set("y", String(query.lat));
+  return `${GEOCODER}/coordinates?${params}`;
+}
+
+/** The district in a Census answer: the point's own, or an address's first match. */
+export function parseCensusResult(query: CensusQuery, data: unknown): ResolvedDistrict | null {
+  const result = (data as { result?: { geographies?: unknown; addressMatches?: { geographies?: unknown }[] } } | null)?.result;
+  return parseGeographies("address" in query ? result?.addressMatches?.[0]?.geographies : result?.geographies);
 }
 
 async function readResponse(response: Response) {
@@ -120,28 +150,30 @@ async function readResponse(response: Response) {
   return response.json();
 }
 
+/** Asks the Census, and once more if it couldn't even be reached. A slow answer isn't retried, since it'd only be slower. */
+async function askCensus(url: string, fetcher: Fetcher) {
+  try {
+    return await readResponse(await fetcher(url, { cache: "no-store", signal: AbortSignal.timeout(CENSUS_TIMEOUT_MS) }));
+  } catch (error) {
+    const unreachable = error instanceof TypeError && /fetch failed/i.test(error.message);
+    if (!unreachable) throw error;
+    return readResponse(await fetcher(url, { cache: "no-store", signal: AbortSignal.timeout(CENSUS_TIMEOUT_MS) }));
+  }
+}
+
 export async function districtFromCoordinates(
   lat: number,
   lng: number,
   fetcher: Fetcher = fetch,
 ): Promise<ResolvedDistrict | null> {
-  const params = commonParams();
-  params.set("x", String(lng));
-  params.set("y", String(lat));
-  const data = await readResponse(
-    await fetcher(`${GEOCODER}/coordinates?${params}`, { cache: "no-store" }),
-  );
-  return parseGeographies(data?.result?.geographies);
+  const query = { lat, lng };
+  return parseCensusResult(query, await askCensus(censusLookupUrl(query), fetcher));
 }
 
 export async function districtFromAddress(
   address: string,
   fetcher: Fetcher = fetch,
 ): Promise<ResolvedDistrict | null> {
-  const params = commonParams();
-  params.set("address", address);
-  const data = await readResponse(
-    await fetcher(`${GEOCODER}/onelineaddress?${params}`, { cache: "no-store" }),
-  );
-  return parseGeographies(data?.result?.addressMatches?.[0]?.geographies);
+  const query = { address };
+  return parseCensusResult(query, await askCensus(censusLookupUrl(query), fetcher));
 }

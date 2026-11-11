@@ -36,22 +36,24 @@ model User {
   role             Role?                     @relation(fields: [roleId], references: [id])
 
   // Schema v2
-  locations       UserLocation[]
-  policyTopics    UserPolicyTopic[]
-  billVotes       UserBillVote[]
-  billGateSkips   UserBillSkip[]
-  profile         UserProfile?
-  auditActions    AdminAuditLog[] @relation("AuditActor")
-  xpEvents        XpEvent[]
-  civicActions    CivicAction[]
+  locations           UserLocation[]
+  policyTopics        UserPolicyTopic[]
+  billVotes           UserBillVote[]
+  billGateSkips       UserBillSkip[]
+  profile             UserProfile?
+  auditActions        AdminAuditLog[]        @relation("AuditActor")
+  xpEvents            XpEvent[]
+  civicActions        CivicAction[]
   // Off unless they choose it, because being listed shows they use this app, and their state.
-  leaderboardOptIn    Boolean   @default(false)
+  leaderboardOptIn    Boolean                @default(false)
   // Set by a moderator. They stay off the board even if opted in.
   leaderboardHiddenAt DateTime?
-  billFollows     UserBillFollow[]
-  personFavorites UserPersonFavorite[]
-  repAlignments   UserRepAlignment[]
-  password        UserPassword?
+  billFollows         UserBillFollow[]
+  personFavorites     UserPersonFavorite[]
+  repAlignments       UserRepAlignment[]
+  password            UserPassword?
+  pushSubscriptions   PushSubscription[]
+  notifications       NotificationDelivery[]
 
   @@index([roleId], map: "user_roleId_fkey")
   @@map("user")
@@ -290,13 +292,13 @@ model UserProfile {
 
 // Who changed what in the admin panel. Kept if the account is deleted, with the actor's name copied.
 model AdminAuditLog {
-  id         Int      @id @default(autoincrement())
-  actorId    String?
-  actorName  String   @db.VarChar(160)
-  action     String   @db.VarChar(60)
-  target     String?  @db.VarChar(191)
-  detail     String?  @db.Text
-  createdAt  DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  actorId   String?
+  actorName String   @db.VarChar(160)
+  action    String   @db.VarChar(60)
+  target    String?  @db.VarChar(191)
+  detail    String?  @db.Text
+  createdAt DateTime @default(now())
 
   actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
 

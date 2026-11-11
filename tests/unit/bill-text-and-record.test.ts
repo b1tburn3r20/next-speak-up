@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  billHtmlToText,
+  isFetchableTextUrl,
   clampText,
   htmlToPlainText,
   pickLatestTextVersion,
@@ -49,6 +51,27 @@ describe("htmlToPlainText", () => {
     expect(htmlToPlainText("<p><b>This</b> bill &amp; that.</p><ul><li>One</li></ul>")).toBe(
       "This bill & that.\nOne",
     );
+  });
+});
+
+describe("billHtmlToText", () => {
+  it("keeps a bill's line breaks and indents, and drops markup, scripts, and the title", () => {
+    const page =
+      "<html><head><title>BILLS</title><style>x{}</style><script>alert(1)</script></head><body><pre>\r\n" +
+      "SECTION 1. SHORT TITLE.   \r\n\r\n\r\n\r\n  This Act may be cited as the &quot;Test Act&quot; &amp; more.\r\n</pre></body></html>";
+    expect(billHtmlToText(page)).toBe('SECTION 1. SHORT TITLE.\n\n  This Act may be cited as the "Test Act" & more.');
+  });
+});
+
+describe("isFetchableTextUrl", () => {
+  it("only lets the server fetch bill text from Congress.gov or GovInfo, over https", () => {
+    expect(isFetchableTextUrl("https://www.congress.gov/119/bills/s5533/BILLS-119s5533is.htm")).toBe(true);
+    expect(isFetchableTextUrl("https://www.govinfo.gov/content/pkg/BILLS-119hr1ih/html/BILLS-119hr1ih.htm")).toBe(true);
+    expect(isFetchableTextUrl("http://www.congress.gov/119/bills/x.htm")).toBe(false);
+    expect(isFetchableTextUrl("https://congress.gov.evil.example/x.htm")).toBe(false);
+    expect(isFetchableTextUrl("https://127.0.0.1/x")).toBe(false);
+    expect(isFetchableTextUrl("not a url")).toBe(false);
+    expect(isFetchableTextUrl(null)).toBe(false);
   });
 });
 

@@ -1,3 +1,5 @@
+import { FORUM_OPEN } from "@/lib/features";
+import { forumClosed } from "@/lib/api/forum-closed";
 // 2. API Route: app/api/forum/posts/delete/route.ts
 
 import { NextResponse } from "next/server";
@@ -7,6 +9,7 @@ import { softDeletePost } from "@/lib/services/forum-service";
 import { can } from "@/lib/auth/permissions";
 
 export async function POST(request) {
+  if (!FORUM_OPEN) return forumClosed();
   try {
     const session = await getServerSession(authOptions);
 

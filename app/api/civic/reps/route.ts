@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getCityOfficials } from "@/lib/civic/city";
 import { getStateLocation, getStateSeats } from "@/lib/civic/state";
 import { chamberName, stateByRegion } from "@/lib/civic/states";
 import { getUserLocation } from "@/lib/civic/users";
 import { roleLabel, seatLabel } from "@/lib/civic/labels";
 import { memberKeyOf, repsForLocation } from "@/lib/civic/people";
 import { STATE_NAMES } from "@/lib/constants/state-names";
+import { stateRoutes } from "@/lib/routes";
 
 export async function GET(request: NextRequest) {
   let state = request.nextUrl.searchParams.get("state")?.toUpperCase() ?? "";
@@ -25,9 +27,17 @@ export async function GET(request: NextRequest) {
   const stateName = (STATE_NAMES as Record<string, string>)[state] ?? state;
   const session = await getServerSession(authOptions);
   const covered = stateByRegion(state);
-  const seats = covered && session?.user?.id ? await getStateSeats(await getStateLocation(session.user.id, covered)) : [];
+  const location = covered && session?.user?.id ? await getStateLocation(session.user.id, covered) : null;
+  const seats = location ? await getStateSeats(location) : [];
+  const city = covered && location?.city ? location.city : null;
+  const mayor = city ? (await getCityOfficials(city)).find((official) => official.terms[0]?.role === "MAYOR") : undefined;
   return NextResponse.json({
     stateName: covered?.name ?? null,
+    // The city a lookup placed them in, if it's in a state we cover.
+    city:
+      covered && city
+        ? { key: city.key, name: city.name, href: stateRoutes(covered.key).city(city.key), mayor: mayor ? { name: mayor.fullName, imageUrl: mayor.imageUrl } : null }
+        : null,
     stateReps: seats.flatMap((seat) => {
       const term = seat.member?.terms[0];
       return seat.member

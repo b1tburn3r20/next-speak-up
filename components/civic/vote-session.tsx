@@ -12,10 +12,10 @@ import { cn } from "@/lib/utils";
 import { useCivicStore } from "@/stores/use-civic-store";
 import { routes } from "@/lib/routes";
 
-export function SessionProgress({ current, total }: { current: number; total: number }) {
+export function SessionProgress({ current, total, exitHref = "/dashboard" }: { current: number; total: number; exitHref?: string }) {
   return (
     <div className="flex items-center gap-3">
-      <Link href="/dashboard" aria-label="Leave this session" className="text-muted-foreground hover:text-foreground">
+      <Link href={exitHref} aria-label="Leave this session" className="text-muted-foreground hover:text-foreground">
         <X className="size-6" aria-hidden />
       </Link>
       <Progress
@@ -111,10 +111,19 @@ export function VoteSession({
   slugs,
   cards,
   signedIn,
+  reasons = [],
+  finish,
+  exitHref,
 }: {
   slugs: string[];
   cards: React.ReactNode[];
   signedIn: boolean;
+  /** Why each bill is in this session, in a few words. */
+  reasons?: string[];
+  /** What to show at the end, in place of the usual recap, like a pulse check's summary. */
+  finish?: React.ReactNode;
+  /** Where the X goes. */
+  exitHref?: string;
 }) {
   const [index, setIndex] = useState(0);
   // Bills in a row you've voted on. Skipping starts it over, without any penalty.
@@ -127,7 +136,7 @@ export function VoteSession({
 
   return (
     <div className="space-y-4" data-testid="vote-session">
-      <SessionProgress current={Math.min(index, slugs.length)} total={slugs.length} />
+      <SessionProgress current={Math.min(index, slugs.length)} total={slugs.length} exitHref={exitHref} />
       {combo >= 2 && !finished ? (
         <p key={combo} className="animate-pop-in flex items-center justify-center gap-1 font-extrabold" data-testid="session-combo">
           <Flame className="size-5 text-streak" aria-hidden />
@@ -135,10 +144,14 @@ export function VoteSession({
         </p>
       ) : null}
       {finished ? (
-        <SessionFinish slugs={slugs} signedIn={signedIn} startXp={startXp} />
+        (finish ?? <SessionFinish slugs={slugs} signedIn={signedIn} startXp={startXp} />)
       ) : (
         <>
-          <div key={slug} className="animate-rise-in">
+          <div key={slug} className="animate-rise-in space-y-2">
+            <p className="text-xs font-extrabold uppercase tracking-wide text-muted-foreground" data-testid="session-reason">
+              Bill {index + 1} of {slugs.length}
+              {reasons[index] ? ` · ${reasons[index]}` : ""}
+            </p>
             {cards[index]}
           </div>
           <div className="flex gap-2">

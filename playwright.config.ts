@@ -44,6 +44,9 @@ export default defineConfig({
       UPSTASH_REDIS_REST_URL: "",
       UPSTASH_REDIS_REST_TOKEN: "",
       RATE_LIMITING_DISABLED: "true",
+      // Push is free, but tests mustn't reach real phones. Without the private key, nothing is sent.
+      VAPID_PRIVATE_KEY: "",
+      NOTIFY_DISPATCH: "",
     },
   },
 });
